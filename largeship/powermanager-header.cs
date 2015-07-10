@@ -1,0 +1,4 @@
+// PowerManager
+const float POWER_MANAGER_HIGH_LOAD_THRESHOLD = 0.8f;
+const float POWER_MANAGER_LOW_LOAD_THRESHOLD = 0.2f;
+const string POWER_MANAGER_QUIET_TIMEOUT = "00:00:10"; // HH:MM[:SS]
