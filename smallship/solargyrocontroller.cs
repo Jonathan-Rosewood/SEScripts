@@ -24,12 +24,11 @@ public class SolarGyroController
     }
 
     // Why no enums, Keen?!
-    private const int GyroAxisYaw = 0;
-    private const int GyroAxisPitch = 1;
-    private const int GyroAxisRoll = 2;
+    public const int GyroAxisYaw = 0;
+    public const int GyroAxisPitch = 1;
+    public const int GyroAxisRoll = 2;
 
-    private readonly int[] allowedAxes = new int[] { GyroAxisYaw, GyroAxisPitch, };
-    private readonly float[] lastVelocities = new float[] { SOLAR_GYRO_VELOCITY, SOLAR_GYRO_VELOCITY };
+    private readonly float[] lastVelocities = new float[] { SOLAR_GYRO_VELOCITY, SOLAR_GYRO_VELOCITY, SOLAR_GYRO_VELOCITY };
 
     private bool FirstRun = true;
     private int axisIndex = 0;
@@ -128,7 +127,7 @@ public class SolarGyroController
             return;
         }
 
-        var currentAxis = allowedAxes[axisIndex];
+        var currentAxis = SOLAR_GYRO_ALLOWED_AXES[axisIndex];
 
         // FIXME
         if (FirstRun)
@@ -164,10 +163,10 @@ public class SolarGyroController
             lastVelocities[axisIndex] = GetAxisVelocity(gyro, currentAxis);
 
             axisIndex++;
-            axisIndex %= allowedAxes.Length;
+            axisIndex %= SOLAR_GYRO_ALLOWED_AXES.Length;
 
             ResetGyro(gyro);
-            SetAxisVelocity(gyro, allowedAxes[axisIndex], lastVelocities[axisIndex]);
+            SetAxisVelocity(gyro, SOLAR_GYRO_ALLOWED_AXES[axisIndex], lastVelocities[axisIndex]);
         }
 
         program.Echo(String.Format("Solar Max Power: {0}", ZALibrary.FormatPower(currentMaxPower)));
