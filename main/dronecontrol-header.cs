@@ -26,3 +26,5 @@
 // If this group doesn't exist, the script will look at all blocks that
 // are on the same grid as this script's programmable block.
 const string SHIP_NAME = "MyDrone";
+
+const bool MAX_POWER_ENABLED = false; // Set to true to enable rotor code
