@@ -56,7 +56,7 @@ void Main(string argument)
     }
     else
     {
-        batteryManager.Run(this, ship);
+        batteryManager.Run(this, ship, argument);
         solarGyroController.Run(this, ship, argument);
     }
 }

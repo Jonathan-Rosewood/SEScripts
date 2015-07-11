@@ -35,6 +35,7 @@ public class BatteryManager
         void PowerDrainEnded(ZALibrary.Ship ship);
     }
 
+    private const int STATE_DISABLED = -1;
     private const int STATE_NORMAL = 0;
     private const int STATE_RECHARGE = 1;
 
@@ -69,13 +70,26 @@ public class BatteryManager
         return DrainCounts >= BATTERY_MANAGER_DRAIN_CHECK_THRESHOLD;
     }
 
-    public void Run(MyGridProgram program, ZALibrary.Ship ship)
+    public void Run(MyGridProgram program, ZALibrary.Ship ship, string argument)
     {
         var batteries = ship.GetBlocksOfType<IMyBatteryBlock>(delegate (IMyBatteryBlock battery)
                                                               {
                                                                   return battery.IsFunctional && battery.Enabled;
                                                               });
 
+
+        argument = argument.Trim().ToLower();
+        if (argument == "forcerecharge")
+        {
+            CurrentState = STATE_DISABLED;
+            ZALibrary.SetBatteryRecharge(batteries, true);
+            return;
+        }
+        else if (argument == "autorecharge")
+        {
+            CurrentState = null;
+            // Fall through as if first time
+        }
 
         if (CurrentState == null)
         {
@@ -89,6 +103,7 @@ public class BatteryManager
         SinceLastStateChange += program.ElapsedTime;
 
         var aggregateDetails = new AggregateBatteryDetails(batteries);
+        string stateStr = "Unknown";
 
         switch (CurrentState)
         {
@@ -107,7 +122,13 @@ public class BatteryManager
                         CurrentState = STATE_RECHARGE;
                         ZALibrary.SetBatteryRecharge(batteries, true);
                     }
+                    else
+                    {
+                        // Force discharge, just in case
+                        ZALibrary.SetBatteryRecharge(batteries, false);
+                    }
                 }
+                stateStr = "Normal";
                 break;
             case STATE_RECHARGE:
                 // Too bad we don't have access to battery input (w/o parsing DetailInfo)
@@ -119,6 +140,17 @@ public class BatteryManager
                     SinceLastStateChange -= RechargeInterval;
                     ZALibrary.SetBatteryRecharge(batteries, false);
                 }
+                stateStr = "Recharging";
+                break;
+            case STATE_DISABLED:
+                // Switch back to auto if full
+                if (aggregateDetails.CurrentStoredPower >= aggregateDetails.MaxStoredPower)
+                {
+                    CurrentState = STATE_NORMAL;
+                    SinceLastStateChange = TimeSpan.FromSeconds(0);
+                    ZALibrary.SetBatteryRecharge(batteries, false);
+                }
+                stateStr = "Disabled";
                 break;
         }
 
@@ -138,6 +170,7 @@ public class BatteryManager
             
         Draining = newDraining;
 
+        program.Echo(String.Format("Battery Manager: {0}", stateStr));
         program.Echo(String.Format("Total Stored Power: {0}h", ZALibrary.FormatPower(aggregateDetails.CurrentStoredPower)));
         program.Echo(String.Format("Max Stored Power: {0}h", ZALibrary.FormatPower(aggregateDetails.MaxStoredPower)));
         if (Draining) program.Echo("Net power loss!");
