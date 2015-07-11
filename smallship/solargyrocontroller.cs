@@ -28,16 +28,19 @@ public class SolarGyroController
     public const int GyroAxisPitch = 1;
     public const int GyroAxisRoll = 2;
 
-    private readonly float[] lastVelocities = new float[3];
+    private readonly int[] allowedAxes;
+    private readonly float[] lastVelocities;
 
     private bool FirstRun = true;
     private int axisIndex = 0;
     private float maxPower = -100.0f;
     private bool Active = true;
 
-    public SolarGyroController()
+    public SolarGyroController(params int[] allowedAxes)
     {
         // Weird things happening with array constants
+        this.allowedAxes = (int[])allowedAxes.Clone();
+        lastVelocities = new float[this.allowedAxes.Length];
         for (int i = 0; i < lastVelocities.Length; i++)
         {
             lastVelocities[i] = SOLAR_GYRO_VELOCITY;
@@ -110,7 +113,7 @@ public class SolarGyroController
         SetAxisVelocity(gyro, GyroAxisRoll, 0.0f);
     }
 
-    public void Run(MyGridProgram program, ZALibrary.Ship ship, string argument, params int[] allowedAxes)
+    public void Run(MyGridProgram program, ZALibrary.Ship ship, string argument)
     {
         var gyros = ship.GetBlocksOfType<IMyGyro>();
         if (gyros.Count != 1) return; // TODO
