@@ -28,13 +28,22 @@ public class SolarGyroController
     public const int GyroAxisPitch = 1;
     public const int GyroAxisRoll = 2;
 
-    private readonly float[] lastVelocities = new float[] { SOLAR_GYRO_VELOCITY, SOLAR_GYRO_VELOCITY, SOLAR_GYRO_VELOCITY };
+    private readonly float[] lastVelocities = new float[3];
 
     private bool FirstRun = true;
     private int axisIndex = 0;
     private float maxPower = -100.0f;
     private bool Active = true;
 
+    public SolarGyroController()
+    {
+        // Weird things happening with array constants
+        for (int i = 0; i < lastVelocities.Length; i++)
+        {
+            lastVelocities[i] = SOLAR_GYRO_VELOCITY;
+        }
+    }
+    
     private void EnableGyroOverride(IMyGyro gyro, bool enable)
     {
         if ((gyro.GyroOverride && !enable) ||
@@ -101,7 +110,7 @@ public class SolarGyroController
         SetAxisVelocity(gyro, GyroAxisRoll, 0.0f);
     }
 
-    public void Run(MyGridProgram program, ZALibrary.Ship ship, string argument)
+    public void Run(MyGridProgram program, ZALibrary.Ship ship, string argument, params int[] allowedAxes)
     {
         var gyros = ship.GetBlocksOfType<IMyGyro>();
         if (gyros.Count != 1) return; // TODO
@@ -127,7 +136,7 @@ public class SolarGyroController
             return;
         }
 
-        var currentAxis = SOLAR_GYRO_ALLOWED_AXES[axisIndex];
+        var currentAxis = allowedAxes[axisIndex];
 
         // FIXME
         if (FirstRun)
@@ -163,10 +172,10 @@ public class SolarGyroController
             lastVelocities[axisIndex] = GetAxisVelocity(gyro, currentAxis);
 
             axisIndex++;
-            axisIndex %= SOLAR_GYRO_ALLOWED_AXES.Length;
+            axisIndex %= allowedAxes.Length;
 
             ResetGyro(gyro);
-            SetAxisVelocity(gyro, SOLAR_GYRO_ALLOWED_AXES[axisIndex], lastVelocities[axisIndex]);
+            SetAxisVelocity(gyro, allowedAxes[axisIndex], lastVelocities[axisIndex]);
         }
 
         program.Echo(String.Format("Solar Max Power: {0}", ZALibrary.FormatPower(currentMaxPower)));

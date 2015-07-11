@@ -44,5 +44,9 @@ void Main(string argument)
     ZALibrary.Ship ship = new ZALibrary.Ship(this);
 
     batteryManager.Run(this, ship);
-    solarGyroController.Run(this, ship, argument);
+    solarGyroController.Run(this, ship, argument
+                            //, SolarGyroController.GyroAxisYaw
+                            , SolarGyroController.GyroAxisPitch
+                            , SolarGyroController.GyroAxisRoll
+                                );
 }

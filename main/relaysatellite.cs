@@ -53,6 +53,10 @@ void Main(string argument)
     else
     {
         batteryManager.Run(this, ship);
-        solarGyroController.Run(this, ship, argument);
+        solarGyroController.Run(this, ship, argument
+                                , SolarGyroController.GyroAxisYaw
+                                , SolarGyroController.GyroAxisPitch
+                                //, SolarGyroController.GyroAxisRoll
+                                );
     }
 }
