@@ -158,7 +158,7 @@ public class PowerManager
 
                         if (battery.Enabled && battery.ProductionEnabled)
                         {
-                            if (battery.Enabled) battery.GetActionWithName("OnOff_Off").Apply(battery);
+                            battery.GetActionWithName("OnOff_Off").Apply(battery);
                             ZALibrary.SetBatteryRecharge(battery, true);
                             break;
                         }
