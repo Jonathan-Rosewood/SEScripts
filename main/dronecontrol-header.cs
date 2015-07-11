@@ -11,6 +11,8 @@
  *
  * Additional features:
  * - "Safe Mode" timer block started on safety dampeners engaging
+ * - "Safe Mode" timer block started if drone has been abandoned: no one
+ *   has used remote control or sat in a cockpit etc. after an hour (configurable)
  * - Battery check which starts the "Low Battery" timer block when charge
  *   falls below a threshold
  * - Rotor controller for maximum solar power (also released as my Solar Max Power script)

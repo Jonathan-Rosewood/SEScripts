@@ -84,22 +84,25 @@ public class SafeMode
             ResetAbandonment();
         }
 
-        // Abandonment check
-        if (!IsControlled)
+        if (ABANDONMENT_ENABLED)
         {
-            LastControlled += program.ElapsedTime;
-
-            if (!Abandoned && LastControlled >= AbandonmentTimeout)
+            // Abandonment check
+            if (!IsControlled)
             {
-                Abandoned = true;
-                ship.StartTimerBlockWithName(SAFE_MODE_NAME);
+                LastControlled += program.ElapsedTime;
+
+                if (!Abandoned && LastControlled >= AbandonmentTimeout)
+                {
+                    Abandoned = true;
+                    ship.StartTimerBlockWithName(SAFE_MODE_NAME);
+                }
             }
+            else
+            {
+                ResetAbandonment();
+            }
+            // program.Echo("Timeout: " + AbandonmentTimeout);
+            // program.Echo("Last Controlled: " + LastControlled);
         }
-        else
-        {
-            ResetAbandonment();
-        }
-        // program.Echo("Timeout: " + AbandonmentTimeout);
-        // program.Echo("Last Controlled: " + LastControlled);
     }
 }
