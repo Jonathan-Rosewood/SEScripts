@@ -23,6 +23,6 @@ void Main(string argument)
         if (OXYGEN_MANAGER_ENABLE) oxygenManager.Run(this, ship);
         if (POWER_MANAGER_ENABLE) powerManager.Run(this, ship);
         if (REFINERY_MANAGER_ENABLE) refineryManager.Run(this, ship);
-        if (PRODUCTION_MANAGER_ENABLE) productionManager.Run(this, ship);
+        if (PRODUCTION_MANAGER_ENABLE) productionManager.Run(this, ship, argument);
     }
 }

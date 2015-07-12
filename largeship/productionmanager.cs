@@ -96,6 +96,8 @@ public class ProductionManager
             new ItemStock("Thrust", 16000),
         };
 
+    private bool Active = true;
+
     private Dictionary<string, VRage.MyFixedPoint> EnumerateItems(List<IMyTerminalBlock> blocks, HashSet<string> allowedSubtypes)
     {
         var result = new Dictionary<string, VRage.MyFixedPoint>();
@@ -178,7 +180,7 @@ public class ProductionManager
         }
     }
 
-    public void Run(MyGridProgram program, List<IMyTerminalBlock> ship)
+    public void Run(MyGridProgram program, List<IMyTerminalBlock> ship, string argument)
     {
         if (LIMIT_PRODUCTION_MANAGER_SAME_GRID)
         {
@@ -222,19 +224,37 @@ public class ProductionManager
             }
         }
 
-        // Get current stocks
-        var stocks = EnumerateItems(ship, allowedSubtypes);
-
-        // Now we just enable/disable based on who's low
-        for (var e = assemblerTargets.GetEnumerator(); e.MoveNext();)
+        argument = argument.Trim().ToLower();
+        if (argument == "prodpause")
         {
-            var subtype = e.Current.Key;
-            var target = e.Current.Value;
-            VRage.MyFixedPoint currentStock;
-            if (!stocks.TryGetValue(subtype, out currentStock)) currentStock = (VRage.MyFixedPoint)0.0f;
+            Active = false;
+            // Shut down all known assemblers
+            for (var e = assemblerTargets.Values.GetEnumerator(); e.MoveNext();)
+            {
+                e.Current.EnableAssemblers(false);
+            }
+        }
+        else if (argument == "prodresume")
+        {
+            Active = true;
+        }
 
-            // Enable or disable based on current stock
-            target.EnableAssemblers((float)currentStock < target.Amount);
+        if (Active)
+        {
+            // Get current stocks
+            var stocks = EnumerateItems(ship, allowedSubtypes);
+
+            // Now we just enable/disable based on who's low
+            for (var e = assemblerTargets.GetEnumerator(); e.MoveNext();)
+            {
+                var subtype = e.Current.Key;
+                var target = e.Current.Value;
+                VRage.MyFixedPoint currentStock;
+                if (!stocks.TryGetValue(subtype, out currentStock)) currentStock = (VRage.MyFixedPoint)0.0f;
+
+                // Enable or disable based on current stock
+                target.EnableAssemblers((float)currentStock < target.Amount);
+            }
         }
     }
 }
