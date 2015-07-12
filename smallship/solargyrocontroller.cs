@@ -31,10 +31,13 @@ public class SolarGyroController
     private readonly int[] allowedAxes;
     private readonly float[] lastVelocities;
 
+    private readonly TimeSpan AxisTimeout = TimeSpan.FromSeconds(15);
+
     private bool FirstRun = true;
     private int axisIndex = 0;
     private float maxPower = -100.0f;
     private bool Active = true;
+    private TimeSpan TimeOnAxis;
 
     public SolarGyroController(params int[] allowedAxes)
     {
@@ -131,6 +134,7 @@ public class SolarGyroController
         {
             Active = true;
             EnableGyroOverride(gyro, true);
+            TimeOnAxis = TimeSpan.FromSeconds(0);
         }
 
         if (!Active)
@@ -147,6 +151,7 @@ public class SolarGyroController
             FirstRun = false;
             ResetGyro(gyro);
             SetAxisVelocity(gyro, currentAxis, lastVelocities[axisIndex]);
+            TimeOnAxis = TimeSpan.FromSeconds(0);
         }
 
         var solarPanelDetails = new SolarPanelDetails(ship);
@@ -154,31 +159,39 @@ public class SolarGyroController
 
         var minError = solarPanelDetails.DefinedPowerOutput * 0.005f; // From experimentation
         var delta = currentMaxPower - maxPower;
+        maxPower = currentMaxPower;
 
-        if (delta > minError || currentMaxPower < minError /* failsafe */)
+        if (delta > minError)
         {
             // Keep going
             EnableGyroOverride(gyro, true);
-            maxPower = currentMaxPower;
         }
         else if (delta < -minError)
         {
             // Back up
             EnableGyroOverride(gyro, true);
             ReverseAxisVelocity(gyro, currentAxis);
-            maxPower = currentMaxPower;
         }
         else
         {
+            // Hold still
             EnableGyroOverride(gyro, false);
+        }
 
+        TimeOnAxis += program.ElapsedTime;
+
+        if (TimeOnAxis > AxisTimeout)
+        {
+            // Time out, try next axis
             lastVelocities[axisIndex] = GetAxisVelocity(gyro, currentAxis);
 
             axisIndex++;
             axisIndex %= allowedAxes.Length;
 
             ResetGyro(gyro);
+            EnableGyroOverride(gyro, true);
             SetAxisVelocity(gyro, allowedAxes[axisIndex], lastVelocities[axisIndex]);
+            TimeOnAxis = TimeSpan.FromSeconds(0);
         }
 
         program.Echo(String.Format("Solar Max Power: {0}", ZALibrary.FormatPower(currentMaxPower)));
