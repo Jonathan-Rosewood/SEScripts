@@ -29,4 +29,5 @@
 // are on the same grid as this script's programmable block.
 const string SHIP_NAME = "MyDrone";
 
+const bool ABANDONMENT_ENABLED = true; // Set to false to disable abandonment check
 const bool MAX_POWER_ENABLED = false; // Set to true to enable rotor code
