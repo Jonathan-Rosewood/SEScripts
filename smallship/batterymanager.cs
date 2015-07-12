@@ -44,6 +44,7 @@ public class BatteryManager
     
     private int? CurrentState = null;
     private TimeSpan SinceLastStateChange;
+    private bool Active = true;
 
     private PowerDrainHandler powerDrainHandler;
 
@@ -90,6 +91,16 @@ public class BatteryManager
             CurrentState = null;
             // Fall through as if first time
         }
+        else if (argument == "pause")
+        {
+            CurrentState = null;
+            Active = false;
+        }
+        else if (argument == "resume")
+        {
+            CurrentState = null;
+            Active = true;
+        }
 
         if (CurrentState == null)
         {
@@ -117,7 +128,8 @@ public class BatteryManager
                     // Only recharge if there is available power, e.g. the batteries have no load,
                     // and there is need to
                     if (aggregateDetails.CurrentPowerOutput == 0.0f &&
-                        aggregateDetails.CurrentStoredPower < aggregateDetails.MaxStoredPower)
+                        aggregateDetails.CurrentStoredPower < aggregateDetails.MaxStoredPower &&
+                        Active)
                     {
                         CurrentState = STATE_RECHARGE;
                         ZALibrary.SetBatteryRecharge(batteries, true);
@@ -128,7 +140,7 @@ public class BatteryManager
                         ZALibrary.SetBatteryRecharge(batteries, false);
                     }
                 }
-                stateStr = "Normal";
+                stateStr = Active ? "Normal" : "Paused";
                 break;
             case STATE_RECHARGE:
                 // Too bad we don't have access to battery input (w/o parsing DetailInfo)
