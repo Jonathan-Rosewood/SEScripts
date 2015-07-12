@@ -191,6 +191,7 @@ public class ComplexAirlock
     private void HandleCommand(string argument)
     {
         var parts = argument.Split(new char[] { ' ' }, 2);
+        if (parts.Length != 2) return;
         var command = parts[0];
         argument = parts[1].Trim();
 
