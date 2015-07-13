@@ -6,8 +6,7 @@ public class OxygenManager
     private const int OXYGEN_LEVEL_LOW = -1;
     private const int OXYGEN_LEVEL_UNKNOWN = -2; // Only used for first run
 
-    private bool FirstRun = true;
-    private int PreviousState;
+    private int? PreviousState = null;
 
     private float GetAverageOxygenTankLevel(List<IMyOxygenTank> blocks)
     {
@@ -50,15 +49,17 @@ public class OxygenManager
 
     public void Run(MyGridProgram program, List<IMyTerminalBlock> ship)
     {
-        var tanks = ZALibrary.GetBlocksOfType<IMyOxygenTank>(ship);
-
-        var currentState = GetOxygenState(tanks);
-
-        if (FirstRun)
+        if (PreviousState == null)
         {
-            FirstRun = false;
             PreviousState = OXYGEN_LEVEL_UNKNOWN;
         }
+
+        var tanks = ZALibrary.GetBlocksOfType<IMyOxygenTank>(ship, delegate (IMyOxygenTank tank)
+                                                             {
+                                                                 return tank.IsFunctional && tank.Enabled;
+                                                             });
+
+        var currentState = GetOxygenState(tanks);
 
         // Only act on level transitions
         if (PreviousState != currentState)
