@@ -127,12 +127,9 @@ public static class ZALibrary
         }
     }
 
-    // Not sure if really needed with IMyPowerProducer.ProductionEnabled?
     public static bool IsBatteryRecharging(IMyBatteryBlock battery)
     {
-        StringBuilder value = new StringBuilder();
-        battery.GetActionWithName("Recharge").WriteValue(battery, value);
-        return value.ToString() == "On";
+        return !battery.ProductionEnabled;
     }
 
     public static void SetBatteryRecharge(IMyBatteryBlock battery, bool recharge)
