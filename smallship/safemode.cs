@@ -1,10 +1,9 @@
 public class SafeMode
 {
-    private bool FirstRun = true;
-    private bool IsControlled;
+    private bool? IsControlled = null;
 
-    private bool PreviouslyDocked;
-    private TimeSpan AbandonmentTimeout;
+    private bool PreviouslyDocked = false;
+    private readonly TimeSpan AbandonmentTimeout = TimeSpan.Parse(ABANDONMENT_TIMEOUT);
     private TimeSpan LastControlled = TimeSpan.FromSeconds(0); // Hmm, TimeSpan.Zero doesn't work?
     private bool Abandoned = false;
 
@@ -37,18 +36,15 @@ public class SafeMode
             return; // Don't bother if we're docked
         }
 
-        var controllers = ship.GetBlocksOfType<IMyShipController>();
+        var controllers = ship.GetBlocksOfType<IMyShipController>(delegate (IMyShipController controller)
+                                                                  {
+                                                                      return controller.IsFunctional;
+                                                                  });
         var currentState = IsShipControlled(controllers);
 
-        if (FirstRun)
+        if (IsControlled == null)
         {
-            FirstRun = false;
             IsControlled = currentState;
-            if (!TimeSpan.TryParse(ABANDONMENT_TIMEOUT, out AbandonmentTimeout))
-            {
-                program.Echo("Invalid abandonment timeout, defaulting to 1 hour");
-                AbandonmentTimeout = TimeSpan.FromHours(1);
-            }
             return;
         }
 
@@ -57,7 +53,7 @@ public class SafeMode
         {
             IsControlled = currentState;
 
-            if (!IsControlled)
+            if (!(bool)IsControlled)
             {
                 var dampenersChanged = false;
 
@@ -87,7 +83,7 @@ public class SafeMode
         if (ABANDONMENT_ENABLED)
         {
             // Abandonment check
-            if (!IsControlled)
+            if (!(bool)IsControlled)
             {
                 LastControlled += program.ElapsedTime;
 
