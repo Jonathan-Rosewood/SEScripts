@@ -123,7 +123,7 @@ public class BatteryManager
                 {
                     // Don't check again until next interval, regardless of whether we
                     // change state
-                    SinceLastStateChange -= DischargeInterval;
+                    SinceLastStateChange = TimeSpan.FromSeconds(0);
 
                     // Only recharge if there is available power, e.g. the batteries have no load,
                     // and there is need to
@@ -149,7 +149,7 @@ public class BatteryManager
                 if (SinceLastStateChange >= RechargeInterval)
                 {
                     CurrentState = STATE_NORMAL;
-                    SinceLastStateChange -= RechargeInterval;
+                    SinceLastStateChange = TimeSpan.FromSeconds(0);
                     ZALibrary.SetBatteryRecharge(batteries, false);
                 }
                 stateStr = "Recharging";
