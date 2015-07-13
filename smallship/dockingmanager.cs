@@ -1,7 +1,6 @@
 public class DockingManager
 {
-    private bool FirstRun = true;
-    private bool IsConnected;
+    private bool? IsConnected = null;
 
     public void Run(MyGridProgram program, ZALibrary.Ship ship, string argument,
                     bool? isConnected = null)
@@ -9,9 +8,8 @@ public class DockingManager
         var currentState = isConnected != null ? (bool)isConnected :
             ship.IsConnectedAnywhere();
 
-        if (FirstRun)
+        if (IsConnected == null)
         {
-            FirstRun = false;
             IsConnected = !currentState; // And fall through below
         }
 
@@ -20,14 +18,14 @@ public class DockingManager
         {
             IsConnected = currentState;
 
-            ZALibrary.EnableBlocks(ship.GetBlocksOfType<IMyThrust>(), !IsConnected);
-            ZALibrary.EnableBlocks(ship.GetBlocksOfType<IMyGyro>(), !IsConnected);
-            ZALibrary.SetBatteryRecharge(ship.GetBlocksOfType<IMyBatteryBlock>(), IsConnected);
+            ZALibrary.EnableBlocks(ship.GetBlocksOfType<IMyThrust>(), !(bool)IsConnected);
+            ZALibrary.EnableBlocks(ship.GetBlocksOfType<IMyGyro>(), !(bool)IsConnected);
+            ZALibrary.SetBatteryRecharge(ship.GetBlocksOfType<IMyBatteryBlock>(), (bool)IsConnected);
 
-            if (TOUCH_ANTENNA) ZALibrary.EnableBlocks(ship.GetBlocksOfType<IMyRadioAntenna>(), !IsConnected);
-            if (TOUCH_LANTENNA) ZALibrary.EnableBlocks(ship.GetBlocksOfType<IMyLaserAntenna>(), !IsConnected);
-            if (TOUCH_BEACON) ZALibrary.EnableBlocks(ship.GetBlocksOfType<IMyBeacon>(), !IsConnected);
-            if (TOUCH_LIGHTS) ZALibrary.EnableBlocks(ship.GetBlocksOfType<IMyLightingBlock>(), !IsConnected);
+            if (TOUCH_ANTENNA) ZALibrary.EnableBlocks(ship.GetBlocksOfType<IMyRadioAntenna>(), !(bool)IsConnected);
+            if (TOUCH_LANTENNA) ZALibrary.EnableBlocks(ship.GetBlocksOfType<IMyLaserAntenna>(), !(bool)IsConnected);
+            if (TOUCH_BEACON) ZALibrary.EnableBlocks(ship.GetBlocksOfType<IMyBeacon>(), !(bool)IsConnected);
+            if (TOUCH_LIGHTS) ZALibrary.EnableBlocks(ship.GetBlocksOfType<IMyLightingBlock>(), !(bool)IsConnected);
         }
 
         var command = argument.Trim().ToLower();
