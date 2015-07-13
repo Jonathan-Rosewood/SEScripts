@@ -7,7 +7,10 @@ public class BatteryMonitor
         // Don't bother if there's no timer block
         if (lowBattery == null) return;
 
-        var batteries = ship.GetBlocksOfType<IMyBatteryBlock>();
+        var batteries = ship.GetBlocksOfType<IMyBatteryBlock>(delegate (IMyBatteryBlock battery)
+                                                              {
+                                                                  return battery.IsFunctional && battery.Enabled;
+                                                              });
 
         // Avoid divide-by-zero in case there are no batteries
         if (batteries.Count == 0) return;
