@@ -6,7 +6,7 @@ public class OxygenManager
     private const int OXYGEN_LEVEL_LOW = -1;
     private const int OXYGEN_LEVEL_UNKNOWN = -2; // Only used for first run
 
-    private bool FirstRun = false;
+    private bool FirstRun = true;
     private int PreviousState;
 
     private float GetAverageOxygenTankLevel(List<IMyOxygenTank> blocks)
