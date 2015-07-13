@@ -28,25 +28,24 @@ public class SolarGyroController
     public const int GyroAxisPitch = 1;
     public const int GyroAxisRoll = 2;
 
-    private readonly int[] allowedAxes;
-    private readonly float[] lastVelocities;
+    private readonly int[] AllowedAxes;
+    private readonly float[] LastVelocities;
 
     private readonly TimeSpan AxisTimeout = TimeSpan.FromSeconds(15);
 
-    private bool FirstRun = true;
-    private int axisIndex = 0;
-    private float maxPower = -100.0f;
+    private float? MaxPower = null;
+    private int AxisIndex = 0;
     private bool Active = true;
     private TimeSpan TimeOnAxis;
 
     public SolarGyroController(params int[] allowedAxes)
     {
         // Weird things happening with array constants
-        this.allowedAxes = (int[])allowedAxes.Clone();
-        lastVelocities = new float[this.allowedAxes.Length];
-        for (int i = 0; i < lastVelocities.Length; i++)
+        AllowedAxes = (int[])allowedAxes.Clone();
+        LastVelocities = new float[AllowedAxes.Length];
+        for (int i = 0; i < LastVelocities.Length; i++)
         {
-            lastVelocities[i] = SOLAR_GYRO_VELOCITY;
+            LastVelocities[i] = SOLAR_GYRO_VELOCITY;
         }
     }
     
@@ -118,7 +117,10 @@ public class SolarGyroController
 
     public void Run(MyGridProgram program, ZALibrary.Ship ship, string argument)
     {
-        var gyros = ship.GetBlocksOfType<IMyGyro>();
+        var gyros = ship.GetBlocksOfType<IMyGyro>(delegate (IMyGyro test)
+                                                  {
+                                                      return test.IsFunctional && test.Enabled;
+                                                  });
         if (gyros.Count != 1) return; // TODO
 
         var gyro = gyros[0];
@@ -143,14 +145,13 @@ public class SolarGyroController
             return;
         }
 
-        var currentAxis = allowedAxes[axisIndex];
+        var currentAxis = AllowedAxes[AxisIndex];
 
-        // FIXME
-        if (FirstRun)
+        if (MaxPower == null)
         {
-            FirstRun = false;
+            MaxPower = -100.0f; // Start with something absurdly low to kick things off
             ResetGyro(gyro);
-            SetAxisVelocity(gyro, currentAxis, lastVelocities[axisIndex]);
+            SetAxisVelocity(gyro, currentAxis, LastVelocities[AxisIndex]);
             TimeOnAxis = TimeSpan.FromSeconds(0);
         }
 
@@ -158,8 +159,8 @@ public class SolarGyroController
         var currentMaxPower = solarPanelDetails.MaxPowerOutput;
 
         var minError = solarPanelDetails.DefinedPowerOutput * 0.005f; // From experimentation
-        var delta = currentMaxPower - maxPower;
-        maxPower = currentMaxPower;
+        var delta = currentMaxPower - MaxPower;
+        MaxPower = currentMaxPower;
 
         if (delta > minError)
         {
@@ -183,14 +184,14 @@ public class SolarGyroController
         if (TimeOnAxis > AxisTimeout)
         {
             // Time out, try next axis
-            lastVelocities[axisIndex] = GetAxisVelocity(gyro, currentAxis);
+            LastVelocities[AxisIndex] = GetAxisVelocity(gyro, currentAxis);
 
-            axisIndex++;
-            axisIndex %= allowedAxes.Length;
+            AxisIndex++;
+            AxisIndex %= AllowedAxes.Length;
 
             ResetGyro(gyro);
             EnableGyroOverride(gyro, true);
-            SetAxisVelocity(gyro, allowedAxes[axisIndex], lastVelocities[axisIndex]);
+            SetAxisVelocity(gyro, AllowedAxes[AxisIndex], LastVelocities[AxisIndex]);
             TimeOnAxis = TimeSpan.FromSeconds(0);
         }
 
