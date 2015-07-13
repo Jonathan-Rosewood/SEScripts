@@ -185,7 +185,7 @@ public class ComplexAirlock
                                        targetDoors != null ?
                                        new HashSet<IMyDoor>(targetDoors) :
                                        new HashSet<IMyDoor>());
-        openQueue.Add(roomName, entry);
+        openQueue[roomName] = entry;
     }
 
     private void HandleCommand(string argument)
