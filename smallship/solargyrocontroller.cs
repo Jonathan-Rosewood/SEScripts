@@ -30,6 +30,7 @@ public class SolarGyroController
 
     private readonly int[] AllowedAxes;
     private readonly float[] LastVelocities;
+    private readonly string GyroGroup;
 
     private readonly TimeSpan AxisTimeout = TimeSpan.FromSeconds(15);
 
@@ -38,7 +39,12 @@ public class SolarGyroController
     private bool Active = true;
     private TimeSpan TimeOnAxis;
 
-    public SolarGyroController(params int[] allowedAxes)
+    public SolarGyroController(params int[] allowedAxes) :
+        this(null, allowedAxes)
+    {
+    }
+
+    public SolarGyroController(string gyroGroup, params int[] allowedAxes)
     {
         // Weird things happening with array constants
         AllowedAxes = (int[])allowedAxes.Clone();
@@ -47,8 +53,9 @@ public class SolarGyroController
         {
             LastVelocities[i] = SOLAR_GYRO_VELOCITY;
         }
+        GyroGroup = gyroGroup;
     }
-    
+
     private void EnableGyroOverride(IMyGyro gyro, bool enable)
     {
         if ((gyro.GyroOverride && !enable) ||
@@ -117,10 +124,24 @@ public class SolarGyroController
 
     public void Run(MyGridProgram program, ZALibrary.Ship ship, string argument)
     {
-        var gyros = ship.GetBlocksOfType<IMyGyro>(delegate (IMyGyro test)
+        List<IMyGyro> gyros;
+        if (GyroGroup != null)
+        {
+            var group = ZALibrary.GetBlockGroupWithName(program, GyroGroup);
+            if (group == null)
+            {
+                throw new Exception("Group " + GyroGroup + " missing!");
+            }
+
+            gyros = ZALibrary.GetBlocksOfType<IMyGyro>(group.Blocks);
+        }
+        else
+        {
+            gyros = ship.GetBlocksOfType<IMyGyro>(delegate (IMyGyro test)
                                                   {
                                                       return test.IsFunctional && test.Enabled;
                                                   });
+        }
         if (gyros.Count != 1) return; // TODO
 
         var gyro = gyros[0];

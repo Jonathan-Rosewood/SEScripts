@@ -1,0 +1,1 @@
+const string SOLAR_GYRO_GROUP = "SolarGyro";
