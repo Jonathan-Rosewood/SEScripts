@@ -1,4 +1,4 @@
-// ZALibrary v1.2.0
+// ZALibrary v1.2.1
 public static class ZALibrary
 {
     public const StringComparison IGNORE_CASE = StringComparison.CurrentCultureIgnoreCase;
