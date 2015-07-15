@@ -195,15 +195,27 @@ public class ComplexAirlock
         var command = parts[0];
         argument = parts[1].Trim();
 
-        if (command == "inner" || command == "space")
+        if (command == "inner" || command == "space" || command == "toggle")
         {
             IMyBlockGroup room;
             if (roomsMap.TryGetValue(argument, out room))
             {
                 var vents = ZALibrary.GetBlocksOfType<IMyAirVent>(room.Blocks);
                 var current = GetAirlockState(vents);
-                var target = command == "space" ?
-                    AIRLOCK_STATE_VACUUM : AIRLOCK_STATE_PRESSURIZED;
+                int target = AIRLOCK_STATE_UNKNOWN;
+                switch (command)
+                {
+                    case "space":
+                        target = AIRLOCK_STATE_VACUUM;
+                        break;
+                    case "inner":
+                        target = AIRLOCK_STATE_PRESSURIZED;
+                        break;
+                    case "toggle":
+                        target = current == AIRLOCK_STATE_PRESSURIZED ?
+                            AIRLOCK_STATE_VACUUM : AIRLOCK_STATE_PRESSURIZED;
+                        break;
+                }
 
                 ChangeRoomState(room.Name,
                                 vents, ZALibrary.GetBlocksOfType<IMyDoor>(room.Blocks),
