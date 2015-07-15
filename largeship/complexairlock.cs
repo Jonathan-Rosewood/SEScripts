@@ -61,10 +61,37 @@ public class ComplexAirlock
         }
     }
 
+    public struct LightPreset
+    {
+        public Color Color;
+        public float BlinkInterval;
+
+        public LightPreset(int red, int green, int blue, float blinkInterval)
+        {
+            Color = new Color(red, green, blue);
+            BlinkInterval = blinkInterval;
+        }
+    }
+
     // Enums broken?
     private const int AIRLOCK_STATE_VACUUM = 0;
     private const int AIRLOCK_STATE_PRESSURIZED = 1;
     private const int AIRLOCK_STATE_UNKNOWN = -1;
+
+    private const int LIGHT_PRESET_CHANGING = 0;
+    private const int LIGHT_PRESET_PRESSURIZED = 1;
+    private const int LIGHT_PRESET_VACUUM = 2;
+    private const int LIGHT_PRESET_UNLOCKED = 3;
+    private const int LIGHT_PRESET_LOCKED = 4;
+
+    private LightPreset[] lightPresets = new LightPreset[]
+        {
+            new LightPreset(255, 255, 0, 0.0f),
+            new LightPreset(0, 255, 0, 0.0f),
+            new LightPreset(255, 0, 0, 0.0f),
+            new LightPreset(0, 255, 0, 0.0f),
+            new LightPreset(255, 0, 0, 0.0f)
+        };
 
     private readonly List<IMyBlockGroup> rooms = new List<IMyBlockGroup>();
     private readonly Dictionary<string, IMyBlockGroup> roomsMap = new Dictionary<string, IMyBlockGroup>();
@@ -73,12 +100,34 @@ public class ComplexAirlock
     private readonly HashSet<IMyDoor> spaceDoors = new HashSet<IMyDoor>();
 
     private readonly Dictionary<string, IMyBlockGroup> doorVentGroups = new Dictionary<string, IMyBlockGroup>();
+    // TODO move the following to a struct
     private readonly Dictionary<IMyDoor, IMyBlockGroup> doorVentRooms = new Dictionary<IMyDoor, IMyBlockGroup>(); // Reverse mapping of rooms
     private readonly Dictionary<IMyDoor, List<IMyAirVent>> doorVentMap = new Dictionary<IMyDoor, List<IMyAirVent>>();
+    private readonly Dictionary<IMyDoor, List<IMyInteriorLight>> doorLightMap = new Dictionary<IMyDoor, List<IMyInteriorLight>>();
 
     private readonly Dictionary<string, OpenQueueEntry> openQueue = new Dictionary<string, OpenQueueEntry>();
 
     private readonly DelayedAction delayedAction = new DelayedAction();
+
+    public void ChangeLights<T>(List<T> blocks, int presetNumber)
+        where T : IMyTerminalBlock
+    {
+        var preset = lightPresets[presetNumber];
+        for (var e = blocks.GetEnumerator(); e.MoveNext();)
+        {
+            var light = e.Current as IMyInteriorLight;
+            if (light != null && light.IsFunctional && light.IsWorking)
+            {
+                light.SetValue<Color>("Color", preset.Color);
+                light.SetValue<float>("Blink Interval", preset.BlinkInterval);
+            }
+        }
+    }
+
+    private void ChangeLights(IMyBlockGroup group, int presetNumber)
+    {
+        ChangeLights<IMyTerminalBlock>(group.Blocks, presetNumber);
+    }
 
     private void Init(MyGridProgram program)
     {
@@ -100,10 +149,12 @@ public class ComplexAirlock
                 doorVentGroups.Add(group.Name, group);
 
                 var vents = ZALibrary.GetBlocksOfType<IMyAirVent>(group.Blocks);
+                var lights = ZALibrary.GetBlocksOfType<IMyInteriorLight>(group.Blocks);
                 var doors = ZALibrary.GetBlocksOfType<IMyDoor>(group.Blocks);
                 for (var f = doors.GetEnumerator(); f.MoveNext();)
                 {
                     doorVentMap.Add(f.Current, vents);
+                    doorLightMap.Add(f.Current, lights);
                 }
             }
             else
@@ -130,6 +181,7 @@ public class ComplexAirlock
         doorVentGroups.Clear();
         doorVentRooms.Clear();
         doorVentMap.Clear();
+        doorLightMap.Clear();
     }
 
     private int GetAirlockState(List<IMyAirVent> vents)
@@ -168,7 +220,7 @@ public class ComplexAirlock
         }
     }
 
-    private void ChangeRoomState(string roomName,
+    private void ChangeRoomState(IMyBlockGroup room,
                                  List<IMyAirVent> vents, List<IMyDoor> doors,
                                  int current, int target,
                                  IEnumerable<IMyDoor> targetDoors = null)
@@ -177,7 +229,7 @@ public class ComplexAirlock
         {
             OpenCloseDoors(doors, false);
             DepressurizeVents(vents, target == AIRLOCK_STATE_VACUUM);
-
+            ChangeLights(room, LIGHT_PRESET_CHANGING);
         }
 
         // Open doors regardless
@@ -185,7 +237,7 @@ public class ComplexAirlock
                                        targetDoors != null ?
                                        new HashSet<IMyDoor>(targetDoors) :
                                        new HashSet<IMyDoor>());
-        openQueue[roomName] = entry;
+        openQueue[room.Name] = entry;
     }
 
     private void HandleCommand(string argument)
@@ -205,7 +257,7 @@ public class ComplexAirlock
                 var target = command == "space" ?
                     AIRLOCK_STATE_VACUUM : AIRLOCK_STATE_PRESSURIZED;
 
-                ChangeRoomState(room.Name,
+                ChangeRoomState(room,
                                 vents, ZALibrary.GetBlocksOfType<IMyDoor>(room.Blocks),
                                 current, target, null);
             }
@@ -229,10 +281,11 @@ public class ComplexAirlock
                         var target = GetAirlockState(otherVents);
                         var current = GetAirlockState(roomVents);
 
-                        ChangeRoomState(room.Name,
+                        ChangeRoomState(room,
                                         roomVents,
                                         ZALibrary.GetBlocksOfType<IMyDoor>(room.Blocks),
                                         current, target, doors);
+                        ChangeLights(group, LIGHT_PRESET_CHANGING);
                     }
                 }
             }
@@ -273,6 +326,11 @@ public class ComplexAirlock
                 otherState = GetAirlockState(otherVents);
             }
             else { otherState = AIRLOCK_STATE_UNKNOWN; }
+            List<IMyInteriorLight> otherLights;
+            if (!doorLightMap.TryGetValue(door, out otherLights))
+            {
+                otherLights = new List<IMyInteriorLight>(); // empty singleton?
+            }
 
             if (targetDoors.Contains(door) || otherState == checkState)
             {
@@ -280,6 +338,7 @@ public class ComplexAirlock
                 if (!door.Enabled)
                 {
                     door.GetActionWithName("OnOff_On").Apply(door);
+                    ChangeLights<IMyInteriorLight>(otherLights, LIGHT_PRESET_UNLOCKED);
                 }
             }
             else
@@ -292,6 +351,7 @@ public class ComplexAirlock
                 else if (door.OpenRatio == 0.0f && door.Enabled)
                 {
                     door.GetActionWithName("OnOff_Off").Apply(door);
+                    ChangeLights<IMyInteriorLight>(otherLights, LIGHT_PRESET_LOCKED);
                 }
             }
         }
@@ -331,11 +391,13 @@ public class ComplexAirlock
                     // Close and lock all but space doors
                     CloseDoorsAsNeeded(room, doors, spaceDoors,
                                        AIRLOCK_STATE_VACUUM);
+                    ChangeLights(room, LIGHT_PRESET_VACUUM);
                     break;
                 case AIRLOCK_STATE_PRESSURIZED:
                     // Close and lock all but inner doors
                     CloseDoorsAsNeeded(room, doors, innerDoors,
                                        AIRLOCK_STATE_PRESSURIZED);
+                    ChangeLights(room, LIGHT_PRESET_PRESSURIZED);
                     break;
                 case AIRLOCK_STATE_UNKNOWN:
                     // Close and lock all doors
@@ -348,6 +410,7 @@ public class ComplexAirlock
                             door.GetActionWithName("OnOff_Off").Apply(door);
                         }
                     }
+                    ChangeLights(room, LIGHT_PRESET_CHANGING);
                     break;
             }
         }
