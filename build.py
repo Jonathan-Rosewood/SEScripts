@@ -36,8 +36,8 @@ def create_chunk(fn):
 
 
 def generate_version_header(version, modules):
-    s = """# Generated from ZerothAngel's SEScripts version {}""" + NL + \
-        """# Modules: {}""" + NL
+    s = """// Generated from ZerothAngel's SEScripts version {}""" + NL + \
+        """// Modules: {}""" + NL
     return s.format(version, ', '.join(modules))
 
 
