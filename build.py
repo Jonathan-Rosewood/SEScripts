@@ -4,6 +4,7 @@ import sys
 import os
 import configparser
 import io
+import subprocess
 
 
 SCRIPT_DIRECTORIES = [
@@ -34,14 +35,20 @@ def create_chunk(fn):
             return out.getvalue()
 
 
-def build_script(available_modules, spec):
+def generate_version_header(version, modules):
+    s = """# Generated from ZerothAngel's SEScripts version {}""" + NL + \
+        """# Modules: {}""" + NL
+    return s.format(version, ', '.join(modules))
+
+
+def build_script(version, available_modules, spec):
     config = configparser.ConfigParser()
     config.read(spec)
 
     modules = [x.strip() for x in config['script']['modules'].split(',')]
     out_path = config['script']['out']
 
-    chunks = []
+    chunks = [generate_version_header(version, modules)]
 
     # Headers
     for module in modules:
@@ -78,10 +85,19 @@ def build_script(available_modules, spec):
 
 
 def main(specs):
+    # Fetch version
+    if os.path.isdir('.hg'):
+        with subprocess.Popen('hg identify', shell=True, stdout=subprocess.PIPE,
+                              close_fds=True) as p:
+            version, err = p.communicate()
+            version = version.decode(sys.getdefaultencoding()).strip()
+    else:
+        version = 'UNKNOWN'
+
     available_modules = scan_modules()
 
     for spec in specs:
-        build_script(available_modules, spec)
+        build_script(version, available_modules, spec)
 
 
 
