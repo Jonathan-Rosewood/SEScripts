@@ -6,7 +6,7 @@ public class OxygenManager
     private const int OXYGEN_LEVEL_LOW = -1;
     private const int OXYGEN_LEVEL_UNKNOWN = -2; // Only used for first run
 
-    private int? PreviousState = null;
+    private int PreviousState = OXYGEN_LEVEL_UNKNOWN;
 
     private float GetAverageOxygenTankLevel(List<IMyOxygenTank> blocks)
     {
@@ -49,14 +49,9 @@ public class OxygenManager
 
     public void Run(MyGridProgram program, List<IMyTerminalBlock> ship)
     {
-        if (PreviousState == null)
-        {
-            PreviousState = OXYGEN_LEVEL_UNKNOWN;
-        }
-
         var tanks = ZALibrary.GetBlocksOfType<IMyOxygenTank>(ship, delegate (IMyOxygenTank tank)
                                                              {
-                                                                 return tank.IsFunctional && tank.Enabled;
+                                                                 return tank.IsFunctional && tank.IsWorking;
                                                              });
 
         var currentState = GetOxygenState(tanks);
@@ -98,7 +93,8 @@ public class OxygenManager
                     ZALibrary.GetBlocksOfType<IMyOxygenGenerator>(ship,
                                                                   delegate (IMyOxygenGenerator block)
                                                                   {
-                                                                      return block.CubeGrid == program.Me.CubeGrid;
+                                                                      return block.CubeGrid == program.Me.CubeGrid &&
+                                                                      block.IsFunctional;
                                                                   });
                 ZALibrary.EnableBlocks(generators, (bool)produceOxygen);
 
@@ -106,7 +102,8 @@ public class OxygenManager
                     ZALibrary.GetBlocksOfType<IMyOxygenFarm>(ship,
                                                              delegate (IMyOxygenFarm block)
                                                              {
-                                                                 return block.CubeGrid == program.Me.CubeGrid;
+                                                                 return block.CubeGrid == program.Me.CubeGrid &&
+                                                                 block.IsFunctional;
                                                              });
 
                 // Farms don't implement IMyFunctionalBlock??

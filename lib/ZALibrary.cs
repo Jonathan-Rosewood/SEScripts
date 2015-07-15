@@ -123,6 +123,7 @@ public static class ZALibrary
         for (var e = blocks.GetEnumerator(); e.MoveNext();)
         {
             var block = e.Current;
+            // Not all blocks will implement IMyFunctionalBlock, so can't checked Enabled
             block.GetActionWithName(enabled ? "OnOff_On" : "OnOff_Off").Apply(block);
         }
     }

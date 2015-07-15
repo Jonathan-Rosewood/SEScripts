@@ -1,5 +1,6 @@
 public class DoorAutoCloser
 {
+    // Yeah, not sure if it's a good idea to hold references between invocations...
     private readonly Dictionary<IMyDoor, int> opened = new Dictionary<IMyDoor, int>();
 
     public void Run(MyGridProgram program)
@@ -10,6 +11,7 @@ public class DoorAutoCloser
                                       delegate (IMyTerminalBlock block)
                                       {
                                           return block.CubeGrid == program.Me.CubeGrid &&
+                                              block.IsFunctional &&
                                               block.CustomName.IndexOf("[Excluded]", ZALibrary.IGNORE_CASE) < 0 &&
                                               block.DefinitionDisplayNameText != "Airtight Hangar Door";
                                       });
