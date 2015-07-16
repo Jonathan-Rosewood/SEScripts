@@ -1,6 +1,7 @@
 public static HashSet<string> EXCLUDED_BLOCK_TYPES = new HashSet<string>(new string[] {
         "Antenna",
         "Beacon",
+        "Camera",
     });
 
 public static HashSet<string> EXCLUDED_BLOCK_NAMES = new HashSet<string>(new string[] {
