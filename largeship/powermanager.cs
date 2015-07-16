@@ -72,22 +72,30 @@ public class PowerManager
 
     public void Run(MyGridProgram program, List<IMyTerminalBlock> ship)
     {
-        // Limit to just functional batteries on the same grid (don't care if it's on or off)
-        var batteries = ZALibrary.GetBlocksOfType<IMyBatteryBlock>(ship,
-                                                                   delegate (IMyBatteryBlock battery)
-                                                                   {
-                                                                       return battery.CubeGrid == program.Me.CubeGrid && battery.IsFunctional;
-                                                                   });
-
-        // Grab all power producers everywhere, except batteries on this ship
+        // Only care about power producers on this ship
         var producers = ZALibrary.GetBlocksOfType<IMyTerminalBlock>(ship,
                                                                     delegate (IMyTerminalBlock block)
                                                                     {
-                                                                        return block is IMyPowerProducer && (block.CubeGrid != program.Me.CubeGrid || !(block is IMyBatteryBlock));
+                                                                        return block is IMyPowerProducer &&
+                                                                        block.CubeGrid == program.Me.CubeGrid;
+                                                                    });
+
+        // Limit to functional batteries
+        var batteries = ZALibrary.GetBlocksOfType<IMyBatteryBlock>(producers,
+                                                                   delegate (IMyBatteryBlock battery)
+                                                                   {
+                                                                       return battery.IsFunctional;
+                                                                   });
+
+        // All other power producers
+        var otherProducers = ZALibrary.GetBlocksOfType<IMyTerminalBlock>(producers,
+                                                                    delegate (IMyTerminalBlock block)
+                                                                    {
+                                                                        return !(block is IMyBatteryBlock);
                                                                     });
 
         var batteryDetails = GetPowerDetails<IMyBatteryBlock>(batteries);
-        var producerDetails = GetPowerDetails<IMyTerminalBlock>(producers);
+        var producerDetails = GetPowerDetails<IMyTerminalBlock>(otherProducers);
 
         var totalDetails = batteryDetails + producerDetails;
 
