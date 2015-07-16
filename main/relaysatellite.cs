@@ -58,5 +58,7 @@ void Main(string argument)
     {
         batteryManager.Run(this, ship, argument);
         solarGyroController.Run(this, ship, argument);
+
+        ZALibrary.KickLoopTimerBlock(this, argument);
     }
 }

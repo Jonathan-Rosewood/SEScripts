@@ -14,4 +14,6 @@ void Main(string argument)
     safeMode.Run(this, ship, isConnected);
     batteryMonitor.Run(this, ship, isConnected);
     if (MAX_POWER_ENABLED) rotorController.Run(this);
+
+    ZALibrary.KickLoopTimerBlock(this, argument);
 }

@@ -25,4 +25,6 @@ void Main(string argument)
         if (REFINERY_MANAGER_ENABLE) refineryManager.Run(this, ship);
         if (PRODUCTION_MANAGER_ENABLE) productionManager.Run(this, ship, argument);
     }
+
+    ZALibrary.KickLoopTimerBlock(this, argument);
 }

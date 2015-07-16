@@ -1,4 +1,4 @@
-// ZALibrary v1.2.1
+// ZALibrary v1.3.0
 public static class ZALibrary
 {
     public const StringComparison IGNORE_CASE = StringComparison.CurrentCultureIgnoreCase;
@@ -191,5 +191,30 @@ public static class ZALibrary
             }
         }
         return false;
+    }
+
+    public static void KickLoopTimerBlock(MyGridProgram program, string argument)
+    {
+        // Only bother if argument is non-empty e.g. a command invocation
+        if (argument != null && argument.Length > 0)
+        {
+            var timers = new List<IMyTerminalBlock>();
+            // Search for timer blocks on the same ship contain our magic string
+            program.GridTerminalSystem.SearchBlocksOfName(ZALIBRARY_LOOP_TIMER_BLOCK_NAME, timers,
+                                                          delegate (IMyTerminalBlock block)
+                                                          {
+                                                              return block is IMyTimerBlock &&
+                                                                  block.CubeGrid == program.Me.CubeGrid;
+                                                          });
+            // Just kick em all
+            for (var e = timers.GetEnumerator(); e.MoveNext();)
+            {
+                var timer = e.Current as IMyTimerBlock;
+                if (timer.Enabled && !timer.IsCountingDown)
+                {
+                    timer.GetActionWithName("Start").Apply(timer);
+                }
+            }
+        }
     }
 }
