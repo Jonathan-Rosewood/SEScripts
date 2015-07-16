@@ -43,6 +43,13 @@ public class PowerManager
             result.MaxPowerOutput = a.MaxPowerOutput + b.MaxPowerOutput;
             return result;
         }
+
+        public string ToString()
+        {
+            return String.Format("{0}/{1}",
+                                 ZALibrary.FormatPower(CurrentPowerOutput),
+                                 ZALibrary.FormatPower(MaxPowerOutput));
+        }
     }
 
     private readonly BatteryComparer batteryComparer = new BatteryComparer(false);
@@ -70,6 +77,36 @@ public class PowerManager
         return result;
     }
 
+    private void DisableOneBattery(List<IMyBatteryBlock> batteries)
+    {
+        for (var e = batteries.GetEnumerator(); e.MoveNext();)
+        {
+            var battery = e.Current;
+
+            if (battery.Enabled && battery.ProductionEnabled)
+            {
+                battery.GetActionWithName("OnOff_Off").Apply(battery);
+                ZALibrary.SetBatteryRecharge(battery, true);
+                return;
+            }
+        }
+    }
+
+    private void RechargeOneBattery(List<IMyBatteryBlock> batteries)
+    {
+        for (var e = batteries.GetEnumerator(); e.MoveNext();)
+        {
+            var battery = e.Current;
+
+            if (!battery.Enabled || battery.ProductionEnabled /* huh?! */)
+            {
+                if (!battery.Enabled) battery.GetActionWithName("OnOff_On").Apply(battery);
+                ZALibrary.SetBatteryRecharge(battery, true);
+                return;
+            }
+        }
+    }
+
     public void Run(MyGridProgram program, List<IMyTerminalBlock> ship)
     {
         // Only care about power producers on this ship
@@ -86,6 +123,7 @@ public class PowerManager
                                                                    {
                                                                        return battery.IsFunctional;
                                                                    });
+        if (batteries.Count == 0) return; // Nothing to do if no batteries to manage
 
         // All other power producers
         var otherProducers = ZALibrary.GetBlocksOfType<IMyTerminalBlock>(producers,
@@ -95,13 +133,17 @@ public class PowerManager
                                                                     });
 
         var batteryDetails = GetPowerDetails<IMyBatteryBlock>(batteries);
-        var producerDetails = GetPowerDetails<IMyTerminalBlock>(otherProducers);
+        var otherDetails = GetPowerDetails<IMyTerminalBlock>(otherProducers);
 
-        var totalDetails = batteryDetails + producerDetails;
+        var totalDetails = batteryDetails + otherDetails;
+
+        //program.Echo("Battery Load: " + batteryDetails.ToString());
+        //program.Echo("Other Load: " + otherDetails.ToString());
+        //program.Echo("Total Load: " + totalDetails.ToString());
 
         // First, the degenerate cases...
         if (totalDetails.MaxPowerOutput == 0.0f) return; // Don't think this is possible...
-        if (producerDetails.MaxPowerOutput == 0.0f)
+        if (otherDetails.MaxPowerOutput == 0.0f)
         {
             // Nothing but our batteries. Just put all batteries online.
             ZALibrary.EnableBlocks(batteries, true);
@@ -160,33 +202,23 @@ public class PowerManager
                 {
                     // Take a battery offline, starting with the least charged.
                     // Note, we cannot actually start recharging until they are all offline
-                    for (var e = batteries.GetEnumerator(); e.MoveNext();)
-                    {
-                        var battery = e.Current;
-
-                        if (battery.Enabled && battery.ProductionEnabled)
-                        {
-                            battery.GetActionWithName("OnOff_Off").Apply(battery);
-                            ZALibrary.SetBatteryRecharge(battery, true);
-                            break;
-                        }
-                    }
+                    DisableOneBattery(batteries);
                 }
                 else
                 {
                     // All batteries are down, enable one for charging
                     // (repeat next tick until we break low threshold, in which case QuietTimer
                     // will reset)
-                    for (var e = batteries.GetEnumerator(); e.MoveNext();)
-                    {
-                        var battery = e.Current;
+                    // But first, check if it would put us over the threshold
+                    var first = batteries[0]; // Assume all the same
+                    var wouldBeOutput = otherDetails.CurrentPowerOutput + first.DefinedPowerOutput; // Assume MaxPowerOutput = MaxPowerInput (not available to us)
+                    //program.Echo("Would-be Output: " + ZALibrary.FormatPower(wouldBeOutput));
+                    var wouldBeLoad = wouldBeOutput / otherDetails.MaxPowerOutput;
+                    //program.Echo("Would-be Load: " + wouldBeLoad);
 
-                        if (!battery.Enabled || battery.ProductionEnabled /* huh?! */)
-                        {
-                            if (!battery.Enabled) battery.GetActionWithName("OnOff_On").Apply(battery);
-                            ZALibrary.SetBatteryRecharge(battery, true);
-                            break;
-                        }
+                    if (wouldBeLoad <= POWER_MANAGER_HIGH_LOAD_THRESHOLD)
+                    {
+                        RechargeOneBattery(batteries);
                     }
                 }
             }
