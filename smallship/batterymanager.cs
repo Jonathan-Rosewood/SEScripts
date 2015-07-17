@@ -73,11 +73,7 @@ public class BatteryManager
 
     public void Run(MyGridProgram program, ZALibrary.Ship ship, string argument)
     {
-        var batteries = ship.GetBlocksOfType<IMyBatteryBlock>(delegate (IMyBatteryBlock battery)
-                                                              {
-                                                                  return battery.IsFunctional && battery.Enabled;
-                                                              });
-
+        var batteries = ship.GetBlocksOfType<IMyBatteryBlock>(battery => battery.IsFunctional && battery.Enabled);
 
         argument = argument.Trim().ToLower();
         if (argument == "forcerecharge")

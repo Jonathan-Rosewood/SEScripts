@@ -49,10 +49,7 @@ public class OxygenManager
 
     public void Run(MyGridProgram program, List<IMyTerminalBlock> ship)
     {
-        var tanks = ZALibrary.GetBlocksOfType<IMyOxygenTank>(ship, delegate (IMyOxygenTank tank)
-                                                             {
-                                                                 return tank.IsFunctional && tank.IsWorking;
-                                                             });
+        var tanks = ZALibrary.GetBlocksOfType<IMyOxygenTank>(ship, tank => tank.IsFunctional && tank.IsWorking);
 
         var currentState = GetOxygenState(tanks);
 
@@ -91,20 +88,14 @@ public class OxygenManager
                 // Limit to this grid -- don't mess with any other ship's systems
                 var generators =
                     ZALibrary.GetBlocksOfType<IMyOxygenGenerator>(ship,
-                                                                  delegate (IMyOxygenGenerator block)
-                                                                  {
-                                                                      return block.CubeGrid == program.Me.CubeGrid &&
-                                                                      block.IsFunctional;
-                                                                  });
+                                                                  block => block.CubeGrid == program.Me.CubeGrid &&
+                                                                  block.IsFunctional);
                 ZALibrary.EnableBlocks(generators, (bool)produceOxygen);
 
                 var farms =
                     ZALibrary.GetBlocksOfType<IMyOxygenFarm>(ship,
-                                                             delegate (IMyOxygenFarm block)
-                                                             {
-                                                                 return block.CubeGrid == program.Me.CubeGrid &&
-                                                                 block.IsFunctional;
-                                                             });
+                                                             block => block.CubeGrid == program.Me.CubeGrid &&
+                                                             block.IsFunctional);
 
                 // Farms don't implement IMyFunctionalBlock??
                 ZALibrary.EnableBlocks(farms, (bool)produceOxygen);

@@ -184,7 +184,7 @@ public class ProductionManager
     {
         if (LIMIT_PRODUCTION_MANAGER_SAME_GRID)
         {
-            ship = ZALibrary.GetBlocksOfType<IMyTerminalBlock>(ship, delegate (IMyTerminalBlock block) { return block.CubeGrid == program.Me.CubeGrid; });
+            ship = ZALibrary.GetBlocksOfType<IMyTerminalBlock>(ship, block => block.CubeGrid == program.Me.CubeGrid);
         }
 
         if (PRODUCTION_MANAGER_SETUP)

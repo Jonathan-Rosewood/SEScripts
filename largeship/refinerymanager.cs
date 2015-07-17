@@ -31,14 +31,11 @@ public class RefineryManager
     {
         var refineries =
             ZALibrary.GetBlocksOfType<IMyRefinery>(ship,
-                                                   delegate (IMyRefinery block)
-                                                   {
-                                                       return block.CubeGrid == program.Me.CubeGrid &&
-                                                       block.IsFunctional &&
-                                                       block.IsWorking &&
-                                                       block.Enabled &&
-                                                       block.UseConveyorSystem;
-                                                   });
+                                                   block => block.CubeGrid == program.Me.CubeGrid &&
+                                                   block.IsFunctional &&
+                                                   block.IsWorking &&
+                                                   block.Enabled &&
+                                                   block.UseConveyorSystem);
 
         var isProducing = false;
         var isIdle = false;

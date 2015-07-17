@@ -8,13 +8,10 @@ public class DoorAutoCloser
         var doors = new List<IMyTerminalBlock>();
         program.GridTerminalSystem
             .GetBlocksOfType<IMyDoor>(doors,
-                                      delegate (IMyTerminalBlock block)
-                                      {
-                                          return block.CubeGrid == program.Me.CubeGrid &&
-                                              block.IsFunctional &&
-                                              block.CustomName.IndexOf("[Excluded]", ZALibrary.IGNORE_CASE) < 0 &&
-                                              block.DefinitionDisplayNameText != "Airtight Hangar Door";
-                                      });
+                                      block => block.CubeGrid == program.Me.CubeGrid &&
+                                      block.IsFunctional &&
+                                      block.CustomName.IndexOf("[Excluded]", ZALibrary.IGNORE_CASE) < 0 &&
+                                      block.DefinitionDisplayNameText != "Airtight Hangar Door");
 
         for (var e = doors.GetEnumerator(); e.MoveNext();)
         {

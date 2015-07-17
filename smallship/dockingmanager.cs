@@ -34,10 +34,8 @@ public class DockingManager
             // Just a cheap way to avoid using a timer block. Turn off all
             // connectors and unlock all landing gear.
             // I added this because 'P' sometimes unlocks other ships as well...
-            ZALibrary.EnableBlocks(ship.GetBlocksOfType<IMyShipConnector>(delegate (IMyShipConnector connector)
-                                                                          {
-                                                                              return connector.DefinitionDisplayNameText == "Connector"; // Avoid Ejectors
-                                                                          }), false);
+            ZALibrary.EnableBlocks(ship.GetBlocksOfType<IMyShipConnector>(connector => connector.DefinitionDisplayNameText == "Connector"),
+                                   false); // Avoid Ejectors
 
             var gears = ship.GetBlocksOfType<IMyLandingGear>();
             for (var e = gears.GetEnumerator(); e.MoveNext();)

@@ -311,15 +311,15 @@ public class ComplexAirlock
         // Open all required doors at next tick
         if (openDoors.Count > 0)
         {
-            delayedAction.Add(delegate ()
-                              {
-                                  var e = openDoors.GetEnumerator();
-                                  while (e.MoveNext())
-                                  {
-                                      var door = e.Current;
-                                      door.GetActionWithName("Open_On").Apply(door);
-                                  }
-                              }, 2L);
+            delayedAction.Add(() =>
+                    {
+                        var e = openDoors.GetEnumerator();
+                        while (e.MoveNext())
+                        {
+                            var door = e.Current;
+                            door.GetActionWithName("Open_On").Apply(door);
+                        }
+                    }, 2L);
         }
     }
 

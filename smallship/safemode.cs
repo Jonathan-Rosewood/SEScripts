@@ -36,10 +36,7 @@ public class SafeMode
             return; // Don't bother if we're docked
         }
 
-        var controllers = ship.GetBlocksOfType<IMyShipController>(delegate (IMyShipController controller)
-                                                                  {
-                                                                      return controller.IsFunctional;
-                                                                  });
+        var controllers = ship.GetBlocksOfType<IMyShipController>(controller => controller.IsFunctional);
         var currentState = IsShipControlled(controllers);
 
         if (IsControlled == null)

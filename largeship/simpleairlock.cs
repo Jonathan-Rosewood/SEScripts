@@ -14,11 +14,10 @@ public class SimpleAirlock
         var groups = ZALibrary.GetBlockGroupsWithPrefix(program, SIMPLE_AIRLOCK_GROUP_PREFIX);
         for (var e = groups.GetEnumerator(); e.MoveNext();)
         {
-            var doors = ZALibrary.GetBlocksOfType<IMyDoor>(e.Current.Blocks, delegate (IMyDoor door)
-                                                           {
-                                                               return door.CubeGrid == program.Me.CubeGrid &&
-                                                               door.IsFunctional;
-                                                           });
+            var doors = ZALibrary.GetBlocksOfType<IMyDoor>(e.Current.Blocks,
+                                                           door => door.CubeGrid == program.Me.CubeGrid &&
+                                                           door.IsFunctional);
+
             var opened = IsAnyDoorOpen(doors);
             for (var f = doors.GetEnumerator(); f.MoveNext();)
             {

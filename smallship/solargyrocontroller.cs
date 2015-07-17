@@ -137,10 +137,7 @@ public class SolarGyroController
         }
         else
         {
-            gyros = ship.GetBlocksOfType<IMyGyro>(delegate (IMyGyro test)
-                                                  {
-                                                      return test.IsFunctional && test.Enabled;
-                                                  });
+            gyros = ship.GetBlocksOfType<IMyGyro>(test => test.IsFunctional && test.Enabled);
         }
         if (gyros.Count != 1) return; // TODO
 

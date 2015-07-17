@@ -111,26 +111,17 @@ public class PowerManager
     {
         // Only care about power producers on this ship
         var producers = ZALibrary.GetBlocksOfType<IMyTerminalBlock>(ship,
-                                                                    delegate (IMyTerminalBlock block)
-                                                                    {
-                                                                        return block is IMyPowerProducer &&
-                                                                        block.CubeGrid == program.Me.CubeGrid;
-                                                                    });
+                                                                    block => block is IMyPowerProducer &&
+                                                                    block.CubeGrid == program.Me.CubeGrid);
 
         // Limit to functional batteries
         var batteries = ZALibrary.GetBlocksOfType<IMyBatteryBlock>(producers,
-                                                                   delegate (IMyBatteryBlock battery)
-                                                                   {
-                                                                       return battery.IsFunctional;
-                                                                   });
+                                                                   battery => battery.IsFunctional);
         if (batteries.Count == 0) return; // Nothing to do if no batteries to manage
 
         // All other power producers
         var otherProducers = ZALibrary.GetBlocksOfType<IMyTerminalBlock>(producers,
-                                                                    delegate (IMyTerminalBlock block)
-                                                                    {
-                                                                        return !(block is IMyBatteryBlock);
-                                                                    });
+                                                                         block => !(block is IMyBatteryBlock));
 
         var batteryDetails = GetPowerDetails<IMyBatteryBlock>(batteries);
         var otherDetails = GetPowerDetails<IMyTerminalBlock>(otherProducers);
