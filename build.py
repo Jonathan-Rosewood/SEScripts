@@ -12,6 +12,7 @@ SCRIPT_DIRECTORIES = [
     'lib',
     'main',
     'smallship',
+    'weapon',
 ]
 
 NL = '\r\n' # Since it's currently a Windows-only game...
