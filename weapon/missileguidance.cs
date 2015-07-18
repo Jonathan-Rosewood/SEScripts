@@ -52,16 +52,13 @@ public class MissileGuidance
         return distance;
     }
 
+    public void Init(MyGridProgram program, EventDriver eventDriver)
+    {
+        eventDriver.Schedule(0, Run);
+    }
+
     public void Run(MyGridProgram program, EventDriver eventDriver)
     {
-        // TODO thruster stuff doesn't belong here
-        var forwardGroup = ZALibrary.GetBlockGroupWithName(program, "CM Forward");
-        if (forwardGroup == null)
-        {
-            throw new Exception("Missing group: CM Forward");
-        }
-        ZAFlightLibrary.SetThrusterOverride(forwardGroup.Blocks, 12000.0f);
-
         var ship = new List<IMyTerminalBlock>();
         program.GridTerminalSystem.GetBlocks(ship);
 

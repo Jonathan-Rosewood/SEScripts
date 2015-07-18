@@ -4,6 +4,11 @@ public class RandomDecoy
 
     private readonly Random random = new Random();
 
+    public void Init(MyGridProgram program, EventDriver eventDriver)
+    {
+        eventDriver.Schedule(0, Run);
+    }
+
     public void Run(MyGridProgram program, EventDriver eventDriver)
     {
         var decoys = new List<IMyTerminalBlock>();
