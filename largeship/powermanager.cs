@@ -46,7 +46,7 @@ public class PowerManager
 
         public string ToString()
         {
-            return String.Format("{0}/{1}",
+            return string.Format("{0}/{1}",
                                  ZALibrary.FormatPower(CurrentPowerOutput),
                                  ZALibrary.FormatPower(MaxPowerOutput));
         }

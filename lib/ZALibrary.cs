@@ -80,7 +80,7 @@ public static class ZALibrary
         return null;
     }
 
-    public static List<IMyBlockGroup> GetBlockGroupsWithPrefix(MyGridProgram program, String prefix)
+    public static List<IMyBlockGroup> GetBlockGroupsWithPrefix(MyGridProgram program, string prefix)
     {
         var groups = new List<IMyBlockGroup>();
         program.GridTerminalSystem.GetBlockGroups(groups);
@@ -155,15 +155,15 @@ public static class ZALibrary
     {
         if (value >= 1.0f)
         {
-            return String.Format("{0:F2} MW", value);
+            return string.Format("{0:F2} MW", value);
         }
         else if (value >= 0.001)
         {
-            return String.Format("{0:F2} kW", value * 1000f);
+            return string.Format("{0:F2} kW", value * 1000f);
         }
         else
         {
-            return String.Format("{0:F2} W", value * 1000000f);
+            return string.Format("{0:F2} W", value * 1000000f);
         }
     }
 

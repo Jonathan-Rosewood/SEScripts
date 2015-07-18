@@ -87,11 +87,11 @@ public class ComplexAirlock
         for (var e = groups.GetEnumerator(); e.MoveNext();)
         {
             var group = e.Current;
-            if (String.Equals("AirlockDoorInner", group.Name, ZALibrary.IGNORE_CASE))
+            if (string.Equals("AirlockDoorInner", group.Name, ZALibrary.IGNORE_CASE))
             {
                 innerDoors.UnionWith(ZALibrary.GetBlocksOfType<IMyDoor>(group.Blocks));
             }
-            else if (String.Equals("AirlockDoorSpace", group.Name, ZALibrary.IGNORE_CASE))
+            else if (string.Equals("AirlockDoorSpace", group.Name, ZALibrary.IGNORE_CASE))
             {
                 spaceDoors.UnionWith(ZALibrary.GetBlocksOfType<IMyDoor>(group.Blocks));
             }
@@ -371,7 +371,7 @@ public class ComplexAirlock
 
         delayedAction.Tick();
 
-        if (!String.IsNullOrWhiteSpace(argument))
+        if (!string.IsNullOrWhiteSpace(argument))
         {
             HandleCommand(argument);
         }

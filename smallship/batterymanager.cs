@@ -178,9 +178,9 @@ public class BatteryManager
             
         Draining = newDraining;
 
-        program.Echo(String.Format("Battery Manager: {0}", stateStr));
-        program.Echo(String.Format("Total Stored Power: {0}h", ZALibrary.FormatPower(aggregateDetails.CurrentStoredPower)));
-        program.Echo(String.Format("Max Stored Power: {0}h", ZALibrary.FormatPower(aggregateDetails.MaxStoredPower)));
+        program.Echo(string.Format("Battery Manager: {0}", stateStr));
+        program.Echo(string.Format("Total Stored Power: {0}h", ZALibrary.FormatPower(aggregateDetails.CurrentStoredPower)));
+        program.Echo(string.Format("Max Stored Power: {0}h", ZALibrary.FormatPower(aggregateDetails.MaxStoredPower)));
         if (Draining) program.Echo("Net power loss!");
     }
 }

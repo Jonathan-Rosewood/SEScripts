@@ -213,6 +213,6 @@ public class SolarGyroController
             TimeOnAxis = TimeSpan.FromSeconds(0);
         }
 
-        program.Echo(String.Format("Solar Max Power: {0}", ZALibrary.FormatPower(currentMaxPower)));
+        program.Echo(string.Format("Solar Max Power: {0}", ZALibrary.FormatPower(currentMaxPower)));
     }
 }

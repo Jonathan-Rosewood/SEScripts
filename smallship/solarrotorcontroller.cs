@@ -45,7 +45,7 @@ public class SolarRotorController
             var rotor = GetRotor(group);
             if (rotor == null)
             {
-                program.Echo(String.Format("Group {0} ignored; needs exactly 1 rotor", group.Name));
+                program.Echo(string.Format("Group {0} ignored; needs exactly 1 rotor", group.Name));
                 continue;
             }
             else if (rotor.CubeGrid != program.Me.CubeGrid)
@@ -86,6 +86,6 @@ public class SolarRotorController
             totalPower += currentMaxPower;
         }
 
-        program.Echo(String.Format("Solar Max Power: {0}", ZALibrary.FormatPower(totalPower)));
+        program.Echo(string.Format("Solar Max Power: {0}", ZALibrary.FormatPower(totalPower)));
     }
 }
