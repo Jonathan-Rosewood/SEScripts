@@ -1,8 +1,8 @@
 private readonly BatteryManager batteryManager = new BatteryManager();
 private readonly SolarGyroController solarGyroController = new SolarGyroController(
-                                                                                   // SolarGyroController.GyroAxisYaw,
-                                                                                   SolarGyroController.GyroAxisPitch,
-                                                                                   SolarGyroController.GyroAxisRoll
+                                                                                   // ZAFlightLibrary.GyroAxisYaw,
+                                                                                   ZAFlightLibrary.GyroAxisPitch,
+                                                                                   ZAFlightLibrary.GyroAxisRoll
                                                                                    );
 private readonly SafeMode safeMode = new SafeMode();
 

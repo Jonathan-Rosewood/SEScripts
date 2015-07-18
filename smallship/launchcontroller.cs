@@ -19,22 +19,6 @@ public class LaunchController
         return launcherRelease != null;
     }
 
-    private bool GetAutoPilotState(IMyRemoteControl remote)
-    {
-        StringBuilder builder = new StringBuilder();
-        remote.GetActionWithName("AutoPilot").WriteValue(remote, builder);
-        return builder.ToString() == "On";
-    }
-
-    private void SetThrusterOverride(List<IMyTerminalBlock> thrusters, float force)
-    {
-        for (var e = thrusters.GetEnumerator(); e.MoveNext();)
-        {
-            var thruster = e.Current as IMyThrust;
-            if (thruster != null) thruster.SetValue<float>("Override", force);
-        }
-    }
-
     public bool Run(MyGridProgram program, ZALibrary.Ship ship)
     {
         var relayBatteries = ZALibrary.GetBlockGroupWithName(program, "Relay Batteries");
@@ -62,7 +46,7 @@ public class LaunchController
             {
                 CurrentState = STATE_PRIME;
             }
-            else if (GetAutoPilotState(remote))
+            else if (ZAFlightLibrary.GetAutoPilotState(remote))
             {
                 CurrentState = STATE_AUTOPILOT;
             }
@@ -90,7 +74,7 @@ public class LaunchController
                 CurrentState = STATE_START_BURN;
                 break;
             case STATE_START_BURN:
-                SetThrusterOverride(relayLaunchThruster.Blocks, LAUNCH_BURN_FORCE);
+                ZAFlightLibrary.SetThrusterOverride(relayLaunchThruster.Blocks, LAUNCH_BURN_FORCE);
                 CurrentBurnTime = TimeSpan.FromSeconds(0);
                 CurrentState = STATE_BURN;
                 break;
@@ -98,7 +82,7 @@ public class LaunchController
                 CurrentBurnTime += program.ElapsedTime;
                 if (CurrentBurnTime > BurnTime)
                 {
-                    SetThrusterOverride(relayLaunchThruster.Blocks, 0.0f);
+                    ZAFlightLibrary.SetThrusterOverride(relayLaunchThruster.Blocks, 0.0f);
                     CurrentState = STATE_START_AUTOPILOT;
                 }
                 break;
@@ -107,7 +91,7 @@ public class LaunchController
                 CurrentState = STATE_AUTOPILOT;
                 break;
             case STATE_AUTOPILOT:
-                if (!GetAutoPilotState(remote)) CurrentState = STATE_READY;
+                if (!ZAFlightLibrary.GetAutoPilotState(remote)) CurrentState = STATE_READY;
                 break;
             case STATE_READY:
                 return true;

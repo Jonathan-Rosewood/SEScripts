@@ -1,6 +1,6 @@
 private readonly SolarGyroController solarGyroController = new SolarGyroController(
                                                                                    SOLAR_GYRO_GROUP,
-                                                                                   SolarGyroController.GyroAxisRoll
+                                                                                   ZAFlightLibrary.GyroAxisRoll
 );
 
 void Main(string argument)

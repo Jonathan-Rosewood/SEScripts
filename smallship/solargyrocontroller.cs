@@ -23,11 +23,6 @@ public class SolarGyroController
         }
     }
 
-    // Why no enums, Keen?!
-    public const int GyroAxisYaw = 0;
-    public const int GyroAxisPitch = 1;
-    public const int GyroAxisRoll = 2;
-
     private readonly int[] AllowedAxes;
     private readonly float[] LastVelocities;
     private readonly string GyroGroup;
@@ -56,72 +51,6 @@ public class SolarGyroController
         GyroGroup = gyroGroup;
     }
 
-    private void EnableGyroOverride(IMyGyro gyro, bool enable)
-    {
-        if ((gyro.GyroOverride && !enable) ||
-            (!gyro.GyroOverride && enable))
-        {
-            gyro.GetActionWithName("Override").Apply(gyro);
-        }
-    }
-
-    private void SetAxisVelocity(IMyGyro gyro, int axis, float velocity)
-    {
-        switch (axis)
-        {
-            case GyroAxisYaw:
-                gyro.SetValue<float>("Yaw", velocity);
-                break;
-            case GyroAxisPitch:
-                gyro.SetValue<float>("Pitch", velocity);
-                break;
-            case GyroAxisRoll:
-                gyro.SetValue<float>("Roll", velocity);
-                break;
-        }
-    }
-
-    private float GetAxisVelocity(IMyGyro gyro, int axis)
-    {
-        switch (axis)
-        {
-            case GyroAxisYaw:
-                return gyro.Yaw;
-            case GyroAxisPitch:
-                return gyro.Pitch;
-            case GyroAxisRoll:
-                return gyro.Roll;
-        }
-        return default(float);
-    }
-
-    private void ReverseAxisVelocity(IMyGyro gyro, int axis)
-    {
-        float? velocity = null;
-
-        switch (axis)
-        {
-            case GyroAxisYaw:
-                velocity = -gyro.Yaw;
-                break;
-            case GyroAxisPitch:
-                velocity = -gyro.Pitch;
-                break;
-            case GyroAxisRoll:
-                velocity = -gyro.Roll;
-                break;
-        }
-
-        if (velocity != null) SetAxisVelocity(gyro, axis, (float)velocity);
-    }
-
-    private void ResetGyro(IMyGyro gyro)
-    {
-        SetAxisVelocity(gyro, GyroAxisYaw, 0.0f);
-        SetAxisVelocity(gyro, GyroAxisPitch, 0.0f);
-        SetAxisVelocity(gyro, GyroAxisRoll, 0.0f);
-    }
-
     public void Run(MyGridProgram program, ZALibrary.Ship ship, string argument)
     {
         List<IMyGyro> gyros;
@@ -148,12 +77,12 @@ public class SolarGyroController
         if (argument == "pause")
         {
             Active = false;
-            EnableGyroOverride(gyro, false);
+            ZAFlightLibrary.EnableGyroOverride(gyro, false);
         }
         else if (argument == "resume")
         {
             Active = true;
-            EnableGyroOverride(gyro, true);
+            ZAFlightLibrary.EnableGyroOverride(gyro, true);
             TimeOnAxis = TimeSpan.FromSeconds(0);
         }
 
@@ -168,8 +97,8 @@ public class SolarGyroController
         if (MaxPower == null)
         {
             MaxPower = -100.0f; // Start with something absurdly low to kick things off
-            ResetGyro(gyro);
-            SetAxisVelocity(gyro, currentAxis, LastVelocities[AxisIndex]);
+            ZAFlightLibrary.ResetGyro(gyro);
+            ZAFlightLibrary.SetAxisVelocity(gyro, currentAxis, LastVelocities[AxisIndex]);
             TimeOnAxis = TimeSpan.FromSeconds(0);
         }
 
@@ -183,18 +112,18 @@ public class SolarGyroController
         if (delta > minError)
         {
             // Keep going
-            EnableGyroOverride(gyro, true);
+            ZAFlightLibrary.EnableGyroOverride(gyro, true);
         }
         else if (delta < -minError)
         {
             // Back up
-            EnableGyroOverride(gyro, true);
-            ReverseAxisVelocity(gyro, currentAxis);
+            ZAFlightLibrary.EnableGyroOverride(gyro, true);
+            ZAFlightLibrary.ReverseAxisVelocity(gyro, currentAxis);
         }
         else
         {
             // Hold still
-            EnableGyroOverride(gyro, false);
+            ZAFlightLibrary.EnableGyroOverride(gyro, false);
         }
 
         TimeOnAxis += program.ElapsedTime;
@@ -202,14 +131,14 @@ public class SolarGyroController
         if (TimeOnAxis > AxisTimeout)
         {
             // Time out, try next axis
-            LastVelocities[AxisIndex] = GetAxisVelocity(gyro, currentAxis);
+            LastVelocities[AxisIndex] = ZAFlightLibrary.GetAxisVelocity(gyro, currentAxis);
 
             AxisIndex++;
             AxisIndex %= AllowedAxes.Length;
 
-            ResetGyro(gyro);
-            EnableGyroOverride(gyro, true);
-            SetAxisVelocity(gyro, AllowedAxes[AxisIndex], LastVelocities[AxisIndex]);
+            ZAFlightLibrary.ResetGyro(gyro);
+            ZAFlightLibrary.EnableGyroOverride(gyro, true);
+            ZAFlightLibrary.SetAxisVelocity(gyro, AllowedAxes[AxisIndex], LastVelocities[AxisIndex]);
             TimeOnAxis = TimeSpan.FromSeconds(0);
         }
 

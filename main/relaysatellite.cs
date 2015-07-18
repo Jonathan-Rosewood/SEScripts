@@ -39,9 +39,9 @@ public class RelaySatellitePowerDrainHandler : BatteryManager.PowerDrainHandler
 private readonly LaunchController launchController = new LaunchController();
 private readonly BatteryManager batteryManager = new BatteryManager(new RelaySatellitePowerDrainHandler());
 private readonly SolarGyroController solarGyroController = new SolarGyroController(
-                                                                                   SolarGyroController.GyroAxisYaw,
-                                                                                   SolarGyroController.GyroAxisPitch
-                                                                                   // SolarGyroController.GyroAxisRoll
+                                                                                   ZAFlightLibrary.GyroAxisYaw,
+                                                                                   ZAFlightLibrary.GyroAxisPitch
+                                                                                   // ZAFlightLibrary.GyroAxisRoll
 );
 
 private bool Ready = false;
