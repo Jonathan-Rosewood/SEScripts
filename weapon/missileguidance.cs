@@ -20,61 +20,10 @@ public class MissileGuidance
     }
 
     private const uint TicksPerRun = 5;
-    public const int GyroAxisYaw = 0;
-    public const int GyroAxisPitch = 1;
-    public const int GyroAxisRoll = 2;
 
     private uint Tick;
     private Vector3D Target = new Vector3D(-112.20, -4.79, -202.81);
     private TimeSpan TotalElapsed = TimeSpan.FromSeconds(0);
-
-    private void EnableGyroOverride(IMyGyro gyro, bool enable)
-    {
-        if ((gyro.GyroOverride && !enable) ||
-            (!gyro.GyroOverride && enable))
-        {
-            gyro.GetActionWithName("Override").Apply(gyro);
-        }
-    }
-
-    private void SetAxisVelocity(IMyGyro gyro, int axis, float velocity)
-    {
-        switch (axis)
-        {
-            case GyroAxisYaw:
-                gyro.SetValue<float>("Yaw", velocity);
-                break;
-            case GyroAxisPitch:
-                gyro.SetValue<float>("Pitch", velocity);
-                break;
-            case GyroAxisRoll:
-                gyro.SetValue<float>("Roll", velocity);
-                break;
-        }
-    }
-
-    private float GetAxisVelocity(IMyGyro gyro, int axis)
-    {
-        switch (axis)
-        {
-            case GyroAxisYaw:
-                return gyro.Yaw;
-            case GyroAxisPitch:
-                return gyro.Pitch;
-            case GyroAxisRoll:
-                return gyro.Roll;
-        }
-        return default(float);
-    }
-
-    private void SetThrusterOverride(List<IMyTerminalBlock> thrusters, float force)
-    {
-        for (var e = thrusters.GetEnumerator(); e.MoveNext();)
-        {
-            var thruster = e.Current as IMyThrust;
-            if (thruster != null) thruster.SetValue<float>("Override", force);
-        }
-    }
 
     private const double PerturbAmplitude = 5000.0;
     private const double PerturbScale = 3.0;
@@ -102,17 +51,18 @@ public class MissileGuidance
 
     public void Run(MyGridProgram program)
     {
-        var forwardGroup = ZALibrary.GetBlockGroupWithName(program, "CM Forward");
-        if (forwardGroup == null)
-        {
-            throw new Exception("Missing group: CM Forward");
-        }
-        SetThrusterOverride(forwardGroup.Blocks, 12000.0f);
-
         TotalElapsed += program.ElapsedTime;
 
         if (Tick % TicksPerRun == 0)
         {
+            // TODO thruster stuff doesn't belong here
+            var forwardGroup = ZALibrary.GetBlockGroupWithName(program, "CM Forward");
+            if (forwardGroup == null)
+            {
+                throw new Exception("Missing group: CM Forward");
+            }
+            ZAFlightLibrary.SetThrusterOverride(forwardGroup.Blocks, 12000.0f);
+
             var ship = new List<IMyTerminalBlock>();
             program.GridTerminalSystem.GetBlocks(ship);
 
@@ -128,9 +78,9 @@ public class MissileGuidance
             var yaw = Vector3D.Dot(targetVector, orientation.Right);
             var pitch = Vector3D.Dot(targetVector, orientation.Up);
 
-            EnableGyroOverride(gyro, true);
-            SetAxisVelocity(gyro, GyroAxisYaw, (float)(yaw * 3.14));
-            SetAxisVelocity(gyro, GyroAxisPitch, (float)(pitch * 3.14));
+            ZAFlightLibrary.EnableGyroOverride(gyro, true);
+            ZAFlightLibrary.SetAxisVelocity(gyro, ZAFlightLibrary.GyroAxisYaw, (float)(yaw * 3.14));
+            ZAFlightLibrary.SetAxisVelocity(gyro, ZAFlightLibrary.GyroAxisPitch, (float)(pitch * 3.14));
         }
 
         Tick++;
