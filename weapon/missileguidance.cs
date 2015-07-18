@@ -19,70 +19,73 @@ public class MissileGuidance
         }
     }
 
-    private const uint TicksPerRun = 5;
+    private const uint FramesPerRun = 5;
 
-    private uint Tick;
     private Vector3D Target = new Vector3D(-112.20, -4.79, -202.81);
-    private TimeSpan TotalElapsed = TimeSpan.FromSeconds(0);
 
+    private const double GyroKp = 5.0; // Proportional constant
     private const double PerturbAmplitude = 5000.0;
+    private const double PerturbPitchScale = 1.0;
+    private const double PerturbYawScale = 1.0;
     private const double PerturbScale = 3.0;
+    private const double PerturbOffset = 400.0;
+    private const double FinalApproachDistance = 300.0; // Should be < PerturbOffset
 
     private double ScaleAmplitude(double distance)
     {
-        distance -= 200.0;
+        distance -= PerturbOffset;
         distance = Math.Max(distance, 0.0);
         distance = Math.Min(distance, PerturbAmplitude);
         // Try linear for now
         return PerturbAmplitude * distance / PerturbAmplitude;
     }
 
-    private double Perturb(Orientation orientation, out Vector3D targetVector)
+    private double Perturb(TimeSpan timeSinceStart, Orientation orientation, out Vector3D targetVector)
     {
         targetVector = Target - orientation.Point;
         var distance = targetVector.Normalize(); // Original distance
         var amp = ScaleAmplitude(distance);
         var newTarget = Target;
-//        newTarget += orientation.Up * amp * Math.Sin(PerturbScale * distance);
-        newTarget += orientation.Right * amp * Math.Sin(PerturbScale * TotalElapsed.TotalSeconds);
+        newTarget += orientation.Up * amp * Math.Cos(PerturbScale * timeSinceStart.TotalSeconds) * PerturbPitchScale;
+        newTarget += orientation.Right * amp * Math.Sin(PerturbScale * timeSinceStart.TotalSeconds) * PerturbYawScale;
         targetVector = Vector3D.Normalize(newTarget - orientation.Point);
         return distance;
     }
 
-    public void Run(MyGridProgram program)
+    public void Run(MyGridProgram program, EventDriver eventDriver)
     {
-        TotalElapsed += program.ElapsedTime;
-
-        if (Tick % TicksPerRun == 0)
+        // TODO thruster stuff doesn't belong here
+        var forwardGroup = ZALibrary.GetBlockGroupWithName(program, "CM Forward");
+        if (forwardGroup == null)
         {
-            // TODO thruster stuff doesn't belong here
-            var forwardGroup = ZALibrary.GetBlockGroupWithName(program, "CM Forward");
-            if (forwardGroup == null)
-            {
-                throw new Exception("Missing group: CM Forward");
-            }
-            ZAFlightLibrary.SetThrusterOverride(forwardGroup.Blocks, 12000.0f);
+            throw new Exception("Missing group: CM Forward");
+        }
+        ZAFlightLibrary.SetThrusterOverride(forwardGroup.Blocks, 12000.0f);
 
-            var ship = new List<IMyTerminalBlock>();
-            program.GridTerminalSystem.GetBlocks(ship);
+        var ship = new List<IMyTerminalBlock>();
+        program.GridTerminalSystem.GetBlocks(ship);
 
-            var gyros = ZALibrary.GetBlocksOfType<IMyGyro>(ship,
-                                                           test => test.IsFunctional && test.IsWorking);
-            if (gyros.Count != 1) return;
-            var gyro = gyros[0];
+        var gyros = ZALibrary.GetBlocksOfType<IMyGyro>(ship,
+                                                       test => test.IsFunctional && test.IsWorking);
+        if (gyros.Count != 1) return;
+        var gyro = gyros[0];
 
-            var orientation = new Orientation(program.Me);
+        var orientation = new Orientation(program.Me);
 
-            Vector3D targetVector;
-            var distance = Perturb(orientation, out targetVector);
-            var yaw = Vector3D.Dot(targetVector, orientation.Right);
-            var pitch = Vector3D.Dot(targetVector, orientation.Up);
+        Vector3D targetVector;
+        var distance = Perturb(eventDriver.TimeSinceStart, orientation, out targetVector);
+        var yaw = Vector3D.Dot(targetVector, orientation.Right);
+        var pitch = Vector3D.Dot(targetVector, orientation.Up);
 
-            ZAFlightLibrary.EnableGyroOverride(gyro, true);
-            ZAFlightLibrary.SetAxisVelocity(gyro, ZAFlightLibrary.GyroAxisYaw, (float)(yaw * 3.14));
-            ZAFlightLibrary.SetAxisVelocity(gyro, ZAFlightLibrary.GyroAxisPitch, (float)(pitch * 3.14));
+        ZAFlightLibrary.EnableGyroOverride(gyro, true);
+        ZAFlightLibrary.SetAxisVelocity(gyro, ZAFlightLibrary.GyroAxisYaw, (float)(yaw * GyroKp));
+        ZAFlightLibrary.SetAxisVelocity(gyro, ZAFlightLibrary.GyroAxisPitch, (float)(pitch * GyroKp));
+
+        if (distance < FinalApproachDistance)
+        {
+            ZAFlightLibrary.SetAxisVelocity(gyro, ZAFlightLibrary.GyroAxisRoll, MathHelper.Pi);
         }
 
-        Tick++;
+        eventDriver.Schedule(FramesPerRun, Run);
     }
 }
