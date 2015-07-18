@@ -1,15 +1,34 @@
 public class Rangefinder
 {
+    // This comes from not being able to use Vector3I's constants due to whatever
+    public static Vector3I Up = new Vector3I(0, 1, 0);
+    public static Vector3I Down = new Vector3I(0, -1, 0);
+    public static Vector3I Right = new Vector3I(1, 0, 0);
+    public static Vector3I Left = new Vector3I(-1, 0, 0);
+    public static Vector3I Forward = new Vector3I(0, 0, -1);
+    public static Vector3I Backward = new Vector3I(0, 0, 1);
+
     public struct LineSample
     {
         public VRageMath.Vector3D Point;
         public VRageMath.Vector3D Direction;
 
-        public LineSample(IMyTerminalBlock reference, IMyTerminalBlock forward)
+        public LineSample(IMyCubeBlock reference, VRageMath.Vector3I forward3I)
         {
             Point = reference.GetPosition();
-            var forwardPoint = forward.GetPosition();
+            var forwardPoint = reference.CubeGrid.GridIntegerToWorld(forward3I);
             Direction = VRageMath.Vector3D.Normalize(forwardPoint - Point);
+        }
+
+        public LineSample(IMyCubeBlock reference, IMyCubeBlock forward) :
+            this(reference, forward.Position)
+        {
+        }
+
+        public LineSample(IMyCubeBlock reference) :
+            // reference.Orientation.Forward not accessible to us, so just assume grid Forward
+            this(reference, reference.Position + Forward)
+        {
         }
     }
 

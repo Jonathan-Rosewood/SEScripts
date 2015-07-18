@@ -3,27 +3,24 @@ private Rangefinder.LineSample first, second;
 public void Main(string argument)
 {
     var referenceGroup = ZALibrary.GetBlockGroupWithName(this, "Reference");
-    var forwardGroup = ZALibrary.GetBlockGroupWithName(this, "Forward");
-    if (referenceGroup == null ||
-        forwardGroup == null)
+    if (referenceGroup == null)
     {
-        throw new Exception("Missing groups!");
+        throw new Exception("Missing group: Reference");
     }
 
     var reference = referenceGroup.Blocks[0];
-    var forward = forwardGroup.Blocks[0];
 
     argument = argument.Trim().ToString();
     if (argument == "first" || argument.Length == 0)
     {
-        first = new Rangefinder.LineSample(reference, forward);
+        first = new Rangefinder.LineSample(reference);
     }
     else if (argument == "second")
     {
-        second = new Rangefinder.LineSample(reference, forward);
+        second = new Rangefinder.LineSample(reference);
 
         VRageMath.Vector3D target;
-        if (Sighting.Compute(first, second, out target))
+        if (Rangefinder.Compute(first, second, out target))
         {
             Echo("Target: " + target);
         }

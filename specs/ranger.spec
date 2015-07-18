@@ -1,3 +1,3 @@
 [script]
-modules = ranger, sighting, ZALibrary
+modules = ranger, rangefinder, ZALibrary
 out = out/Ranger/Script.cs
