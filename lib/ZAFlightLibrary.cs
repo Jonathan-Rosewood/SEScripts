@@ -8,9 +8,7 @@ public static class ZAFlightLibrary
 
     public static bool GetAutoPilotState(IMyRemoteControl remote)
     {
-        StringBuilder builder = new StringBuilder();
-        remote.GetActionWithName("AutoPilot").WriteValue(remote, builder);
-        return builder.ToString() == "On";
+        return remote.GetValue<bool>("AutoPilot");
     }
 
     public static void SetThrusterOverride(List<IMyTerminalBlock> thrusters, float force)
