@@ -21,7 +21,7 @@ public class MissileGuidance
 
     private const uint FramesPerRun = 5;
 
-    private Vector3D Target = new Vector3D(-112.20, -4.79, -202.81);
+    private Vector3D Target;
 
     private const double GyroKp = 5.0; // Proportional constant
     private const double PerturbAmplitude = 5000.0;
@@ -54,6 +54,28 @@ public class MissileGuidance
 
     public void Init(MyGridProgram program, EventDriver eventDriver)
     {
+        // Find the sole text panel
+        List<IMyTerminalBlock> panels = new List<IMyTerminalBlock>();
+        program.GridTerminalSystem.GetBlocksOfType<IMyTextPanel>(panels);
+        if (panels.Count != 1)
+        {
+            throw new Exception("Expecting exactly 1 text panel");
+        }
+        var panel = panels[0] as IMyTextPanel;
+        var targetString = panel.GetPrivateText();
+
+        // Parse target info
+        var parts = targetString.Split(';');
+        if (parts.Length != 3)
+        {
+            throw new Exception("Expecting exactly 3 parts to target info");
+        }
+        Target = new Vector3D();
+        for (int i = 0; i < 3; i++)
+        {
+            Target.SetDim(i, double.Parse(parts[i]));
+        }
+
         eventDriver.Schedule(0, Run);
     }
 
