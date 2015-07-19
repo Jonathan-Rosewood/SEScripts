@@ -29,6 +29,14 @@ public static class ZAFlightLibrary
         }
     }
 
+    public static void EnableGyroOverride(List<IMyGyro> gyros, bool enable)
+    {
+        for (var e = gyros.GetEnumerator(); e.MoveNext();)
+        {
+            EnableGyroOverride(e.Current, enable);
+        }
+    }
+
     public static void SetAxisVelocity(IMyGyro gyro, int axis, float velocity)
     {
         switch (axis)
@@ -42,6 +50,14 @@ public static class ZAFlightLibrary
             case GyroAxisRoll:
                 gyro.SetValue<float>("Roll", velocity);
                 break;
+        }
+    }
+
+    public static void SetAxisVelocity(List<IMyGyro> gyros, int axis, float velocity)
+    {
+        for (var e = gyros.GetEnumerator(); e.MoveNext();)
+        {
+            SetAxisVelocity(e.Current, axis, velocity);
         }
     }
 

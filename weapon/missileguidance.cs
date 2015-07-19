@@ -100,8 +100,6 @@ public class MissileGuidance
 
         var gyros = ZALibrary.GetBlocksOfType<IMyGyro>(ship,
                                                        test => test.IsFunctional && test.IsWorking);
-        if (gyros.Count != 1) return;
-        var gyro = gyros[0];
 
         var orientation = new Orientation(program.Me);
 
@@ -110,13 +108,13 @@ public class MissileGuidance
         var yaw = Vector3D.Dot(targetVector, orientation.Right);
         var pitch = Vector3D.Dot(targetVector, orientation.Up);
 
-        ZAFlightLibrary.EnableGyroOverride(gyro, true);
-        ZAFlightLibrary.SetAxisVelocity(gyro, ZAFlightLibrary.GyroAxisYaw, (float)(yaw * GyroKp));
-        ZAFlightLibrary.SetAxisVelocity(gyro, ZAFlightLibrary.GyroAxisPitch, (float)(pitch * GyroKp));
+        ZAFlightLibrary.EnableGyroOverride(gyros, true);
+        ZAFlightLibrary.SetAxisVelocity(gyros, ZAFlightLibrary.GyroAxisYaw, (float)(yaw * GyroKp));
+        ZAFlightLibrary.SetAxisVelocity(gyros, ZAFlightLibrary.GyroAxisPitch, (float)(pitch * GyroKp));
 
         if (distance < FinalApproachDistance)
         {
-            ZAFlightLibrary.SetAxisVelocity(gyro, ZAFlightLibrary.GyroAxisRoll, FinalApproachRoll);
+            ZAFlightLibrary.SetAxisVelocity(gyros, ZAFlightLibrary.GyroAxisRoll, FinalApproachRoll);
         }
 
         eventDriver.Schedule(FramesPerRun, Run);
