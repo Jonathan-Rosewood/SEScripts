@@ -56,13 +56,18 @@ public class MissileGuidance
     public void AcquireTarget(MyGridProgram program)
     {
         // Find the sole text panel
-        List<IMyTerminalBlock> panels = new List<IMyTerminalBlock>();
-        program.GridTerminalSystem.GetBlocksOfType<IMyTextPanel>(panels);
-        if (panels.Count != 1)
+        var panelGroup = ZALibrary.GetBlockGroupWithName(program, "CM Target");
+        if (panelGroup == null)
         {
-            throw new Exception("Expecting exactly 1 text panel");
+            throw new Exception("Missing group: CM Target");
         }
-        var panel = panels[0] as IMyTextPanel;
+
+        var panels = ZALibrary.GetBlocksOfType<IMyTextPanel>(panelGroup.Blocks);
+        if (panels.Count == 0)
+        {
+            throw new Exception("Expecting at least 1 text panel");
+        }
+        var panel = panels[0] as IMyTextPanel; // Just use the first one
         var targetString = panel.GetPublicText();
 
         // Parse target info
