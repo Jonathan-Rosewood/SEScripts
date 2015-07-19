@@ -22,6 +22,7 @@ public class MissileGuidance
     private const uint FramesPerRun = 5;
 
     private Vector3D Target;
+    private double RandomOffset;
 
     private const double GyroKp = 5.0; // Proportional constant
     private const double PerturbAmplitude = 5000.0;
@@ -46,8 +47,8 @@ public class MissileGuidance
         var distance = targetVector.Normalize(); // Original distance
         var amp = ScaleAmplitude(distance);
         var newTarget = Target;
-        newTarget += orientation.Up * amp * Math.Cos(PerturbScale * timeSinceStart.TotalSeconds) * PerturbPitchScale;
-        newTarget += orientation.Right * amp * Math.Sin(PerturbScale * timeSinceStart.TotalSeconds) * PerturbYawScale;
+        newTarget += orientation.Up * amp * Math.Cos(PerturbScale * timeSinceStart.TotalSeconds + RandomOffset) * PerturbPitchScale;
+        newTarget += orientation.Right * amp * Math.Sin(PerturbScale * timeSinceStart.TotalSeconds + RandomOffset) * PerturbYawScale;
         targetVector = Vector3D.Normalize(newTarget - orientation.Point);
         return distance;
     }
@@ -79,6 +80,10 @@ public class MissileGuidance
 
     public void Init(MyGridProgram program, EventDriver eventDriver)
     {
+        // Randomize in case of simultaneous launch with other missiles
+        Random random = new Random(this.GetHashCode());
+        RandomOffset = 1000.0 * random.NextDouble();
+
         eventDriver.Schedule(0, Run);
     }
 
