@@ -52,7 +52,7 @@ public class MissileGuidance
         return distance;
     }
 
-    public void Init(MyGridProgram program, EventDriver eventDriver)
+    public void AcquireTarget(MyGridProgram program)
     {
         // Find the sole text panel
         List<IMyTerminalBlock> panels = new List<IMyTerminalBlock>();
@@ -75,7 +75,10 @@ public class MissileGuidance
         {
             Target.SetDim(i, double.Parse(parts[i]));
         }
+    }
 
+    public void Init(MyGridProgram program, EventDriver eventDriver)
+    {
         eventDriver.Schedule(0, Run);
     }
 

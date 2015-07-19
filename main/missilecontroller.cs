@@ -12,7 +12,9 @@ void Main(string argument)
         FirstRun = false;
         missileLaunch.Init(this, eventDriver, missileGuidance);
         randomDecoy.Init(this, eventDriver);
-        // Guidance will be initialized by launch
+        // Guidance will be initialized by launch,
+        // but we'll acquire the target here so it fails early if missing
+        missileGuidance.AcquireTarget(this);
     }
 
     eventDriver.Tick(this);
