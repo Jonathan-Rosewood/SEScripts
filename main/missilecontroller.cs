@@ -16,10 +16,4 @@ void Main(string argument)
     }
 
     eventDriver.Tick(this);
-
-    // Kick timer
-    var timers = new List<IMyTerminalBlock>();
-    GridTerminalSystem.GetBlocksOfType<IMyTimerBlock>(timers);
-    var timer = timers[0];
-    timer.GetActionWithName("TriggerNow").Apply(timer);
 }

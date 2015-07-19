@@ -23,6 +23,23 @@ public void Main(string argument)
         if (Rangefinder.Compute(first, second, out target))
         {
             Echo("Target: " + target);
+
+            var targetGroup = ZALibrary.GetBlockGroupWithName(this, "CM Target");
+            if (targetGroup != null)
+            {
+                StringBuilder builder = new StringBuilder();
+                builder.Append(target.GetDim(0));
+                builder.Append(';');
+                builder.Append(target.GetDim(1));
+                builder.Append(';');
+                builder.Append(target.GetDim(2));
+                var targetString = builder.ToString();
+
+                for (var e = ZALibrary.GetBlocksOfType<IMyTextPanel>(targetGroup.Blocks).GetEnumerator(); e.MoveNext();)
+                {
+                    e.Current.WritePublicText(targetString);
+                }
+            }
         }
         else
         {

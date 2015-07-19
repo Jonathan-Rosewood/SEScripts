@@ -62,7 +62,7 @@ public class MissileGuidance
             throw new Exception("Expecting exactly 1 text panel");
         }
         var panel = panels[0] as IMyTextPanel;
-        var targetString = panel.GetPrivateText();
+        var targetString = panel.GetPublicText();
 
         // Parse target info
         var parts = targetString.Split(';');
