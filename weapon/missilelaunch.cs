@@ -49,7 +49,7 @@ public class MissileLaunch
                 // Activate flight systems
                 ZALibrary.EnableBlocks(systemsGroup.Blocks, true);
                 CurrentState = STATE_RELEASE;
-                eventDriver.Schedule(0.5, EventDriver.Seconds, Run);
+                eventDriver.Schedule(1.5, EventDriver.Seconds, Run);
                 break;
             case STATE_RELEASE:
                 var releaseGroup = ZALibrary.GetBlockGroupWithName(program, RELEASE_GROUP);
