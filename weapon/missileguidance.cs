@@ -19,7 +19,7 @@ public class MissileGuidance
         }
     }
 
-    private const uint FramesPerRun = 5;
+    private const uint FramesPerRun = 2;
 
     private Vector3D Target;
     private double RandomOffset;
@@ -29,8 +29,9 @@ public class MissileGuidance
     private const double PerturbPitchScale = 1.0;
     private const double PerturbYawScale = 1.0;
     private const double PerturbScale = 3.0;
-    private const double PerturbOffset = 400.0;
-    private const double FinalApproachDistance = 300.0; // Should be < PerturbOffset
+    private const double PerturbOffset = 200.0;
+    private const double FinalApproachDistance = 600.0;
+    private const float FinalApproachRoll = MathHelper.Pi / 2.0f;
 
     private double ScaleAmplitude(double distance)
     {
@@ -115,7 +116,7 @@ public class MissileGuidance
 
         if (distance < FinalApproachDistance)
         {
-            ZAFlightLibrary.SetAxisVelocity(gyro, ZAFlightLibrary.GyroAxisRoll, MathHelper.Pi);
+            ZAFlightLibrary.SetAxisVelocity(gyro, ZAFlightLibrary.GyroAxisRoll, FinalApproachRoll);
         }
 
         eventDriver.Schedule(FramesPerRun, Run);

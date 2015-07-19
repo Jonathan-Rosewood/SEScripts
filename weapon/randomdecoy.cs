@@ -1,6 +1,6 @@
 public class RandomDecoy
 {
-    private const uint FramesPerRun = 5;
+    private const uint FramesPerRun = 2;
 
     private readonly Random random = new Random();
 
@@ -13,7 +13,8 @@ public class RandomDecoy
     {
         var decoys = new List<IMyTerminalBlock>();
         program.GridTerminalSystem.GetBlocksOfType<IMyTerminalBlock>(decoys,
-                                                                     block => block.DefinitionDisplayNameText == "Decoy");
+                                                                     block => block.DefinitionDisplayNameText == "Decoy" &&
+                                                                     block.IsFunctional);
         if (decoys.Count == 0) return;
 
         int chosen = random.Next(decoys.Count);
