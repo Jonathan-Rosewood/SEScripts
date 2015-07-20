@@ -56,4 +56,13 @@ public class ThrustControl
                                                       (float)force :
                                                       thruster.GetMaximum<float>("Override")));
     }
+
+    public void Reset()
+    {
+        for (var e = thrusters.Values.GetEnumerator(); e.MoveNext();)
+        {
+            var thrusterList = e.Current;
+            thrusterList.ForEach(thruster => thruster.SetValue<float>("Override", 0.0f));
+        }
+    }
 }
