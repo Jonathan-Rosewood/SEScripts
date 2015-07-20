@@ -49,7 +49,7 @@ public class MissileLaunch
                 // Activate flight systems
                 ZALibrary.EnableBlocks(systemsGroup.Blocks, true);
                 CurrentState = STATE_RELEASE;
-                eventDriver.Schedule(2.0, EventDriver.Seconds, Run);
+                eventDriver.Schedule(2.0, Run);
                 break;
             case STATE_RELEASE:
                 var releaseGroup = ZALibrary.GetBlockGroupWithName(program, RELEASE_GROUP);
@@ -60,7 +60,7 @@ public class MissileLaunch
 
                 ZALibrary.EnableBlocks(releaseGroup.Blocks, false);
                 CurrentState = STATE_BURN;
-                eventDriver.Schedule(0.5, EventDriver.Seconds, Run);
+                eventDriver.Schedule(0.5, Run);
                 break;
             case STATE_BURN:
                 var thrustGroup = ZALibrary.GetBlockGroupWithName(program, THRUST_GROUP);
@@ -70,7 +70,7 @@ public class MissileLaunch
                 }
                 ZAFlightLibrary.SetThrusterOverride(thrustGroup.Blocks, THRUST_FORCE);
                 CurrentState = STATE_ARM;
-                eventDriver.Schedule(BURN_TIME, EventDriver.Seconds, Run);
+                eventDriver.Schedule(BURN_TIME, Run);
                 break;
             case STATE_ARM:
                 // Just find all warheads on board and turn off safeties

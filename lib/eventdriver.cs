@@ -2,10 +2,10 @@ public class EventDriver
 {
     public struct FutureAction : IComparable<FutureAction>
     {
-        public TimeSpan When;
+        public ulong When;
         public Action<MyGridProgram, EventDriver> Action;
 
-        public FutureAction(TimeSpan when, Action<MyGridProgram, EventDriver> action = null)
+        public FutureAction(ulong when, Action<MyGridProgram, EventDriver> action = null)
         {
             When = when;
             Action = action;
@@ -17,14 +17,16 @@ public class EventDriver
         }
     }
 
-    // This is actually supposed to be an enum
-    public const int Milliseconds = 1;
-    public const int Frames = 83; // Eh
-    public const int Seconds = 1000;
-    public const int Minutes = 60000;
+    private const ulong TicksPerSecond = 60;
 
     // Why is there no standard priority queue implementation?
     private readonly LinkedList<FutureAction> Queue = new LinkedList<FutureAction>();
+    public ulong Ticks
+    {
+        get { return m_ticks; }
+        private set { m_ticks = value; }
+    }
+    private ulong m_ticks = 0;
     public TimeSpan TimeSinceStart
     {
         get { return m_timeSinceStart; }
@@ -35,10 +37,12 @@ public class EventDriver
     // Returns true if main should run
     public bool Tick(MyGridProgram program)
     {
+        Ticks++;
         TimeSinceStart += program.ElapsedTime;
+
         bool result = false;
         while (Queue.First != null &&
-               Queue.First.Value.When <= TimeSinceStart)
+               Queue.First.Value.When <= Ticks)
         {
             var action = Queue.First.Value.Action;
             Queue.RemoveFirst();
@@ -54,29 +58,9 @@ public class EventDriver
         return result;
     }
 
-    public void Schedule(double delay, int units, Action<MyGridProgram, EventDriver> action = null)
+    public void Schedule(ulong delay, Action<MyGridProgram, EventDriver> action = null)
     {
-        delay = Math.Max(delay, 0.0);
-        var when = TimeSinceStart;
-        switch (units)
-        {
-            case Milliseconds:
-                when += TimeSpan.FromMilliseconds(delay);
-                break;
-            case Frames:
-                when += TimeSpan.FromMilliseconds(1000.0 * delay / 60.0);
-                break;
-            case Seconds:
-                when += TimeSpan.FromSeconds(delay);
-                break;
-            case Minutes:
-                when += TimeSpan.FromMinutes(delay);
-                break;
-            default:
-                throw new Exception("EventDriver.Schedule: Unknown units");
-        }
-
-        var future = new FutureAction(when, action);
+        var future = new FutureAction(Ticks + delay, action);
         for (var current = Queue.First;
              current != null;
              current = current.Next)
@@ -92,8 +76,11 @@ public class EventDriver
         Queue.AddLast(future);
     }
 
-    public void Schedule(uint frames, Action<MyGridProgram, EventDriver> action = null)
+    public void Schedule(double seconds, Action<MyGridProgram, EventDriver> action = null)
     {
-        Schedule(frames, Frames, action);
+        seconds = Math.Max(seconds, 0.0);
+        // Best guess
+        ulong delay = (ulong)(seconds * TicksPerSecond + 0.5);
+        Schedule(delay, action);
     }
 }

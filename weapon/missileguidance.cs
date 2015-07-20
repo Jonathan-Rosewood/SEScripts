@@ -26,8 +26,8 @@ public class MissileGuidance
         }
     }
 
-    private const uint FramesPerRun = 2;
-    private const uint RunsPerSecond = 60 / FramesPerRun;
+    private const uint FramesPerRun = 1;
+    private const double RunsPerSecond = 60.0 / FramesPerRun;
 
     private Vector3D Target;
     private double RandomOffset;

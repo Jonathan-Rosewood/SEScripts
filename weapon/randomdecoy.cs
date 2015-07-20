@@ -1,6 +1,6 @@
 public class RandomDecoy
 {
-    private const uint FramesPerRun = 2;
+    private const uint FramesPerRun = 1;
 
     private readonly Random random = new Random();
 
