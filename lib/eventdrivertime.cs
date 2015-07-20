@@ -2,10 +2,10 @@ public class EventDriver
 {
     public struct FutureAction : IComparable<FutureAction>
     {
-        public ulong When;
+        public TimeSpan When;
         public Action<MyGridProgram, EventDriver> Action;
 
-        public FutureAction(ulong when, Action<MyGridProgram, EventDriver> action = null)
+        public FutureAction(TimeSpan when, Action<MyGridProgram, EventDriver> action = null)
         {
             When = when;
             Action = action;
@@ -17,11 +17,11 @@ public class EventDriver
         }
     }
 
-    private const ulong TicksPerSecond = 60;
+    private const double SecondsPerTick = 1.0 / 60.0;
+    private const double TimeBuffer = SecondsPerTick / 2.0; // Adjust all times by this just because
 
     // Why is there no standard priority queue implementation?
     private readonly LinkedList<FutureAction> Queue = new LinkedList<FutureAction>();
-    private ulong Ticks = 0; // Would be nice to expose this, but would not be portable w/ other implementation
     public TimeSpan TimeSinceStart
     {
         get { return m_timeSinceStart; }
@@ -32,12 +32,11 @@ public class EventDriver
     // Returns true if main should run
     public bool Tick(MyGridProgram program)
     {
-        Ticks++;
         TimeSinceStart += program.ElapsedTime;
 
         bool result = false;
         while (Queue.First != null &&
-               Queue.First.Value.When <= Ticks)
+               Queue.First.Value.When <= TimeSinceStart)
         {
             var action = Queue.First.Value.Action;
             Queue.RemoveFirst();
@@ -53,9 +52,10 @@ public class EventDriver
         return result;
     }
 
-    public void Schedule(ulong delay, Action<MyGridProgram, EventDriver> action = null)
+    public void Schedule(double seconds, Action<MyGridProgram, EventDriver> action = null)
     {
-        var future = new FutureAction(Ticks + delay, action);
+        seconds = Math.Max(seconds - TimeBuffer, 0.0); // Adjust by 1/2 tick time
+        var future = new FutureAction(TimeSinceStart + TimeSpan.FromSeconds(seconds), action);
         for (var current = Queue.First;
              current != null;
              current = current.Next)
@@ -71,11 +71,9 @@ public class EventDriver
         Queue.AddLast(future);
     }
 
-    public void Schedule(double seconds, Action<MyGridProgram, EventDriver> action = null)
+    public void Schedule(ulong delay, Action<MyGridProgram, EventDriver> action = null)
     {
-        seconds = Math.Max(seconds, 0.0);
-        // Best guess
-        ulong delay = (ulong)(seconds * TicksPerSecond + 0.5);
-        Schedule(delay, action);
+        // Best estimate
+        Schedule(delay * SecondsPerTick, action);
     }
 }
