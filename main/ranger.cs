@@ -2,12 +2,15 @@ private Rangefinder.LineSample first, second;
 
 public void Main(string argument)
 {
-    var referenceGroup = ZALibrary.GetBlockGroupWithName(this, "Reference");
+    var referenceGroup = ZALibrary.GetBlockGroupWithName(this, RANGEFINDER_REFERENCE_GROUP);
     if (referenceGroup == null)
     {
-        throw new Exception("Missing group: Reference");
+        throw new Exception("Missing group: " + RANGEFINDER_REFERENCE_GROUP);
     }
-
+    else if (referenceGroup.Blocks.Count != 1)
+    {
+        throw new Exception("Expecting exactly 1 block in group " + RANGEFINDER_REFERENCE_GROUP);
+    }
     var reference = referenceGroup.Blocks[0];
 
     argument = argument.Trim().ToString();
@@ -24,16 +27,13 @@ public void Main(string argument)
         {
             Echo("Target: " + target);
 
-            var targetGroup = ZALibrary.GetBlockGroupWithName(this, "CM Target");
+            var targetGroup = ZALibrary.GetBlockGroupWithName(this, RANGEFINDER_TARGET_GROUP);
             if (targetGroup != null)
             {
-                StringBuilder builder = new StringBuilder();
-                builder.Append(target.GetDim(0));
-                builder.Append(';');
-                builder.Append(target.GetDim(1));
-                builder.Append(';');
-                builder.Append(target.GetDim(2));
-                var targetString = builder.ToString();
+                var targetString = string.Format(RANGEFINDER_TARGET_FORMAT,
+                                                 target.GetDim(0),
+                                                 target.GetDim(1),
+                                                 target.GetDim(2));
 
                 for (var e = ZALibrary.GetBlocksOfType<IMyTextPanel>(targetGroup.Blocks).GetEnumerator(); e.MoveNext();)
                 {

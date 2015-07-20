@@ -1,13 +1,5 @@
 public class Rangefinder
 {
-    // This comes from not being able to use Vector3I's constants due to whatever
-    public static Vector3I Up = new Vector3I(0, 1, 0);
-    public static Vector3I Down = new Vector3I(0, -1, 0);
-    public static Vector3I Right = new Vector3I(1, 0, 0);
-    public static Vector3I Left = new Vector3I(-1, 0, 0);
-    public static Vector3I Forward = new Vector3I(0, 0, -1);
-    public static Vector3I Backward = new Vector3I(0, 0, 1);
-
     public struct LineSample
     {
         public Vector3D Point;
