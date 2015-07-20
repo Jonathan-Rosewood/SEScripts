@@ -1,37 +1,51 @@
 public class MissileGuidance
 {
+    public static Vector3I Forward3I = new Vector3I(0, 0, -1);
     public static Vector3I Up3I = new Vector3I(0, 1, 0);
-    public static Vector3I Right3I = new Vector3I(1, 0, 0);
+    public static Vector3I Left3I = new Vector3I(-1, 0, 0);
+
+    public static Vector3D Zero3D = new Vector3D();
+    public static Vector3D Forward3D = new Vector3D(0.0, 0.0, -1.0);
 
     public struct Orientation
     {
         public Vector3D Point;
+        public Vector3D Forward;
         public Vector3D Up;
-        public Vector3D Right;
+        public Vector3D Left;
 
         public Orientation(IMyCubeBlock reference)
         {
             Point = reference.GetPosition();
+            var forward3I = reference.Position + Forward3I;
+            Forward = Vector3D.Normalize(reference.CubeGrid.GridIntegerToWorld(forward3I) - Point);
             var up3I = reference.Position + Up3I;
             Up = Vector3D.Normalize(reference.CubeGrid.GridIntegerToWorld(up3I) - Point);
-            var right3I = reference.Position + Right3I;
-            Right = Vector3D.Normalize(reference.CubeGrid.GridIntegerToWorld(right3I) - Point);
+            var left3I = reference.Position + Left3I;
+            Left = Vector3D.Normalize(reference.CubeGrid.GridIntegerToWorld(left3I) - Point);
         }
     }
 
     private const uint FramesPerRun = 2;
+    private const uint RunsPerSecond = 60 / FramesPerRun;
 
     private Vector3D Target;
     private double RandomOffset;
 
-    private const double GyroKp = 5.0; // Proportional constant
+    private const bool PerturbTarget = true;
     private const double PerturbAmplitude = 5000.0;
     private const double PerturbPitchScale = 1.0;
     private const double PerturbYawScale = 1.0;
     private const double PerturbScale = 3.0;
     private const double PerturbOffset = 200.0;
-    private const double FinalApproachDistance = 600.0;
-    private const float FinalApproachRoll = MathHelper.Pi / 2.0f;
+    private const double FinalApproachDistance = 200.0;
+    private const float FinalApproachRoll = MathHelper.Pi;
+
+    private const double GyroKp = 250.0; // Proportional constant
+    private const double GyroKi = 0.0; // Integral constant
+    private const double GyroKd = 200.0; // Derivative constant
+    private double YawErrorIntegral, LastYawError;
+    private double PitchErrorIntegral, LastPitchError;
 
     private double ScaleAmplitude(double distance)
     {
@@ -49,7 +63,7 @@ public class MissileGuidance
         var amp = ScaleAmplitude(distance);
         var newTarget = Target;
         newTarget += orientation.Up * amp * Math.Cos(PerturbScale * timeSinceStart.TotalSeconds + RandomOffset) * PerturbPitchScale;
-        newTarget += orientation.Right * amp * Math.Sin(PerturbScale * timeSinceStart.TotalSeconds + RandomOffset) * PerturbYawScale;
+        newTarget += orientation.Left * amp * Math.Sin(PerturbScale * timeSinceStart.TotalSeconds + RandomOffset) * PerturbYawScale;
         targetVector = Vector3D.Normalize(newTarget - orientation.Point);
         return distance;
     }
@@ -104,13 +118,49 @@ public class MissileGuidance
         var orientation = new Orientation(program.Me);
 
         Vector3D targetVector;
-        var distance = Perturb(eventDriver.TimeSinceStart, orientation, out targetVector);
-        var yaw = Vector3D.Dot(targetVector, orientation.Right);
-        var pitch = Vector3D.Dot(targetVector, orientation.Up);
+        double distance;
+        if (PerturbTarget)
+        {
+            distance = Perturb(eventDriver.TimeSinceStart, orientation, out targetVector);
+        }
+        else
+        {
+            targetVector = Target - orientation.Point;
+            distance = targetVector.Normalize();
+        }
+
+        // Transform relative to our forward vector
+        targetVector = Vector3D.Transform(targetVector, MatrixD.CreateLookAt(Zero3D, -orientation.Forward, orientation.Up));
+
+        var yawVector = new Vector3D(targetVector.GetDim(0), 0, targetVector.GetDim(2));
+        var pitchVector = new Vector3D(0, targetVector.GetDim(1), targetVector.GetDim(2));
+        yawVector.Normalize();
+        pitchVector.Normalize();
+
+        var yawError = -Math.Acos(Vector3D.Dot(yawVector, Forward3D)) * Math.Sign(targetVector.GetDim(0));
+        var pitchError = Math.Acos(Vector3D.Dot(pitchVector, Forward3D)) * Math.Sign(targetVector.GetDim(1));
+
+        YawErrorIntegral += yawError / RunsPerSecond;
+        var yawErrorDerivative = (yawError - LastYawError) * RunsPerSecond;
+        LastYawError = yawError;
+
+        PitchErrorIntegral += pitchError / RunsPerSecond;
+        var pitchErrorDerivative = (pitchError - LastPitchError) * RunsPerSecond;
+        LastPitchError = pitchError;
+
+        var gyroYaw = yawError * GyroKp + YawErrorIntegral * GyroKi + yawErrorDerivative * GyroKd;
+        var gyroPitch = pitchError * GyroKp + PitchErrorIntegral * GyroKi + pitchErrorDerivative * GyroKd;
+
+        if (Math.Abs(gyroYaw) + Math.Abs(gyroPitch) > Math.PI)
+        {
+            var adjust = Math.PI / (Math.Abs(gyroYaw) + Math.Abs(gyroPitch));
+            gyroYaw *= adjust;
+            gyroPitch *= adjust;
+        }
 
         ZAFlightLibrary.EnableGyroOverride(gyros, true);
-        ZAFlightLibrary.SetAxisVelocity(gyros, ZAFlightLibrary.GyroAxisYaw, (float)(yaw * GyroKp));
-        ZAFlightLibrary.SetAxisVelocity(gyros, ZAFlightLibrary.GyroAxisPitch, (float)(pitch * GyroKp));
+        ZAFlightLibrary.SetAxisVelocity(gyros, ZAFlightLibrary.GyroAxisYaw, (float)gyroYaw);
+        ZAFlightLibrary.SetAxisVelocity(gyros, ZAFlightLibrary.GyroAxisPitch, (float)gyroPitch);
 
         if (distance < FinalApproachDistance)
         {
