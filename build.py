@@ -12,6 +12,7 @@ SCRIPT_DIRECTORIES = [
     'lib',
     'main',
     'smallship',
+    'standalone',
     'weapon',
 ]
 
