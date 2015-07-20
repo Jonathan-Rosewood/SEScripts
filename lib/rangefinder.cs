@@ -25,14 +25,14 @@ public class Rangefinder
         {
         }
 
+        // Use the "forward" direction of the reference block
         public LineSample(IMyCubeBlock reference) :
-            // reference.Orientation.Forward not accessible to us, so just assume grid Forward
-            this(reference, reference.Position + Forward)
+            this(reference, reference.Position + Base6Directions.GetIntVector(reference.Orientation.TransformDirection(Base6Directions.Direction.Forward)))
         {
         }
     }
 
-    public static bool Compute(LineSample first, LineSample second, out VRageMath.Vector3D gps)
+    public static bool Compute(LineSample first, LineSample second, out VRageMath.Vector3D target)
     {
         // It's really too bad. VRageMath.LineD implements this, but I believe
         // it only works on line segments.
@@ -55,12 +55,12 @@ public class Rangefinder
             var qc = second.Point + tc * second.Direction;
 
             // We're interested in midpoint of pc-sc segment
-            gps = (pc + qc) / 2.0;
+            target = (pc + qc) / 2.0;
             return true;
         }
 
         // Parallel lines
-        gps = default(VRageMath.Vector3D);
+        target = default(VRageMath.Vector3D);
         return false;
     }
 }
