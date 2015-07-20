@@ -29,6 +29,8 @@ public class MissileGuidance
     private const uint FramesPerRun = 1;
     private const double RunsPerSecond = 60.0 / FramesPerRun;
 
+    private const double GyroMaxRadiansPerSecond = Math.PI; // Really pi*2, but something's odd...
+
     private Vector3D Target;
     private double RandomOffset;
 
@@ -151,9 +153,9 @@ public class MissileGuidance
         var gyroYaw = yawError * GyroKp + YawErrorIntegral * GyroKi + yawErrorDerivative * GyroKd;
         var gyroPitch = pitchError * GyroKp + PitchErrorIntegral * GyroKi + pitchErrorDerivative * GyroKd;
 
-        if (Math.Abs(gyroYaw) + Math.Abs(gyroPitch) > Math.PI)
+        if (Math.Abs(gyroYaw) + Math.Abs(gyroPitch) > GyroMaxRadiansPerSecond)
         {
-            var adjust = Math.PI / (Math.Abs(gyroYaw) + Math.Abs(gyroPitch));
+            var adjust = GyroMaxRadiansPerSecond / (Math.Abs(gyroYaw) + Math.Abs(gyroPitch));
             gyroYaw *= adjust;
             gyroPitch *= adjust;
         }
