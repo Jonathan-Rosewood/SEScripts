@@ -10,14 +10,14 @@ public class Rangefinder
 
     public struct LineSample
     {
-        public VRageMath.Vector3D Point;
-        public VRageMath.Vector3D Direction;
+        public Vector3D Point;
+        public Vector3D Direction;
 
-        public LineSample(IMyCubeBlock reference, VRageMath.Vector3I forward3I)
+        public LineSample(IMyCubeBlock reference, Vector3I forward3I)
         {
             Point = reference.GetPosition();
             var forwardPoint = reference.CubeGrid.GridIntegerToWorld(forward3I);
-            Direction = VRageMath.Vector3D.Normalize(forwardPoint - Point);
+            Direction = Vector3D.Normalize(forwardPoint - Point);
         }
 
         public LineSample(IMyCubeBlock reference, IMyCubeBlock forward) :
@@ -32,18 +32,18 @@ public class Rangefinder
         }
     }
 
-    public static bool Compute(LineSample first, LineSample second, out VRageMath.Vector3D target)
+    public static bool Compute(LineSample first, LineSample second, out Vector3D target)
     {
         // It's really too bad. VRageMath.LineD implements this, but I believe
         // it only works on line segments.
 
         // Many thanks to http://geomalgorithms.com/a07-_distance.html :P
         var w0 = first.Point - second.Point;
-        var a = VRageMath.Vector3D.Dot(first.Direction, first.Direction);
-        var b = VRageMath.Vector3D.Dot(first.Direction, second.Direction);
-        var c = VRageMath.Vector3D.Dot(second.Direction, second.Direction);
-        var d = VRageMath.Vector3D.Dot(first.Direction, w0);
-        var e = VRageMath.Vector3D.Dot(second.Direction, w0);
+        var a = Vector3D.Dot(first.Direction, first.Direction);
+        var b = Vector3D.Dot(first.Direction, second.Direction);
+        var c = Vector3D.Dot(second.Direction, second.Direction);
+        var d = Vector3D.Dot(first.Direction, w0);
+        var e = Vector3D.Dot(second.Direction, w0);
 
         var D = a * c - b * b;
         if (D > 0.0)
@@ -60,7 +60,7 @@ public class Rangefinder
         }
 
         // Parallel lines
-        target = default(VRageMath.Vector3D);
+        target = default(Vector3D);
         return false;
     }
 }
