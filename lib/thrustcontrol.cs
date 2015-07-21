@@ -17,8 +17,7 @@ public class ThrustControl
         if (blocks == null)
         {
             blocks = new List<IMyTerminalBlock>();
-            program.GridTerminalSystem.GetBlocksOfType<IMyThrust>(blocks,
-                                                                  block => block.IsFunctional && block.IsWorking && ((IMyFunctionalBlock)block).Enabled);
+            program.GridTerminalSystem.GetBlocksOfType<IMyThrust>(blocks);
         }
 
         MyBlockOrientation shipOrientation = new MyBlockOrientation(shipForward, shipUp);
@@ -27,7 +26,9 @@ public class ThrustControl
         for (var e = blocks.GetEnumerator(); e.MoveNext();)
         {
             var thruster = e.Current as IMyThrust;
-            if (thruster != null && (collect == null || collect(thruster)))
+            if (thruster != null &&
+                thruster.IsFunctional && thruster.IsWorking && thruster.Enabled &&
+                (collect == null || collect(thruster)))
             {
                 var facing = thruster.Orientation.TransformDirection(Base6Directions.Direction.Forward); // Exhaust goes this way
                 var thrustDirection = Base6Directions.GetFlippedDirection(facing);

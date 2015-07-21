@@ -5,7 +5,7 @@ public class MissileGuidance
     public static Vector3I Left3I = new Vector3I(-1, 0, 0);
 
     public static Vector3D Zero3D = new Vector3D();
-    public static Vector3D Forward3D = new Vector3D(0.0, 0.0, -1.0);
+    public static Vector3D Forward3D = new Vector3D(0.0, 0.0, 1.0);
 
     public struct Orientation
     {
@@ -33,6 +33,7 @@ public class MissileGuidance
 
     private Vector3D Target;
     private double RandomOffset;
+    private GyroControl gyroControl;
 
     private const bool PerturbTarget = true;
     private const double PerturbAmplitude = 5000.0;
@@ -42,12 +43,13 @@ public class MissileGuidance
     private const double PerturbOffset = 200.0;
     private const double FinalApproachDistance = 200.0;
     private const float FinalApproachRoll = MathHelper.Pi;
+    private const double DetonationDistance = 30.0;
 
     private const double GyroKp = 250.0; // Proportional constant
     private const double GyroKi = 0.0; // Integral constant
     private const double GyroKd = 200.0; // Derivative constant
-    private double YawErrorIntegral, LastYawError;
-    private double PitchErrorIntegral, LastPitchError;
+    private readonly PIDController yawPID = new PIDController(1.0 / RunsPerSecond);
+    private readonly PIDController pitchPID = new PIDController(1.0 / RunsPerSecond);
 
     private double ScaleAmplitude(double distance)
     {
@@ -100,23 +102,28 @@ public class MissileGuidance
         }
     }
 
-    public void Init(MyGridProgram program, EventDriver eventDriver)
+    public void Init(MyGridProgram program, EventDriver eventDriver,
+                     GyroControl gyroControl)
     {
         // Randomize in case of simultaneous launch with other missiles
         Random random = new Random(this.GetHashCode());
         RandomOffset = 1000.0 * random.NextDouble();
+
+        this.gyroControl = gyroControl;
+
+        yawPID.Kp = GyroKp;
+        yawPID.Ki = GyroKi;
+        yawPID.Kd = GyroKd;
+
+        pitchPID.Kp = GyroKp;
+        pitchPID.Ki = GyroKi;
+        pitchPID.Kd = GyroKd;
 
         eventDriver.Schedule(0, Run);
     }
 
     public void Run(MyGridProgram program, EventDriver eventDriver)
     {
-        var ship = new List<IMyTerminalBlock>();
-        program.GridTerminalSystem.GetBlocks(ship);
-
-        var gyros = ZALibrary.GetBlocksOfType<IMyGyro>(ship,
-                                                       test => test.IsFunctional && test.IsWorking);
-
         var orientation = new Orientation(program.Me);
 
         Vector3D targetVector;
@@ -139,19 +146,11 @@ public class MissileGuidance
         yawVector.Normalize();
         pitchVector.Normalize();
 
-        var yawError = -Math.Acos(Vector3D.Dot(yawVector, Forward3D)) * Math.Sign(targetVector.GetDim(0));
-        var pitchError = Math.Acos(Vector3D.Dot(pitchVector, Forward3D)) * Math.Sign(targetVector.GetDim(1));
+        var yawError = Math.Acos(Vector3D.Dot(yawVector, Forward3D)) * Math.Sign(targetVector.GetDim(0));
+        var pitchError = -Math.Acos(Vector3D.Dot(pitchVector, Forward3D)) * Math.Sign(targetVector.GetDim(1));
 
-        YawErrorIntegral += yawError / RunsPerSecond;
-        var yawErrorDerivative = (yawError - LastYawError) * RunsPerSecond;
-        LastYawError = yawError;
-
-        PitchErrorIntegral += pitchError / RunsPerSecond;
-        var pitchErrorDerivative = (pitchError - LastPitchError) * RunsPerSecond;
-        LastPitchError = pitchError;
-
-        var gyroYaw = yawError * GyroKp + YawErrorIntegral * GyroKi + yawErrorDerivative * GyroKd;
-        var gyroPitch = pitchError * GyroKp + PitchErrorIntegral * GyroKi + pitchErrorDerivative * GyroKd;
+        var gyroYaw = yawPID.Compute(yawError);
+        var gyroPitch = pitchPID.Compute(pitchError);
 
         if (Math.Abs(gyroYaw) + Math.Abs(gyroPitch) > GyroMaxRadiansPerSecond)
         {
@@ -160,13 +159,27 @@ public class MissileGuidance
             gyroPitch *= adjust;
         }
 
-        ZAFlightLibrary.EnableGyroOverride(gyros, true);
-        ZAFlightLibrary.SetAxisVelocity(gyros, ZAFlightLibrary.GyroAxisYaw, (float)gyroYaw);
-        ZAFlightLibrary.SetAxisVelocity(gyros, ZAFlightLibrary.GyroAxisPitch, (float)gyroPitch);
+        gyroControl.SetAxisVelocity(GyroControl.Yaw, (float)gyroYaw);
+        gyroControl.SetAxisVelocity(GyroControl.Pitch, (float)gyroPitch);
 
         if (distance < FinalApproachDistance)
         {
-            ZAFlightLibrary.SetAxisVelocity(gyros, ZAFlightLibrary.GyroAxisRoll, FinalApproachRoll);
+            gyroControl.SetAxisVelocity(GyroControl.Roll, FinalApproachRoll);
+        }
+        if (distance < DetonationDistance)
+        {
+            // Sensor should have triggered already, just detonate/self-destruct
+            var ship = new List<IMyTerminalBlock>();
+            program.GridTerminalSystem.GetBlocks(ship);
+
+            for (var e = ship.GetEnumerator(); e.MoveNext();)
+            {
+                var warhead = e.Current as IMyWarhead;
+                if (warhead != null)
+                {
+                    warhead.GetActionWithName("Detonate").Apply(warhead);
+                }
+            }
         }
 
         eventDriver.Schedule(FramesPerRun, Run);

@@ -113,15 +113,16 @@ public class GyroControl
         if (blocks == null)
         {
             blocks = new List<IMyTerminalBlock>();
-            program.GridTerminalSystem.GetBlocksOfType<IMyGyro>(blocks,
-                                                                block => block.IsFunctional && block.IsWorking && ((IMyFunctionalBlock)block).Enabled);
+            program.GridTerminalSystem.GetBlocksOfType<IMyGyro>(blocks);
         }
 
         gyros.Clear();
         for (var e = blocks.GetEnumerator(); e.MoveNext();)
         {
             var gyro = e.Current as IMyGyro;
-            if (gyro != null && (collect == null || collect(gyro)))
+            if (gyro != null &&
+                gyro.IsFunctional && gyro.IsWorking && gyro.Enabled &&
+                (collect == null || collect(gyro)))
             {
                 var details = new GyroDetails(gyro, shipUp, shipForward);
                 gyros.Add(details);
