@@ -45,10 +45,31 @@ private readonly SolarGyroController solarGyroController = new SolarGyroControll
 
 void Main(string argument)
 {
+    Base6Directions.Direction shipUp, shipForward;
+
+    // Look for our ship controllers
+    var controllers = new List<IMyTerminalBlock>();
+    GridTerminalSystem.GetBlocksOfType<IMyShipController>(controllers, block => block.CubeGrid == Me.CubeGrid);
+    // Pick one. Assume they're all oriented the same.
+    var reference = controllers.Count > 0 ? controllers[0] : null;
+    if (reference != null)
+    {
+        shipUp = reference.Orientation.TransformDirection(Base6Directions.Direction.Up);
+        shipForward = reference.Orientation.TransformDirection(Base6Directions.Direction.Forward);
+    }
+    else
+    {
+        // Default to grid up/forward
+        shipUp = Base6Directions.Direction.Up;
+        shipForward = Base6Directions.Direction.Forward;
+    }
+
     ZALibrary.Ship ship = new ZALibrary.Ship(this);
 
     batteryManager.Run(this, ship, argument);
-    solarGyroController.Run(this, ship, argument);
+    solarGyroController.Run(this, ship, argument,
+                            shipUp: shipUp,
+                            shipForward: shipForward);
 
     ZALibrary.KickLoopTimerBlock(this, argument);
 }
