@@ -36,6 +36,7 @@ public class RelaySatellitePowerDrainHandler : BatteryManager.PowerDrainHandler
     }
 }
 
+private readonly EventDriver eventDriver = new EventDriver();
 private readonly LaunchController launchController = new LaunchController();
 private readonly BatteryManager batteryManager = new BatteryManager(new RelaySatellitePowerDrainHandler());
 private readonly SolarGyroController solarGyroController = new SolarGyroController(
@@ -44,21 +45,27 @@ private readonly SolarGyroController solarGyroController = new SolarGyroControll
                                                                                    // GyroControl.Roll
 );
 
-private bool Ready = false;
+private bool FirstRun = true;
 
 void Main(string argument)
 {
-    ZALibrary.Ship ship = new ZALibrary.Ship(this);
-
-    if (!Ready)
+    if (FirstRun)
     {
-        Ready = launchController.Run(this, ship);
+        FirstRun = false;
+        launchController.Init(this, eventDriver);
     }
-    else
+
+    if (eventDriver.Tick(this))
     {
+        ZALibrary.Ship ship = new ZALibrary.Ship(this);
+
         batteryManager.Run(this, ship, argument);
-        solarGyroController.Run(this, ship, argument);
+        solarGyroController.Run(this, ship, argument,
+                                shipUp: launchController.ShipUp,
+                                shipForward: launchController.ShipForward);
 
-        ZALibrary.KickLoopTimerBlock(this, argument);
+        eventDriver.Schedule(1.0);
     }
+
+    ZALibrary.KickLoopTimerBlock(this, argument);
 }

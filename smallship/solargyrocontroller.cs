@@ -44,10 +44,12 @@ public class SolarGyroController
         }
     }
 
-    public void Run(MyGridProgram program, ZALibrary.Ship ship, string argument)
+    public void Run(MyGridProgram program, ZALibrary.Ship ship, string argument,
+                    Base6Directions.Direction shipUp = Base6Directions.Direction.Up,
+                    Base6Directions.Direction shipForward = Base6Directions.Direction.Forward)
     {
         var gyroControl = new GyroControl();
-        gyroControl.Init(program, ship.Blocks);
+        gyroControl.Init(program, blocks: ship.Blocks, shipUp: shipUp, shipForward: shipForward);
 
         // Handle commands
         argument = argument.Trim().ToLower();
