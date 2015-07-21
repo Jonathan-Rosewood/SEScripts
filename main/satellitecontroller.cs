@@ -38,9 +38,9 @@ public class SatellitePowerDrainHandler : BatteryManager.PowerDrainHandler
 
 private readonly BatteryManager batteryManager = new BatteryManager(new SatellitePowerDrainHandler());
 private readonly SolarGyroController solarGyroController = new SolarGyroController(
-                                                                                   // ZAFlightLibrary.GyroAxisYaw,
-                                                                                   ZAFlightLibrary.GyroAxisPitch,
-                                                                                   ZAFlightLibrary.GyroAxisRoll
+                                                                                   // GyroControl.Yaw,
+                                                                                   GyroControl.Pitch,
+                                                                                   GyroControl.Roll
 );
 
 void Main(string argument)

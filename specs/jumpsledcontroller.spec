@@ -1,4 +1,4 @@
 [script]
 modules=jumpsledcontroller, batterymanager, solargyrocontroller, safemode,
-    ZALibrary, ZAFlightLibrary
+    gyrocontrol, ZALibrary
 out=out/Jump Sled Controller/Script.cs

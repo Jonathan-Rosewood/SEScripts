@@ -24,18 +24,19 @@ public class LaunchController
         var relayBatteries = ZALibrary.GetBlockGroupWithName(program, "Relay Batteries");
         var relaySystems = ZALibrary.GetBlockGroupWithName(program, "Relay Systems");
         var relayRelease = ZALibrary.GetBlockGroupWithName(program, "Relay Release");
-        var relayLaunchThruster = ZALibrary.GetBlockGroupWithName(program, "Relay Launch Thruster");
         var remoteGroup = ZALibrary.GetBlockGroupWithName(program, "Relay RC");
         var remotes = remoteGroup != null ? ZALibrary.GetBlocksOfType<IMyRemoteControl>(remoteGroup.Blocks) : null;
 
         if (relayBatteries == null ||
             relaySystems == null ||
             relayRelease == null ||
-            relayLaunchThruster == null ||
             remotes == null || remotes.Count != 1)
         {
             throw new Exception("Missing launch groups and/or remote");
         }
+
+        var thrustControl = new ThrustControl();
+        thrustControl.Init(program, blocks: ship.Blocks);
 
         var remote = remotes[0];
 
@@ -46,7 +47,7 @@ public class LaunchController
             {
                 CurrentState = STATE_PRIME;
             }
-            else if (ZAFlightLibrary.GetAutoPilotState(remote))
+            else if (remote.GetValue<bool>("AutoPilot"))
             {
                 CurrentState = STATE_AUTOPILOT;
             }
@@ -74,7 +75,8 @@ public class LaunchController
                 CurrentState = STATE_START_BURN;
                 break;
             case STATE_START_BURN:
-                ZAFlightLibrary.SetThrusterOverride(relayLaunchThruster.Blocks, LAUNCH_BURN_FORCE);
+                // NB We inherit the launcher's grid pivot
+                thrustControl.SetOverride(Base6Directions.Direction.Forward);
                 CurrentBurnTime = TimeSpan.FromSeconds(0);
                 CurrentState = STATE_BURN;
                 break;
@@ -82,16 +84,16 @@ public class LaunchController
                 CurrentBurnTime += program.ElapsedTime;
                 if (CurrentBurnTime > BurnTime)
                 {
-                    ZAFlightLibrary.SetThrusterOverride(relayLaunchThruster.Blocks, 0.0f);
+                    thrustControl.Reset();
                     CurrentState = STATE_START_AUTOPILOT;
                 }
                 break;
             case STATE_START_AUTOPILOT:
-                remote.GetActionWithName("AutoPilot_On").Apply(remote);
+                remote.SetValue<bool>("AutoPilot", true);
                 CurrentState = STATE_AUTOPILOT;
                 break;
             case STATE_AUTOPILOT:
-                if (!ZAFlightLibrary.GetAutoPilotState(remote)) CurrentState = STATE_READY;
+                if (!remote.GetValue<bool>("AutoPilot")) CurrentState = STATE_READY;
                 break;
             case STATE_READY:
                 return true;

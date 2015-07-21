@@ -1,4 +1,4 @@
 [script]
 modules=relaysatellite, launchcontroller, batterymanager, solargyrocontroller,
-    ZALibrary, ZAFlightLibrary
+    thrustcontrol, gyrocontrol, ZALibrary
 out=out/Relay Satellite Controller/Script.cs
