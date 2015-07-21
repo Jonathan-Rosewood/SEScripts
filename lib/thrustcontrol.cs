@@ -26,8 +26,7 @@ public class ThrustControl
         for (var e = blocks.GetEnumerator(); e.MoveNext();)
         {
             var thruster = e.Current as IMyThrust;
-            if (thruster != null &&
-                thruster.IsFunctional && thruster.IsWorking && thruster.Enabled &&
+            if (thruster != null && thruster.IsFunctional &&
                 (collect == null || collect(thruster)))
             {
                 var facing = thruster.Orientation.TransformDirection(Base6Directions.Direction.Forward); // Exhaust goes this way
@@ -56,6 +55,21 @@ public class ThrustControl
                              thruster.SetValue<float>("Override", force != null ?
                                                       (float)force :
                                                       thruster.GetMaximum<float>("Override")));
+    }
+
+    public void Enable(Base6Directions.Direction direction, bool enable)
+    {
+        var thrusterList = GetThrusters(direction);
+        thrusterList.ForEach(thruster => thruster.SetValue<bool>("OnOff", enable));
+    }
+
+    public void Enable(bool enable)
+    {
+        for (var e = thrusters.Values.GetEnumerator(); e.MoveNext();)
+        {
+            var thrusterList = e.Current;
+            thrusterList.ForEach(thruster => thruster.SetValue<bool>("OnOff", enable));
+        }
     }
 
     public void Reset()

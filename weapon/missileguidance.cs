@@ -103,7 +103,7 @@ public class MissileGuidance
     }
 
     public void Init(MyGridProgram program, EventDriver eventDriver,
-                     GyroControl gyroControl)
+                     ThrustControl thrustControl, GyroControl gyroControl)
     {
         // Randomize in case of simultaneous launch with other missiles
         Random random = new Random(this.GetHashCode());

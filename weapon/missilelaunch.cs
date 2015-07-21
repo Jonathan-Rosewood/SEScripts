@@ -3,11 +3,11 @@ public class MissileLaunch
     private const string BATTERY_GROUP = "CM Batteries";
     private const string SYSTEMS_GROUP = "CM Systems";
     private const string RELEASE_GROUP = "CM Release";
-    private const string THRUST_GROUP = "CM Forward";
 
     private const double BURN_TIME = 3.0; // In seconds
 
     private MissileGuidance missileGuidance;
+    private ThrustControl thrustControl;
     private GyroControl gyroControl;
 
     public void Init(MyGridProgram program, EventDriver eventDriver,
@@ -57,14 +57,8 @@ public class MissileLaunch
     public void Burn(MyGridProgram program, EventDriver eventDriver)
     {
         // Boost away from launcher, initialize flight control
-        var thrustGroup = ZALibrary.GetBlockGroupWithName(program, THRUST_GROUP);
-        if (thrustGroup == null)
-        {
-            throw new Exception("Missing group: " + THRUST_GROUP);
-        }
-
-        var thrustControl = new ThrustControl();
-        thrustControl.Init(program, blocks: thrustGroup.Blocks);
+        thrustControl = new ThrustControl();
+        thrustControl.Init(program);
         thrustControl.SetOverride(Base6Directions.Direction.Forward); // Max thrust
 
         gyroControl = new GyroControl();
@@ -90,6 +84,6 @@ public class MissileLaunch
         }
 
         // We're done, let MissileGuidance take over
-        missileGuidance.Init(program, eventDriver, gyroControl);
+        missileGuidance.Init(program, eventDriver, thrustControl, gyroControl);
     }
 }
