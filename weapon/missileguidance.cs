@@ -44,6 +44,7 @@ public class MissileGuidance
     private const double FinalApproachDistance = 200.0;
     private const float FinalApproachRoll = MathHelper.Pi;
     private const double DetonationDistance = 30.0;
+    private readonly TimeSpan DetonationTime = TimeSpan.FromSeconds(100.0);
 
     private const double GyroKp = 250.0; // Proportional constant
     private const double GyroKi = 0.0; // Integral constant
@@ -166,7 +167,7 @@ public class MissileGuidance
         {
             gyroControl.SetAxisVelocity(GyroControl.Roll, FinalApproachRoll);
         }
-        if (distance < DetonationDistance)
+        if (distance < DetonationDistance || eventDriver.TimeSinceStart >= DetonationTime)
         {
             // Sensor should have triggered already, just detonate/self-destruct
             var ship = new List<IMyTerminalBlock>();
