@@ -11,7 +11,7 @@ void Main(string argument)
         FirstRun = false;
         // See if there's a reference group
         var referenceGroup = ZALibrary.GetBlockGroupWithName(this, "SolarGyroReference");
-        var reference = referenceGroup.Blocks.Count > 0 ? referenceGroup.Blocks[0] : null;
+        var reference = (referenceGroup != null && referenceGroup.Blocks.Count > 0) ? referenceGroup.Blocks[0] : null;
         if (reference != null)
         {
             ShipUp = reference.Orientation.TransformDirection(Base6Directions.Direction.Up);
