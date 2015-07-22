@@ -24,7 +24,9 @@ public class Rangefinder
         }
     }
 
-    public static bool Compute(LineSample first, LineSample second, out Vector3D target)
+    public static bool Compute(LineSample first, LineSample second,
+                               out Vector3D closestFirst,
+                               out Vector3D closestSecond)
     {
         // It's really too bad. VRageMath.LineD implements this, but I believe
         // it only works on line segments.
@@ -43,16 +45,16 @@ public class Rangefinder
             var sc = (b * e - c * d) / D;
             var tc = (a * e - b * d) / D;
 
-            var pc = first.Point + sc * first.Direction;
-            var qc = second.Point + tc * second.Direction;
-
-            // We're interested in midpoint of pc-sc segment
-            target = (pc + qc) / 2.0;
+            // Closest point on first line
+            closestFirst = first.Point + sc * first.Direction;
+            // Closest point on second line
+            closestSecond = second.Point + tc * second.Direction;
             return true;
         }
 
         // Parallel lines
-        target = default(Vector3D);
+        closestFirst = default(Vector3D);
+        closestSecond = default(Vector3D);
         return false;
     }
 }

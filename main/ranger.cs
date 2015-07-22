@@ -22,9 +22,11 @@ public void Main(string argument)
     {
         second = new Rangefinder.LineSample(reference);
 
-        VRageMath.Vector3D target;
-        if (Rangefinder.Compute(first, second, out target))
+        VRageMath.Vector3D closestFirst, closestSecond;
+        if (Rangefinder.Compute(first, second, out closestFirst, out closestSecond))
         {
+            // We're interested in the midpoint of the closestFirst-closestSecond segment
+            var target = (closestFirst + closestSecond) / 2.0;
             Echo("Target: " + target);
 
             var targetGroup = ZALibrary.GetBlockGroupWithName(this, RANGEFINDER_TARGET_GROUP);
