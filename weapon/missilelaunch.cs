@@ -10,6 +10,27 @@ public class MissileLaunch
     private ThrustControl thrustControl;
     private GyroControl gyroControl;
 
+    private Base6Directions.Direction ShipUp, ShipForward;
+
+    private void UpdateShipReference(MyGridProgram program)
+    {
+        // Use the gyro in SYSTEMS_GROUP as reference
+        var systemsGroup = ZALibrary.GetBlockGroupWithName(program, SYSTEMS_GROUP + MISSILE_GROUP_SUFFIX);
+        if (systemsGroup == null)
+        {
+            throw new Exception("Group missing: " + SYSTEMS_GROUP + MISSILE_GROUP_SUFFIX);
+        }
+        var references = ZALibrary.GetBlocksOfType<IMyGyro>(systemsGroup.Blocks);
+        if (references.Count == 0)
+        {
+            throw new Exception("Expecting at least 1 gyro: " + SYSTEMS_GROUP + MISSILE_GROUP_SUFFIX);
+        }
+        var reference = references[0];
+
+        ShipUp = reference.Orientation.TransformDirection(Base6Directions.Direction.Up);
+        ShipForward = reference.Orientation.TransformDirection(Base6Directions.Direction.Forward);
+    }
+
     public void Init(MyGridProgram program, EventDriver eventDriver,
                      MissileGuidance missileGuidance)
     {
@@ -20,15 +41,15 @@ public class MissileLaunch
     public void Prime(MyGridProgram program, EventDriver eventDriver)
     {
         // Wake up batteries
-        var batteryGroup = ZALibrary.GetBlockGroupWithName(program, BATTERY_GROUP);
+        var batteryGroup = ZALibrary.GetBlockGroupWithName(program, BATTERY_GROUP + MISSILE_GROUP_SUFFIX);
         if (batteryGroup == null)
         {
-            throw new Exception("Group missing: " + BATTERY_GROUP);
+            throw new Exception("Group missing: " + BATTERY_GROUP + MISSILE_GROUP_SUFFIX);
         }
-        var systemsGroup = ZALibrary.GetBlockGroupWithName(program, SYSTEMS_GROUP);
+        var systemsGroup = ZALibrary.GetBlockGroupWithName(program, SYSTEMS_GROUP + MISSILE_GROUP_SUFFIX);
         if (systemsGroup == null)
         {
-            throw new Exception("Group missing: " + SYSTEMS_GROUP);
+            throw new Exception("Group missing: " + SYSTEMS_GROUP + MISSILE_GROUP_SUFFIX);
         }
 
         var batteries = ZALibrary.GetBlocksOfType<IMyBatteryBlock>(batteryGroup.Blocks);
@@ -43,26 +64,29 @@ public class MissileLaunch
 
     public void Release(MyGridProgram program, EventDriver eventDriver)
     {
-        var releaseGroup = ZALibrary.GetBlockGroupWithName(program, RELEASE_GROUP);
+        var releaseGroup = ZALibrary.GetBlockGroupWithName(program, RELEASE_GROUP + MISSILE_GROUP_SUFFIX);
         if (releaseGroup == null)
         {
-            throw new Exception("Group missing: " + RELEASE_GROUP);
+            throw new Exception("Group missing: " + RELEASE_GROUP + MISSILE_GROUP_SUFFIX);
         }
 
         ZALibrary.EnableBlocks(releaseGroup.Blocks, false);
 
-        eventDriver.Schedule(0.5, Burn);
+        eventDriver.Schedule(0.1, Burn);
     }
 
     public void Burn(MyGridProgram program, EventDriver eventDriver)
     {
         // Boost away from launcher, initialize flight control
+        UpdateShipReference(program);
+
         thrustControl = new ThrustControl();
-        thrustControl.Init(program);
+        thrustControl.Init(program, shipUp: ShipUp, shipForward: ShipForward);
+        thrustControl.Reset();
         thrustControl.SetOverride(Base6Directions.Direction.Forward); // Max thrust
 
         gyroControl = new GyroControl();
-        gyroControl.Init(program);
+        gyroControl.Init(program, shipUp: ShipUp, shipForward: ShipForward);
         gyroControl.Reset();
         gyroControl.EnableOverride(true);
 
@@ -84,6 +108,8 @@ public class MissileLaunch
         }
 
         // We're done, let MissileGuidance take over
-        missileGuidance.Init(program, eventDriver, thrustControl, gyroControl);
+        missileGuidance.Init(program, eventDriver, thrustControl, gyroControl,
+                             shipUp: ShipUp,
+                             shipForward: ShipForward);
     }
 }

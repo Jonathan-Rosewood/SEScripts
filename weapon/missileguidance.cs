@@ -14,14 +14,16 @@ public class MissileGuidance
         public Vector3D Up;
         public Vector3D Left;
 
-        public Orientation(IMyCubeBlock reference)
+        public Orientation(IMyCubeBlock reference,
+                           Base6Directions.Direction shipUp = Base6Directions.Direction.Up,
+                           Base6Directions.Direction shipForward = Base6Directions.Direction.Forward)
         {
             Point = reference.GetPosition();
-            var forward3I = reference.Position + Forward3I;
+            var forward3I = reference.Position + Base6Directions.GetIntVector(shipForward);
             Forward = Vector3D.Normalize(reference.CubeGrid.GridIntegerToWorld(forward3I) - Point);
-            var up3I = reference.Position + Up3I;
+            var up3I = reference.Position + Base6Directions.GetIntVector(shipUp);
             Up = Vector3D.Normalize(reference.CubeGrid.GridIntegerToWorld(up3I) - Point);
-            var left3I = reference.Position + Left3I;
+            var left3I = reference.Position + Base6Directions.GetIntVector(Base6Directions.GetLeft(shipUp, shipForward));
             Left = Vector3D.Normalize(reference.CubeGrid.GridIntegerToWorld(left3I) - Point);
         }
     }
@@ -33,7 +35,9 @@ public class MissileGuidance
 
     private Vector3D Target;
     private double RandomOffset;
+    private ThrustControl thrustControl;
     private GyroControl gyroControl;
+    private Base6Directions.Direction ShipUp, ShipForward;
 
     private const bool PerturbTarget = true;
     private const double PerturbAmplitude = 5000.0;
@@ -104,13 +108,19 @@ public class MissileGuidance
     }
 
     public void Init(MyGridProgram program, EventDriver eventDriver,
-                     ThrustControl thrustControl, GyroControl gyroControl)
+                     ThrustControl thrustControl, GyroControl gyroControl,
+                     Base6Directions.Direction shipUp = Base6Directions.Direction.Up,
+                     Base6Directions.Direction shipForward = Base6Directions.Direction.Forward)
     {
         // Randomize in case of simultaneous launch with other missiles
         Random random = new Random(this.GetHashCode());
         RandomOffset = 1000.0 * random.NextDouble();
 
+        this.thrustControl = thrustControl;
         this.gyroControl = gyroControl;
+
+        ShipUp = shipUp;
+        ShipForward = shipForward;
 
         yawPID.Kp = GyroKp;
         yawPID.Ki = GyroKi;
@@ -125,7 +135,8 @@ public class MissileGuidance
 
     public void Run(MyGridProgram program, EventDriver eventDriver)
     {
-        var orientation = new Orientation(program.Me);
+        var orientation = new Orientation(program.Me, shipUp: ShipUp,
+                                          shipForward: ShipForward);
 
         Vector3D targetVector;
         double distance;
