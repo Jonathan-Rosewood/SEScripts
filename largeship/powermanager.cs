@@ -77,7 +77,7 @@ public class PowerManager
         return result;
     }
 
-    private void DisableOneBattery(List<IMyBatteryBlock> batteries)
+                  private void DisableOneBattery(List<IMyBatteryBlock> batteries, PowerDetails totalDetails)
     {
         for (var e = batteries.GetEnumerator(); e.MoveNext();)
         {
@@ -85,8 +85,14 @@ public class PowerManager
 
             if (battery.Enabled && battery.ProductionEnabled)
             {
-                battery.GetActionWithName("OnOff_Off").Apply(battery);
-                ZALibrary.SetBatteryRecharge(battery, true);
+                // But only if we can actually spare it
+                var wouldBeOutput = totalDetails.CurrentPowerOutput - battery.CurrentPowerOutput;
+                var wouldBeLoad = wouldBeOutput / (totalDetails.MaxPowerOutput - battery.MaxPowerOutput);
+                if (wouldBeLoad <= POWER_MANAGER_HIGH_LOAD_THRESHOLD)
+                {
+                    battery.GetActionWithName("OnOff_Off").Apply(battery);
+                    ZALibrary.SetBatteryRecharge(battery, true);
+                }
                 return;
             }
         }
@@ -193,7 +199,7 @@ public class PowerManager
                 {
                     // Take a battery offline, starting with the least charged.
                     // Note, we cannot actually start recharging until they are all offline
-                    DisableOneBattery(batteries);
+                    DisableOneBattery(batteries, totalDetails);
                 }
                 else
                 {
