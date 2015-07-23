@@ -13,6 +13,7 @@ SCRIPT_DIRECTORIES = [
     'main',
     'smallship',
     'standalone',
+    'utility',
     'weapon',
 ]
 

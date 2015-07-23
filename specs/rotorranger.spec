@@ -1,3 +1,4 @@
 [script]
-modules = rotorranger, rangefinder, pid, eventdriver, ZALibrary
+modules = rotorranger, rotorrangefinder, rangefinder, pid, eventdriver,
+    ZALibrary
 out = out/Rotor Ranger/Script.cs
