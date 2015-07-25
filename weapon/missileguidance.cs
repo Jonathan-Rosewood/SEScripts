@@ -1,9 +1,5 @@
 public class MissileGuidance
 {
-    public static Vector3I Forward3I = new Vector3I(0, 0, -1);
-    public static Vector3I Up3I = new Vector3I(0, 1, 0);
-    public static Vector3I Left3I = new Vector3I(-1, 0, 0);
-
     public static Vector3D Zero3D = new Vector3D();
     public static Vector3D Forward3D = new Vector3D(0.0, 0.0, 1.0);
 
@@ -48,7 +44,7 @@ public class MissileGuidance
     private const double FinalApproachDistance = 200.0;
     private const float FinalApproachRoll = MathHelper.Pi;
     private const double DetonationDistance = 30.0;
-    private readonly TimeSpan DetonationTime = TimeSpan.FromSeconds(100.0);
+    private readonly TimeSpan DetonationTime = TimeSpan.FromSeconds(200.0);
 
     private const double GyroKp = 250.0; // Proportional constant
     private const double GyroKi = 0.0; // Integral constant

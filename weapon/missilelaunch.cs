@@ -70,6 +70,16 @@ public class MissileLaunch
             throw new Exception("Group missing: " + RELEASE_GROUP + MISSILE_GROUP_SUFFIX);
         }
 
+        // Unlock any landing gear
+        for (var e = releaseGroup.Blocks.GetEnumerator(); e.MoveNext();)
+        {
+            var gear = e.Current as IMyLandingGear;
+            if (gear != null)
+            {
+                gear.GetActionWithName("Unlock").Apply(gear);
+            }
+        }
+        // And then turn everything off (connectors, merge blocks, etc)
         ZALibrary.EnableBlocks(releaseGroup.Blocks, false);
 
         eventDriver.Schedule(0.1, Burn);
@@ -83,7 +93,7 @@ public class MissileLaunch
         thrustControl = new ThrustControl();
         thrustControl.Init(program, shipUp: ShipUp, shipForward: ShipForward);
         thrustControl.Reset();
-        thrustControl.SetOverride(Base6Directions.Direction.Forward); // Max thrust
+        thrustControl.SetOverride(Base6Directions.Direction.Forward, 80000.0f);
 
         gyroControl = new GyroControl();
         gyroControl.Init(program, shipUp: ShipUp, shipForward: ShipForward);
