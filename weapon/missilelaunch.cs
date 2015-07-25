@@ -71,14 +71,8 @@ public class MissileLaunch
         }
 
         // Unlock any landing gear
-        for (var e = releaseGroup.Blocks.GetEnumerator(); e.MoveNext();)
-        {
-            var gear = e.Current as IMyLandingGear;
-            if (gear != null)
-            {
-                gear.GetActionWithName("Unlock").Apply(gear);
-            }
-        }
+        ZALibrary.ForEachBlockOfType<IMyLandingGear>(releaseGroup.Blocks,
+                                                     gear => gear.GetActionWithName("Unlock").Apply(gear));
         // And then turn everything off (connectors, merge blocks, etc)
         ZALibrary.EnableBlocks(releaseGroup.Blocks, false);
 
@@ -106,16 +100,9 @@ public class MissileLaunch
     public void Arm(MyGridProgram program, EventDriver eventDriver)
     {
         // Just find all warheads on board and turn off safeties
-        List<IMyTerminalBlock> blocks = new List<IMyTerminalBlock>();
-        program.GridTerminalSystem.GetBlocks(blocks);
-        for (var e = blocks.GetEnumerator(); e.MoveNext();)
-        {
-            var warhead = e.Current as IMyWarhead;
-            if (warhead != null)
-            {
-                warhead.SetValue<bool>("Safety", false);
-            }
-        }
+        List<IMyTerminalBlock> warheads = new List<IMyTerminalBlock>();
+        program.GridTerminalSystem.GetBlocksOfType<IMyWarhead>(warheads);
+        warheads.ForEach(warhead => warhead.SetValue<bool>("Safety", false));
 
         // We're done, let MissileGuidance take over
         missileGuidance.Init(program, eventDriver, thrustControl, gyroControl,

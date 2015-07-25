@@ -177,17 +177,9 @@ public class MissileGuidance
         if (distance < DetonationDistance || eventDriver.TimeSinceStart >= DetonationTime)
         {
             // Sensor should have triggered already, just detonate/self-destruct
-            var ship = new List<IMyTerminalBlock>();
-            program.GridTerminalSystem.GetBlocks(ship);
-
-            for (var e = ship.GetEnumerator(); e.MoveNext();)
-            {
-                var warhead = e.Current as IMyWarhead;
-                if (warhead != null)
-                {
-                    warhead.GetActionWithName("Detonate").Apply(warhead);
-                }
-            }
+            var warheads = new List<IMyTerminalBlock>();
+            program.GridTerminalSystem.GetBlocksOfType<IMyWarhead>(warheads);
+            warheads.ForEach(warhead => warhead.GetActionWithName("Detonate").Apply(warhead));
         }
 
         eventDriver.Schedule(FramesPerRun, Run);
