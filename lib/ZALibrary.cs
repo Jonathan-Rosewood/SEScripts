@@ -1,4 +1,4 @@
-// ZALibrary v1.3.0
+// ZALibrary v1.4.0
 public static class ZALibrary
 {
     public const StringComparison IGNORE_CASE = StringComparison.CurrentCultureIgnoreCase;
@@ -38,10 +38,7 @@ public static class ZALibrary
             Blocks = new List<IMyTerminalBlock>();
             program.GridTerminalSystem
                 .GetBlocksOfType<IMyTerminalBlock>(Blocks,
-                                                   delegate(IMyTerminalBlock block)
-                                                   {
-                                                       return block.CubeGrid == program.Me.CubeGrid;
-                                                   });
+                                                   block => block.CubeGrid == program.Me.CubeGrid);
         }
 
         public List<T> GetBlocksOfType<T>(Func<T, bool> collect = null)
@@ -64,6 +61,11 @@ public static class ZALibrary
         {
             var connectors = GetBlocksOfType<IMyShipConnector>(collect);
             return ZALibrary.IsConnectedAnywhere(connectors);
+        }
+
+        public void ForEachBlockOfType<T>(Action<T> action)
+        {
+            ZALibrary.ForEachBlockOfType<T>(Blocks, action);
         }
     }
 
@@ -95,7 +97,7 @@ public static class ZALibrary
         return result;
     }
 
-    public static List<T> GetBlocksOfType<T>(List<IMyTerminalBlock> blocks,
+    public static List<T> GetBlocksOfType<T>(IEnumerable<IMyTerminalBlock> blocks,
                                              Func<T, bool> collect = null)
     {
         List<T> list = new List<T>();
@@ -107,7 +109,7 @@ public static class ZALibrary
         return list;
     }
 
-    public static T GetBlockWithName<T>(List<IMyTerminalBlock> blocks, string name)
+    public static T GetBlockWithName<T>(IEnumerable<IMyTerminalBlock> blocks, string name)
         where T : IMyTerminalBlock
     {
         for (var e = blocks.GetEnumerator(); e.MoveNext();)
@@ -167,7 +169,7 @@ public static class ZALibrary
         }
     }
 
-    public static bool StartTimerBlockWithName(List<IMyTerminalBlock> blocks, string name,
+    public static bool StartTimerBlockWithName(IEnumerable<IMyTerminalBlock> blocks, string name,
                                                Func<IMyTimerBlock, bool> condition = null)
     {
         var timer = GetBlockWithName<IMyTimerBlock>(blocks, name);
@@ -201,19 +203,28 @@ public static class ZALibrary
             var timers = new List<IMyTerminalBlock>();
             // Search for timer blocks on the same ship contain our magic string
             program.GridTerminalSystem.SearchBlocksOfName(ZALIBRARY_LOOP_TIMER_BLOCK_NAME, timers,
-                                                          delegate (IMyTerminalBlock block)
-                                                          {
-                                                              return block is IMyTimerBlock &&
-                                                                  block.CubeGrid == program.Me.CubeGrid;
-                                                          });
+                                                          block => block is IMyTimerBlock &&
+                                                          block.CubeGrid == program.Me.CubeGrid);
             // Just kick em all
             for (var e = timers.GetEnumerator(); e.MoveNext();)
             {
                 var timer = e.Current as IMyTimerBlock;
-                if (timer.Enabled && !timer.IsCountingDown)
+                if (timer != null && timer.Enabled && !timer.IsCountingDown)
                 {
                     timer.GetActionWithName("Start").Apply(timer);
                 }
+            }
+        }
+    }
+
+    public static void ForEachBlockOfType<T>(IEnumerable<IMyTerminalBlock> blocks, Action<T> action)
+    {
+        for (var e = blocks.GetEnumerator(); e.MoveNext();)
+        {
+            var block = e.Current;
+            if (block is T)
+            {
+                action((T)block);
             }
         }
     }
