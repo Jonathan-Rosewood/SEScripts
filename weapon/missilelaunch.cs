@@ -7,6 +7,7 @@ public class MissileLaunch
     private const double BURN_TIME = 3.0; // In seconds
 
     private MissileGuidance missileGuidance;
+    private Action<MyGridProgram, EventDriver>[] postLaunch;
     private ThrustControl thrustControl;
     private GyroControl gyroControl;
 
@@ -32,10 +33,13 @@ public class MissileLaunch
     }
 
     public void Init(MyGridProgram program, EventDriver eventDriver,
-                     MissileGuidance missileGuidance)
+                     MissileGuidance missileGuidance,
+                     params Action<MyGridProgram, EventDriver>[] postLaunch)
     {
+        // Guidance is special because it needs more arguments
         this.missileGuidance = missileGuidance;
-        eventDriver.Schedule(0, Prime);
+        this.postLaunch = postLaunch;
+        eventDriver.Schedule(0.0, Prime);
     }
 
     public void Prime(MyGridProgram program, EventDriver eventDriver)
@@ -59,7 +63,7 @@ public class MissileLaunch
         // Activate flight systems
         ZALibrary.EnableBlocks(systemsGroup.Blocks, true);
 
-        eventDriver.Schedule(2.0, Release);
+        eventDriver.Schedule(1.0, Release);
     }
 
     public void Release(MyGridProgram program, EventDriver eventDriver)
@@ -76,7 +80,7 @@ public class MissileLaunch
         // And then turn everything off (connectors, merge blocks, etc)
         ZALibrary.EnableBlocks(releaseGroup.Blocks, false);
 
-        eventDriver.Schedule(0.1, Burn);
+        eventDriver.Schedule(1.0, Burn);
     }
 
     public void Burn(MyGridProgram program, EventDriver eventDriver)
@@ -108,6 +112,9 @@ public class MissileLaunch
         missileGuidance.Init(program, eventDriver, thrustControl, gyroControl,
                              shipUp: ShipUp,
                              shipForward: ShipForward);
-        eventDriver.FrameTicks = true;
+        for (int i = 0; i < postLaunch.Length; i++)
+        {
+            postLaunch[i](program, eventDriver);
+        }
     }
 }

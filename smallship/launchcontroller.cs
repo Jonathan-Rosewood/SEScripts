@@ -70,7 +70,7 @@ public class LaunchController
         // And activate flight systems
         ZALibrary.EnableBlocks(relaySystems.Blocks, true);
 
-        eventDriver.Schedule(2.0, Release);
+        eventDriver.Schedule(1.0, Release);
     }
 
     public void Release(MyGridProgram program, EventDriver eventDriver)
@@ -82,7 +82,7 @@ public class LaunchController
         }
         ZALibrary.EnableBlocks(relayRelease.Blocks, false);
 
-        eventDriver.Schedule(0.5, Burn);
+        eventDriver.Schedule(1.0, Burn);
     }
 
     public void Burn(MyGridProgram program, EventDriver eventDriver)
