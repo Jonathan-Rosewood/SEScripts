@@ -1,4 +1,4 @@
-private readonly EventDriver eventDriver = new EventDriver();
+private readonly EventDriver eventDriver = new EventDriver(timerGroup: "CM Launch" + MISSILE_GROUP_SUFFIX, frameTicks: false);
 private readonly MissileGuidance missileGuidance = new MissileGuidance();
 private readonly RandomDecoy randomDecoy = new RandomDecoy();
 private readonly MissileLaunch missileLaunch = new MissileLaunch();

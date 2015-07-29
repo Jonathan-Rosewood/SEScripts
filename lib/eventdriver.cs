@@ -29,6 +29,47 @@ public class EventDriver
     }
     private TimeSpan m_timeSinceStart = TimeSpan.FromSeconds(0);
 
+    private string TimerName = null, TimerGroup = null;
+    public bool FrameTicks { get; set; }
+
+    public EventDriver(string timerName = null, string timerGroup = null, bool frameTicks = true)
+    {
+        TimerName = timerName;
+        TimerGroup = timerGroup;
+        FrameTicks = (timerName != null || timerGroup != null) ? frameTicks : true;
+    }
+
+    private void kickTimer(MyGridProgram program)
+    {
+        IMyTimerBlock timer = null;
+        if (TimerName != null)
+        {
+            var block = program.GridTerminalSystem.GetBlockWithName(TimerName);
+            timer = block as IMyTimerBlock;
+        }
+        else if (TimerGroup != null)
+        {
+            var group = ZALibrary.GetBlockGroupWithName(program, TimerGroup);
+            if (group != null && group.Blocks.Count > 0)
+            {
+                timer = group.Blocks[0] as IMyTimerBlock;
+            }
+        }
+        if (timer != null)
+        {
+            if (FrameTicks)
+            {
+                timer.GetActionWithName("TriggerNow").Apply(timer);
+            }
+            else
+            {
+                timer.SetValue<float>("TriggerDelay", 1.0f);
+                timer.GetActionWithName("Start").Apply(timer);
+                Ticks += TicksPerSecond; // groan
+            }
+        }
+    }
+
     // Returns true if main should run
     public bool Tick(MyGridProgram program)
     {
@@ -50,6 +91,9 @@ public class EventDriver
                 result = true;
             }
         }
+
+        if (TimerName != null || TimerGroup != null) kickTimer(program);
+
         return result;
     }
 

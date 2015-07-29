@@ -108,5 +108,6 @@ public class MissileLaunch
         missileGuidance.Init(program, eventDriver, thrustControl, gyroControl,
                              shipUp: ShipUp,
                              shipForward: ShipForward);
+        eventDriver.FrameTicks = true;
     }
 }
