@@ -66,7 +66,8 @@ public class EventDriver
         {
             var blocks = new List<IMyTerminalBlock>();
             program.GridTerminalSystem.SearchBlocksOfName(TimerName, blocks,
-                                                          block => block.CubeGrid == program.Me.CubeGrid);
+                                                          block => block is IMyTimerBlock &&
+                                                          block.CubeGrid == program.Me.CubeGrid);
             if (blocks.Count > 0)
             {
                 timer = blocks[0] as IMyTimerBlock;
