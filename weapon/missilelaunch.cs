@@ -91,7 +91,8 @@ public class MissileLaunch
         thrustControl = new ThrustControl();
         thrustControl.Init(program, shipUp: ShipUp, shipForward: ShipForward);
         thrustControl.Reset();
-        thrustControl.SetOverride(Base6Directions.Direction.Forward, 80000.0f);
+        thrustControl.SetOverride(Base6Directions.Direction.Forward, BURN_FORCE);
+        if (BURN_DOWNWARD) thrustControl.SetOverride(Base6Directions.Direction.Down);
 
         gyroControl = new GyroControl();
         gyroControl.Init(program, shipUp: ShipUp, shipForward: ShipForward);
@@ -103,6 +104,8 @@ public class MissileLaunch
 
     public void Arm(MyGridProgram program, EventDriver eventDriver)
     {
+        if (BURN_DOWNWARD) thrustControl.SetOverride(Base6Directions.Direction.Down, 0.0f);
+
         // Just find all warheads on board and turn off safeties
         List<IMyTerminalBlock> warheads = new List<IMyTerminalBlock>();
         program.GridTerminalSystem.GetBlocksOfType<IMyWarhead>(warheads);
