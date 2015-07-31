@@ -53,4 +53,9 @@ public class Velocimeter
         }
         return null;
     }
+
+    public void Reset()
+    {
+        Samples.Clear();
+    }
 }
