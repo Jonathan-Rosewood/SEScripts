@@ -10,7 +10,8 @@ void Main(string argument)
     // This really seems like it should be determined once per run
     var isConnected = ship.IsConnectedAnywhere();
 
-    dockingManager.Run(this, ship, argument, isConnected);
+    dockingManager.HandleCommand(this, ship, argument);
+    dockingManager.Run(this, ship, isConnected);
     safeMode.Run(this, ship, isConnected);
     batteryMonitor.Run(this, ship, isConnected);
     if (MAX_POWER_ENABLED) rotorController.Run(this);

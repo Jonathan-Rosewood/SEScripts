@@ -2,8 +2,7 @@ public class DockingManager
 {
     private bool? IsConnected = null;
 
-    public void Run(MyGridProgram program, ZALibrary.Ship ship, string argument,
-                    bool? isConnected = null)
+    public void Run(MyGridProgram program, ZALibrary.Ship ship, bool? isConnected = null)
     {
         var currentState = isConnected != null ? (bool)isConnected :
             ship.IsConnectedAnywhere();
@@ -27,7 +26,10 @@ public class DockingManager
             if (TOUCH_BEACON) ZALibrary.EnableBlocks(ship.GetBlocksOfType<IMyBeacon>(), !(bool)IsConnected);
             if (TOUCH_LIGHTS) ZALibrary.EnableBlocks(ship.GetBlocksOfType<IMyLightingBlock>(), !(bool)IsConnected);
         }
+    }
 
+    public void HandleCommand(MyGridProgram program, ZALibrary.Ship ship, string argument)
+    {
         var command = argument.Trim().ToLower();
         if (command == "undock")
         {

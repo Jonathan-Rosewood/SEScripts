@@ -49,13 +49,6 @@ public class EventDriver
     }
     private TimeSpan m_timeSinceStart = TimeSpan.FromSeconds(0);
 
-    public string Argument
-    {
-        get { return m_argument; }
-        private set { m_argument = string.IsNullOrWhiteSpace(value) ? "" : value; }
-    }
-    private string m_argument;
-
     private string TimerName, TimerGroup;
 
     // If neither timerName nor timerGroup are given, it's assumed the timer will kick itself
@@ -115,12 +108,10 @@ public class EventDriver
     }
 
     // Returns true if main should run
-    public bool Tick(MyGridProgram program, string argument = null)
+    public bool Tick(MyGridProgram program)
     {
         Ticks++;
         TimeSinceStart += program.ElapsedTime;
-
-        Argument = argument;
 
         bool result = false;
 

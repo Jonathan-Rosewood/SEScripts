@@ -64,21 +64,26 @@ void Main(string argument)
             gyroControl.EnableOverride(false);
             thrustControl.Reset();
             break;
+        default:
+            if (argument.Length > 0)
+            {
+                var ship = new ZALibrary.Ship(this);
+                dockingManager.HandleCommand(this, ship, argument);
+            }
+            break;
     }
 
-    eventDriver.Tick(this, argument: argument);
+    eventDriver.Tick(this);
 }
 
 public void DroneController(MyGridProgram program, EventDriver eventDriver)
 {
-    var argument = eventDriver.Argument;
-
     var ship = new ZALibrary.Ship(this);
 
     // This really seems like it should be determined once per run
     var isConnected = ship.IsConnectedAnywhere();
 
-    dockingManager.Run(this, ship, argument, isConnected);
+    dockingManager.Run(this, ship, isConnected);
     safeMode.Run(this, ship, isConnected);
     batteryMonitor.Run(this, ship, isConnected);
 
