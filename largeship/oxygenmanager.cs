@@ -59,46 +59,53 @@ public class OxygenManager
             PreviousState = currentState;
 
             // We need a tri-state variable, so... nullable
-            bool? produceOxygen = null;
+            bool? generateOxygen = null;
+            bool? farmOxygen = null;
 
             switch (currentState)
             {
                 case OXYGEN_LEVEL_HIGH:
-                    // Turn off oxygen production
-                    produceOxygen = false;
+                    // Turn off all oxygen production
+                    generateOxygen = false;
+                    farmOxygen = false;
                     break;
                 case OXYGEN_LEVEL_NORMAL:
-                    // Do nothing
+                    // Do nothing (but keep farms up)
+                    farmOxygen = true;
                     break;
                 case OXYGEN_LEVEL_BUFFER:
                     // Start producing oxygen
-                    produceOxygen = true;
+                    generateOxygen = true;
+                    farmOxygen = true;
                     break;
                 case OXYGEN_LEVEL_LOW:
                     // Definitely start producing oxygen
-                    produceOxygen = true;
+                    generateOxygen = true;
+                    farmOxygen = true;
                     // For now, it's intentional that we start timer blocks
                     // on all grids... we'll see how it goes
                     ZALibrary.StartTimerBlockWithName(ship, LOW_OXYGEN_NAME);
                     break;
             }
 
-            if (produceOxygen != null)
+            if (generateOxygen != null)
             {
                 // Limit to this grid -- don't mess with any other ship's systems
                 var generators =
                     ZALibrary.GetBlocksOfType<IMyOxygenGenerator>(ship,
                                                                   block => block.CubeGrid == program.Me.CubeGrid &&
                                                                   block.IsFunctional);
-                ZALibrary.EnableBlocks(generators, (bool)produceOxygen);
-
+                ZALibrary.EnableBlocks(generators, (bool)generateOxygen);
+            }
+            if (farmOxygen != null)
+            {
                 var farms =
                     ZALibrary.GetBlocksOfType<IMyOxygenFarm>(ship,
                                                              block => block.CubeGrid == program.Me.CubeGrid &&
                                                              block.IsFunctional);
 
                 // Farms don't implement IMyFunctionalBlock??
-                ZALibrary.EnableBlocks(farms, (bool)produceOxygen);
+                ZALibrary.EnableBlocks(farms, (bool)farmOxygen);
             }
         }
     }
