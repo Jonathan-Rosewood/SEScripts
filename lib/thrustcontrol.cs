@@ -17,7 +17,8 @@ public class ThrustControl
         if (blocks == null)
         {
             blocks = new List<IMyTerminalBlock>();
-            program.GridTerminalSystem.GetBlocksOfType<IMyThrust>(blocks);
+            program.GridTerminalSystem.GetBlocksOfType<IMyThrust>(blocks,
+                                                                  block => block.CubeGrid == program.Me.CubeGrid);
         }
 
         MyBlockOrientation shipOrientation = new MyBlockOrientation(shipForward, shipUp);

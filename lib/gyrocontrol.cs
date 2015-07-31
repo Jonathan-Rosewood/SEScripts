@@ -113,7 +113,8 @@ public class GyroControl
         if (blocks == null)
         {
             blocks = new List<IMyTerminalBlock>();
-            program.GridTerminalSystem.GetBlocksOfType<IMyGyro>(blocks);
+            program.GridTerminalSystem.GetBlocksOfType<IMyGyro>(blocks,
+                                                                block => block.CubeGrid == program.Me.CubeGrid);
         }
 
         gyros.Clear();
