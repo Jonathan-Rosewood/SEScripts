@@ -49,7 +49,10 @@ public class OxygenManager
 
     public void Run(MyGridProgram program, List<IMyTerminalBlock> ship)
     {
-        var tanks = ZALibrary.GetBlocksOfType<IMyOxygenTank>(ship, tank => tank.IsFunctional && tank.IsWorking);
+        var tanks = ZALibrary.GetBlocksOfType<IMyOxygenTank>(ship,
+                                                             tank => tank.IsFunctional &&
+                                                             tank.IsWorking &&
+                                                             tank.CustomName.IndexOf("[Excluded]", ZALibrary.IGNORE_CASE) < 0);
 
         var currentState = GetOxygenState(tanks);
 
