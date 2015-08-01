@@ -39,7 +39,7 @@ public class EventDriver
     // Why is there no standard priority queue implementation?
     private readonly LinkedList<FutureTickAction> TickQueue = new LinkedList<FutureTickAction>();
     private readonly LinkedList<FutureTimeAction> TimeQueue = new LinkedList<FutureTimeAction>();
-
+    private readonly string TimerName, TimerGroup;
     private ulong Ticks; // Not a reliable measure of time because of variable timer delay.
 
     public TimeSpan TimeSinceStart
@@ -49,8 +49,8 @@ public class EventDriver
     }
     private TimeSpan m_timeSinceStart = TimeSpan.FromSeconds(0);
 
-    private string TimerName, TimerGroup;
-
+    private bool Kicked;
+    
     // If neither timerName nor timerGroup are given, it's assumed the timer will kick itself
     public EventDriver(string timerName = null, string timerGroup = null)
     {
@@ -58,8 +58,11 @@ public class EventDriver
         TimerGroup = timerGroup;
     }
 
-    private void KickTimer(MyGridProgram program)
+    // If you have a main event, you should call this as well
+    public void KickTimer(MyGridProgram program)
     {
+        if (Kicked) return;
+
         IMyTimerBlock timer = null;
         // Name takes priority over group
         if (TimerName != null)
@@ -91,6 +94,7 @@ public class EventDriver
             if (TickQueue.First != null)
             {
                 timer.GetActionWithName("TriggerNow").Apply(timer);
+                Kicked = true;
             }
             else if (TimeQueue.First != null)
             {
@@ -102,6 +106,7 @@ public class EventDriver
 
                 timer.SetValue<float>("TriggerDelay", next);
                 timer.GetActionWithName("Start").Apply(timer);
+                Kicked = true;
             }
             // NB If both queues are empty, we stop running
         }
@@ -112,6 +117,7 @@ public class EventDriver
     {
         Ticks++;
         TimeSinceStart += program.ElapsedTime;
+        Kicked = false;
 
         bool result = false;
 
