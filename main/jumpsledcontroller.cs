@@ -29,8 +29,13 @@ void Main(string argument)
 
     ZALibrary.Ship ship = new ZALibrary.Ship(this);
 
-    batteryManager.Run(this, ship, argument);
-    solarGyroController.Run(this, ship, argument,
+    batteryManager.HandleCommand(this, ship, argument);
+    solarGyroController.HandleCommand(this, ship, argument,
+                                      shipUp: shipUp,
+                                      shipForward: shipForward);
+
+    batteryManager.Run(this, ship);
+    solarGyroController.Run(this, ship,
                             shipUp: shipUp,
                             shipForward: shipForward);
     safeMode.Run(this, ship, false);

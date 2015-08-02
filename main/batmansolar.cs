@@ -17,7 +17,8 @@ void Main(string argument)
 {
     ZALibrary.Ship ship = new ZALibrary.Ship(this);
 
-    batteryManager.Run(this, ship, argument);
+    batteryManager.HandleCommand(this, ship, argument);
+    batteryManager.Run(this, ship);
 
     ZALibrary.KickLoopTimerBlock(this, argument);
 }

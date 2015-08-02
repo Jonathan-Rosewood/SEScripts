@@ -26,7 +26,10 @@ void Main(string argument)
 
     ZALibrary.Ship ship = new ZALibrary.Ship(this);
 
-    solarGyroController.Run(this, ship, argument,
+    solarGyroController.HandleCommand(this, ship, argument,
+                                      shipUp: shipUp,
+                                      shipForward: shipForward);
+    solarGyroController.Run(this, ship,
                             shipUp: shipUp,
                             shipForward: shipForward);
 

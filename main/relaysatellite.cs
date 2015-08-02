@@ -55,12 +55,16 @@ void Main(string argument)
         launchController.Init(this, eventDriver);
     }
 
+    ZALibrary.Ship ship = new ZALibrary.Ship(this);
+    batteryManager.HandleCommand(this, ship, argument);
+    solarGyroController.HandleCommand(this, ship, argument,
+                                      shipUp: launchController.ShipUp,
+                                      shipForward: launchController.ShipForward);
+
     if (eventDriver.Tick(this))
     {
-        ZALibrary.Ship ship = new ZALibrary.Ship(this);
-
-        batteryManager.Run(this, ship, argument);
-        solarGyroController.Run(this, ship, argument,
+        batteryManager.Run(this, ship);
+        solarGyroController.Run(this, ship,
                                 shipUp: launchController.ShipUp,
                                 shipForward: launchController.ShipForward);
 

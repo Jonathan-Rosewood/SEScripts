@@ -44,32 +44,26 @@ public class SolarGyroController
         }
     }
 
-    public void Run(MyGridProgram program, ZALibrary.Ship ship, string argument,
-                    Base6Directions.Direction shipUp = Base6Directions.Direction.Up,
-                    Base6Directions.Direction shipForward = Base6Directions.Direction.Forward)
+    private GyroControl GetGyroControl(MyGridProgram program, ZALibrary.Ship ship,
+                                       Base6Directions.Direction shipUp,
+                                       Base6Directions.Direction shipForward)
     {
         var gyroControl = new GyroControl();
         gyroControl.Init(program, blocks: ship.Blocks, shipUp: shipUp, shipForward: shipForward);
+        return gyroControl;
+    }
 
-        // Handle commands
-        argument = argument.Trim().ToLower();
-        if (argument == "pause")
-        {
-            Active = false;
-            gyroControl.EnableOverride(false);
-        }
-        else if (argument == "resume")
-        {
-            Active = true;
-            MaxPower = null; // Use first-run initialization
-        }
-
+    public void Run(MyGridProgram program, ZALibrary.Ship ship,
+                    Base6Directions.Direction shipUp = Base6Directions.Direction.Up,
+                    Base6Directions.Direction shipForward = Base6Directions.Direction.Forward)
+    {
         if (!Active)
         {
             program.Echo("Solar Max Power: Paused");
             return;
         }
 
+        var gyroControl = GetGyroControl(program, ship, shipUp, shipForward);
         var currentAxis = AllowedAxes[AxisIndex];
 
         if (MaxPower == null)
@@ -121,5 +115,26 @@ public class SolarGyroController
         }
 
         program.Echo(string.Format("Solar Max Power: {0}", ZALibrary.FormatPower(currentMaxPower)));
+    }
+
+    public void HandleCommand(MyGridProgram program, ZALibrary.Ship ship, string argument,
+                              Base6Directions.Direction shipUp = Base6Directions.Direction.Up,
+                              Base6Directions.Direction shipForward = Base6Directions.Direction.Forward)
+    {
+        // Handle commands
+        argument = argument.Trim().ToLower();
+        if (argument == "pause")
+        {
+            // Hmm, shipUp and shipForward not really needed...
+            var gyroControl = GetGyroControl(program, ship, shipUp, shipForward);
+
+            Active = false;
+            gyroControl.EnableOverride(false);
+        }
+        else if (argument == "resume")
+        {
+            Active = true;
+            MaxPower = null; // Use first-run initialization
+        }
     }
 }

@@ -71,32 +71,14 @@ public class BatteryManager
         return DrainCounts >= BATTERY_MANAGER_DRAIN_CHECK_THRESHOLD;
     }
 
-    public void Run(MyGridProgram program, ZALibrary.Ship ship, string argument)
+    private List<IMyBatteryBlock> GetBatteries(ZALibrary.Ship ship)
     {
-        var batteries = ship.GetBlocksOfType<IMyBatteryBlock>(battery => battery.IsFunctional && battery.Enabled);
-
-        argument = argument.Trim().ToLower();
-        if (argument == "forcerecharge")
-        {
-            CurrentState = STATE_DISABLED;
-            ZALibrary.SetBatteryRecharge(batteries, true);
-            return;
-        }
-        else if (argument == "autorecharge")
-        {
-            CurrentState = null;
-            // Fall through as if first time
-        }
-        else if (argument == "pause")
-        {
-            CurrentState = null;
-            Active = false;
-        }
-        else if (argument == "resume")
-        {
-            CurrentState = null;
-            Active = true;
-        }
+        return ship.GetBlocksOfType<IMyBatteryBlock>(battery => battery.IsFunctional && battery.Enabled);
+    }
+    
+    public void Run(MyGridProgram program, ZALibrary.Ship ship)
+    {
+        var batteries = GetBatteries(ship);
 
         if (CurrentState == null)
         {
@@ -182,5 +164,28 @@ public class BatteryManager
         program.Echo(string.Format("Total Stored Power: {0}h", ZALibrary.FormatPower(aggregateDetails.CurrentStoredPower)));
         program.Echo(string.Format("Max Stored Power: {0}h", ZALibrary.FormatPower(aggregateDetails.MaxStoredPower)));
         if (Draining) program.Echo("Net power loss!");
+    }
+
+    public void HandleCommand(MyGridProgram program, ZALibrary.Ship ship, string argument)
+    {
+        argument = argument.Trim().ToLower();
+        if (argument == "forcerecharge")
+        {
+            var batteries = GetBatteries(ship);
+
+            CurrentState = STATE_DISABLED;
+            ZALibrary.SetBatteryRecharge(batteries, true);
+            return;
+        }
+        else if (argument == "pause")
+        {
+            CurrentState = null;
+            Active = false;
+        }
+        else if (argument == "resume")
+        {
+            CurrentState = null;
+            Active = true;
+        }
     }
 }
