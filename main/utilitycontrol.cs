@@ -81,9 +81,5 @@ private IMyCubeBlock GetReference(MyGridProgram program)
     {
         throw new Exception("Missing group: " + RANGEFINDER_REFERENCE_GROUP);
     }
-    else if (referenceGroup.Blocks.Count != 1)
-    {
-        throw new Exception("Expecting exactly 1 block in group " + RANGEFINDER_REFERENCE_GROUP);
-    }
     return referenceGroup.Blocks[0];
 }
