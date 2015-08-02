@@ -22,7 +22,6 @@ public class TimerKicker
                                                       block.IsWorking &&
                                                       ((IMyTimerBlock)block).Enabled &&
                                                       !((IMyTimerBlock)block).IsCountingDown);
-        ZALibrary.ForEachBlockOfType<IMyTimerBlock>(timers,
-                                                    timer => timer.GetActionWithName("Start").Apply(timer));
+        timers.ForEach(timer => timer.GetActionWithName("Start").Apply(timer));
     }
 }
