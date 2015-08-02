@@ -36,7 +36,7 @@ public class RelaySatellitePowerDrainHandler : BatteryManager.PowerDrainHandler
     }
 }
 
-private readonly EventDriver eventDriver = new EventDriver();
+private readonly EventDriver eventDriver = new EventDriver(timerGroup: RELAY_CLOCK_GROUP);
 private readonly LaunchController launchController = new LaunchController();
 private readonly BatteryManager batteryManager = new BatteryManager(new RelaySatellitePowerDrainHandler());
 private readonly SolarGyroController solarGyroController = new SolarGyroController(
@@ -69,7 +69,6 @@ void Main(string argument)
                                 shipForward: launchController.ShipForward);
 
         eventDriver.Schedule(1.0);
+        eventDriver.KickTimer(this);
     }
-
-    ZALibrary.KickLoopTimerBlock(this, argument);
 }

@@ -1,4 +1,4 @@
 [script]
 modules = dronecontrol, dockingmanager, safemode, batterymonitor,
-    solarrotorcontroller, ZALibrary
+    solarrotorcontroller, eventdriver, ZALibrary
 out = out/Drone Controller/Script.cs

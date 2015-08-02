@@ -1,4 +1,4 @@
 [script]
 modules=satellitecontroller, batterymanager, solargyrocontroller, gyrocontrol,
-    ZALibrary
+    eventdriver, ZALibrary
 out=out/MUP Controller/Script.cs

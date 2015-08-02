@@ -1,3 +1,4 @@
+private readonly EventDriver eventDriver = new EventDriver(timerName: ZALIBRARY_LOOP_TIMER_BLOCK_NAME);
 private readonly SolarGyroController solarGyroController = new SolarGyroController(GyroControl.Roll);
 
 private bool FirstRun = true;
@@ -23,16 +24,22 @@ void Main(string argument)
             ShipUp = Base6Directions.Direction.Up;
             ShipForward = Base6Directions.Direction.Forward;
         }
+
+        eventDriver.Schedule(0.0);
     }
 
     ZALibrary.Ship ship = new ZALibrary.Ship(this);
-
     solarGyroController.HandleCommand(this, ship, argument,
                                       shipUp: ShipUp,
                                       shipForward: ShipForward);
-    solarGyroController.Run(this, ship,
-                            shipUp: ShipUp,
-                            shipForward: ShipForward);
 
-    ZALibrary.KickLoopTimerBlock(this, argument);
+    if (eventDriver.Tick(this))
+    {
+        solarGyroController.Run(this, ship,
+                                shipUp: ShipUp,
+                                shipForward: ShipForward);
+
+        eventDriver.Schedule(1.0);
+        eventDriver.KickTimer(this);
+    }
 }

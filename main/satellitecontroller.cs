@@ -36,6 +36,7 @@ public class SatellitePowerDrainHandler : BatteryManager.PowerDrainHandler
     }
 }
 
+private readonly EventDriver eventDriver = new EventDriver(timerName: ZALIBRARY_LOOP_TIMER_BLOCK_NAME);
 private readonly BatteryManager batteryManager = new BatteryManager(new SatellitePowerDrainHandler());
 private readonly SolarGyroController solarGyroController = new SolarGyroController(
                                                                                    // GyroControl.Yaw,
@@ -43,8 +44,16 @@ private readonly SolarGyroController solarGyroController = new SolarGyroControll
                                                                                    GyroControl.Roll
 );
 
+private bool FirstRun = true;
+
 void Main(string argument)
 {
+    if (FirstRun)
+    {
+        FirstRun = false;
+        eventDriver.Schedule(0.0);
+    }
+
     Base6Directions.Direction shipUp, shipForward;
 
     // Look for our ship controllers
@@ -70,10 +79,14 @@ void Main(string argument)
                                       shipUp: shipUp,
                                       shipForward: shipForward);
 
-    batteryManager.Run(this, ship);
-    solarGyroController.Run(this, ship,
-                            shipUp: shipUp,
-                            shipForward: shipForward);
+    if (eventDriver.Tick(this))
+    {
+        batteryManager.Run(this, ship);
+        solarGyroController.Run(this, ship,
+                                shipUp: shipUp,
+                                shipForward: shipForward);
 
-    ZALibrary.KickLoopTimerBlock(this, argument);
+        eventDriver.Schedule(1.0);
+        eventDriver.KickTimer(this);
+    }
 }
