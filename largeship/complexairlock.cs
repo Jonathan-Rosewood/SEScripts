@@ -1,54 +1,5 @@
 public class ComplexAirlock
 {
-    public class DelayedAction
-    {
-        public class Entry
-        {
-            public Action Action { get; private set; }
-            public ulong AtTick { get; private set; }
-
-            public Entry(Action action, ulong atTick)
-            {
-                Action = action;
-                AtTick = atTick;
-            }
-        }
-
-        public ulong CurrentTick { get; private set; }
-        // Hmm, no standard priority queue implementation in C#?
-        private readonly LinkedList<Entry> delayedActions = new LinkedList<Entry>();
-
-        public void Add(Action action, ulong delay = 1L)
-        {
-            var entry = new Entry(action, CurrentTick + delay);
-            // Soooo slow
-            for (var current = delayedActions.First;
-                 current != null;
-                 current = current.Next)
-            {
-                if (entry.AtTick < current.Value.AtTick)
-                {
-                    // Insert before this one
-                    delayedActions.AddBefore(current, entry);
-                    return;
-                }
-            }
-            // Just add at the end
-            delayedActions.AddLast(entry);
-        }
-
-        public void Tick()
-        {
-            CurrentTick++;
-            while (delayedActions.First != null &&
-                   delayedActions.First.Value.AtTick <= CurrentTick)
-            {
-                delayedActions.First.Value.Action();
-                delayedActions.RemoveFirst();
-            }
-        }
-    }
-
     public class OpenQueueEntry
     {
         public int DesiredState { get; private set; }
@@ -77,8 +28,6 @@ public class ComplexAirlock
     private readonly Dictionary<IMyDoor, List<IMyAirVent>> doorVentMap = new Dictionary<IMyDoor, List<IMyAirVent>>();
 
     private readonly Dictionary<string, OpenQueueEntry> openQueue = new Dictionary<string, OpenQueueEntry>();
-
-    private readonly DelayedAction delayedAction = new DelayedAction();
 
     private void Init(MyGridProgram program)
     {
@@ -251,7 +200,8 @@ public class ComplexAirlock
         }
     }
 
-    private void CloseDoorsAsNeeded(IMyBlockGroup room, List<IMyDoor> doors,
+    private void CloseDoorsAsNeeded(EventDriver eventDriver,
+                                    IMyBlockGroup room, List<IMyDoor> doors,
                                     HashSet<IMyDoor> targetDoors,
                                     int checkState)
     {
@@ -311,19 +261,18 @@ public class ComplexAirlock
         // Open all required doors at next tick
         if (openDoors.Count > 0)
         {
-            delayedAction.Add(() =>
+            eventDriver.Schedule(2.5, (p, e) =>
                     {
-                        var e = openDoors.GetEnumerator();
-                        while (e.MoveNext())
+                        for (var f = openDoors.GetEnumerator(); f.MoveNext();)
                         {
-                            var door = e.Current;
+                            var door = f.Current;
                             door.GetActionWithName("Open_On").Apply(door);
                         }
-                    }, 3L);
+                    });
         }
     }
 
-    private void OpenCloseDoorsAsNeeded()
+    private void OpenCloseDoorsAsNeeded(EventDriver eventDriver)
     {
         for (var e = rooms.GetEnumerator(); e.MoveNext();)
         {
@@ -341,12 +290,12 @@ public class ComplexAirlock
             {
                 case AIRLOCK_STATE_VACUUM:
                     // Close and lock all but space doors
-                    CloseDoorsAsNeeded(room, doors, spaceDoors,
+                    CloseDoorsAsNeeded(eventDriver, room, doors, spaceDoors,
                                        AIRLOCK_STATE_VACUUM);
                     break;
                 case AIRLOCK_STATE_PRESSURIZED:
                     // Close and lock all but inner doors
-                    CloseDoorsAsNeeded(room, doors, innerDoors,
+                    CloseDoorsAsNeeded(eventDriver, room, doors, innerDoors,
                                        AIRLOCK_STATE_PRESSURIZED);
                     break;
                 case AIRLOCK_STATE_UNKNOWN:
@@ -365,29 +314,27 @@ public class ComplexAirlock
         }
     }
 
-    public void Run(MyGridProgram program, string argument)
+    public void Run(MyGridProgram program, EventDriver eventDriver, string argument)
     {
         Init(program);
-
-        delayedAction.Tick();
 
         if (!string.IsNullOrWhiteSpace(argument))
         {
             HandleCommandInternal(argument);
         }
 
-        OpenCloseDoorsAsNeeded();
+        OpenCloseDoorsAsNeeded(eventDriver);
 
         Clear();
     }
 
-    public void Run(MyGridProgram program)
+    public void Run(MyGridProgram program, EventDriver eventDriver)
     {
-        Run(program, ""); // Why...
+        Run(program, eventDriver, ""); // Why...
     }
 
-    public void HandleCommand(MyGridProgram program, string argument)
+    public void HandleCommand(MyGridProgram program, EventDriver eventDriver, string argument)
     {
-        Run(program, argument); // Why...
+        Run(program, eventDriver, argument); // Why...
     }
 }

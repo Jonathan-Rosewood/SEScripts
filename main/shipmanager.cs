@@ -18,7 +18,7 @@ void Main(string argument)
     }
 
     // Handle commands
-    if (COMPLEX_AIRLOCK_ENABLE) complexAirlock.HandleCommand(this, argument);
+    if (COMPLEX_AIRLOCK_ENABLE) complexAirlock.HandleCommand(this, eventDriver, argument);
     if (PRODUCTION_MANAGER_ENABLE) productionManager.HandleCommand(argument);
 
     if (eventDriver.Tick(this))
@@ -26,7 +26,7 @@ void Main(string argument)
         // Door management
         if (AUTO_CLOSE_DOORS_ENABLE) doorAutoCloser.Run(this);
         if (SIMPLE_AIRLOCK_ENABLE) simpleAirlock.Run(this);
-        if (COMPLEX_AIRLOCK_ENABLE) complexAirlock.Run(this);
+        if (COMPLEX_AIRLOCK_ENABLE) complexAirlock.Run(this, eventDriver);
 
         if (OXYGEN_MANAGER_ENABLE || POWER_MANAGER_ENABLE || REFINERY_MANAGER_ENABLE ||
             PRODUCTION_MANAGER_ENABLE)
