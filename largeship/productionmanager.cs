@@ -96,7 +96,11 @@ public class ProductionManager
             new ItemStock("Thrust", 16000),
         };
 
-    private bool Active = true;
+    private const int STATE_ACTIVE = 1;
+    private const int STATE_INACTIVATING = -1;
+    private const int STATE_INACTIVE = 0;
+
+    private int CurrentState = STATE_ACTIVE;
 
     private Dictionary<string, VRage.MyFixedPoint> EnumerateItems(List<IMyTerminalBlock> blocks, HashSet<string> allowedSubtypes)
     {
@@ -180,8 +184,10 @@ public class ProductionManager
         }
     }
 
-    public void Run(MyGridProgram program, List<IMyTerminalBlock> ship, string argument)
+    public void Run(MyGridProgram program, List<IMyTerminalBlock> ship)
     {
+        if (CurrentState == STATE_INACTIVE) return;
+
         if (LIMIT_PRODUCTION_MANAGER_SAME_GRID)
         {
             ship = ZALibrary.GetBlocksOfType<IMyTerminalBlock>(ship, block => block.CubeGrid == program.Me.CubeGrid);
@@ -224,22 +230,7 @@ public class ProductionManager
             }
         }
 
-        argument = argument.Trim().ToLower();
-        if (argument == "prodpause")
-        {
-            Active = false;
-            // Shut down all known assemblers
-            for (var e = assemblerTargets.Values.GetEnumerator(); e.MoveNext();)
-            {
-                e.Current.EnableAssemblers(false);
-            }
-        }
-        else if (argument == "prodresume")
-        {
-            Active = true;
-        }
-
-        if (Active)
+        if (CurrentState == STATE_ACTIVE)
         {
             // Get current stocks
             var stocks = EnumerateItems(ship, allowedSubtypes);
@@ -255,6 +246,28 @@ public class ProductionManager
                 // Enable or disable based on current stock
                 target.EnableAssemblers((float)currentStock < target.Amount);
             }
+        }
+        else if (CurrentState == STATE_INACTIVATING)
+        {
+            // Shut down all known assemblers
+            for (var e = assemblerTargets.Values.GetEnumerator(); e.MoveNext();)
+            {
+                e.Current.EnableAssemblers(false);
+            }
+            CurrentState = STATE_INACTIVE;
+        }
+    }
+
+    public void HandleCommand(string argument)
+    {
+        argument = argument.Trim().ToLower();
+        if (argument == "prodpause")
+        {
+            CurrentState = STATE_INACTIVATING;
+        }
+        else if (argument == "prodresume")
+        {
+            CurrentState = STATE_ACTIVE;
         }
     }
 }

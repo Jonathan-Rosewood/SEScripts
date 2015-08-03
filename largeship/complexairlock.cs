@@ -188,7 +188,7 @@ public class ComplexAirlock
         openQueue[roomName] = entry;
     }
 
-    private void HandleCommand(string argument)
+    private void HandleCommandInternal(string argument)
     {
         var parts = argument.Split(new char[] { ' ' }, 2);
         if (parts.Length != 2) return;
@@ -319,7 +319,7 @@ public class ComplexAirlock
                             var door = e.Current;
                             door.GetActionWithName("Open_On").Apply(door);
                         }
-                    }, 2L);
+                    }, 3L);
         }
     }
 
@@ -373,11 +373,21 @@ public class ComplexAirlock
 
         if (!string.IsNullOrWhiteSpace(argument))
         {
-            HandleCommand(argument);
+            HandleCommandInternal(argument);
         }
 
         OpenCloseDoorsAsNeeded();
 
         Clear();
+    }
+
+    public void Run(MyGridProgram program)
+    {
+        Run(program, ""); // Why...
+    }
+
+    public void HandleCommand(MyGridProgram program, string argument)
+    {
+        Run(program, argument); // Why...
     }
 }
