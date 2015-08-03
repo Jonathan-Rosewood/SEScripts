@@ -1,7 +1,7 @@
 public class DoorAutoCloser
 {
     // Yeah, not sure if it's a good idea to hold references between invocations...
-    private readonly Dictionary<IMyDoor, int> opened = new Dictionary<IMyDoor, int>();
+    private readonly Dictionary<IMyDoor, TimeSpan> opened = new Dictionary<IMyDoor, TimeSpan>();
 
     public void Run(MyGridProgram program)
     {
@@ -19,10 +19,10 @@ public class DoorAutoCloser
 
             if (door.Open)
             {
-                int openTime;
+                TimeSpan openTime;
                 if (opened.TryGetValue(door, out openTime))
                 {
-                    openTime++;
+                    openTime += program.ElapsedTime;
                     if (openTime >= MAX_DOOR_OPEN_TIME)
                     {
                         // Time to close it
@@ -36,7 +36,7 @@ public class DoorAutoCloser
                 }
                 else
                 {
-                    opened.Add(door, 0);
+                    opened.Add(door, TimeSpan.FromSeconds(0));
                 }
             }
             else
