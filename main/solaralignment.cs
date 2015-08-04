@@ -1,5 +1,5 @@
-private readonly EventDriver eventDriver = new EventDriver(timerName: ZALIBRARY_LOOP_TIMER_BLOCK_NAME);
-private readonly SolarGyroController solarGyroController =
+public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
+public readonly SolarGyroController solarGyroController =
     new SolarGyroController(
                             //GyroControl.Yaw,
                             GyroControl.Pitch,
@@ -10,6 +10,8 @@ private bool FirstRun = true;
 
 void Main(string argument)
 {
+    var commons = new ZACommons(this);
+
     if (FirstRun)
     {
         FirstRun = false;
@@ -19,7 +21,7 @@ void Main(string argument)
     Base6Directions.Direction shipUp, shipForward;
 
     // See if there's a reference group
-    var referenceGroup = ZALibrary.GetBlockGroupWithName(this, "SolarGyroReference");
+    var referenceGroup = commons.GetBlockGroupWithName("SolarGyroReference");
     var reference = (referenceGroup != null && referenceGroup.Blocks.Count > 0) ? referenceGroup.Blocks[0] : null;
     if (reference != null)
     {
@@ -33,18 +35,16 @@ void Main(string argument)
         shipForward = Base6Directions.Direction.Forward;
     }
 
-    ZALibrary.Ship ship = new ZALibrary.Ship(this);
-    solarGyroController.HandleCommand(this, ship, argument,
+    solarGyroController.HandleCommand(commons, argument,
                                       shipUp: shipUp,
                                       shipForward: shipForward);
 
-    if (eventDriver.Tick(this))
-    {
-        solarGyroController.Run(this, ship,
-                                shipUp: shipUp,
-                                shipForward: shipForward);
+    eventDriver.Tick(commons, () =>
+            {
+                solarGyroController.Run(commons,
+                                        shipUp: shipUp,
+                                        shipForward: shipForward);
 
-        eventDriver.Schedule(1.0);
-        eventDriver.KickTimer(this);
-    }
+                eventDriver.Schedule(1.0);
+            });
 }

@@ -7,21 +7,21 @@ public class MissileLaunch
     private const double BURN_TIME = 3.0; // In seconds
 
     private MissileGuidance missileGuidance;
-    private Action<MyGridProgram, EventDriver>[] postLaunch;
+    private Action<ZACommons, EventDriver>[] postLaunch;
     private ThrustControl thrustControl;
     private GyroControl gyroControl;
 
     private Base6Directions.Direction ShipUp, ShipForward;
 
-    private void UpdateShipReference(MyGridProgram program)
+    private void UpdateShipReference(ZACommons commons)
     {
         // Use the gyro in SYSTEMS_GROUP as reference
-        var systemsGroup = ZALibrary.GetBlockGroupWithName(program, SYSTEMS_GROUP + MISSILE_GROUP_SUFFIX);
+        var systemsGroup = commons.GetBlockGroupWithName(SYSTEMS_GROUP + MISSILE_GROUP_SUFFIX);
         if (systemsGroup == null)
         {
             throw new Exception("Group missing: " + SYSTEMS_GROUP + MISSILE_GROUP_SUFFIX);
         }
-        var references = ZALibrary.GetBlocksOfType<IMyGyro>(systemsGroup.Blocks);
+        var references = ZACommons.GetBlocksOfType<IMyGyro>(systemsGroup.Blocks);
         if (references.Count == 0)
         {
             throw new Exception("Expecting at least 1 gyro: " + SYSTEMS_GROUP + MISSILE_GROUP_SUFFIX);
@@ -32,9 +32,9 @@ public class MissileLaunch
         ShipForward = reference.Orientation.TransformDirection(Base6Directions.Direction.Forward);
     }
 
-    public void Init(MyGridProgram program, EventDriver eventDriver,
+    public void Init(ZACommons commons, EventDriver eventDriver,
                      MissileGuidance missileGuidance,
-                     params Action<MyGridProgram, EventDriver>[] postLaunch)
+                     params Action<ZACommons, EventDriver>[] postLaunch)
     {
         // Guidance is special because it needs more arguments
         this.missileGuidance = missileGuidance;
@@ -42,82 +42,81 @@ public class MissileLaunch
         eventDriver.Schedule(0.0, Prime);
     }
 
-    public void Prime(MyGridProgram program, EventDriver eventDriver)
+    public void Prime(ZACommons commons, EventDriver eventDriver)
     {
         // Wake up batteries
-        var batteryGroup = ZALibrary.GetBlockGroupWithName(program, BATTERY_GROUP + MISSILE_GROUP_SUFFIX);
+        var batteryGroup = commons.GetBlockGroupWithName(BATTERY_GROUP + MISSILE_GROUP_SUFFIX);
         if (batteryGroup == null)
         {
             throw new Exception("Group missing: " + BATTERY_GROUP + MISSILE_GROUP_SUFFIX);
         }
-        var systemsGroup = ZALibrary.GetBlockGroupWithName(program, SYSTEMS_GROUP + MISSILE_GROUP_SUFFIX);
+        var systemsGroup = commons.GetBlockGroupWithName(SYSTEMS_GROUP + MISSILE_GROUP_SUFFIX);
         if (systemsGroup == null)
         {
             throw new Exception("Group missing: " + SYSTEMS_GROUP + MISSILE_GROUP_SUFFIX);
         }
 
-        var batteries = ZALibrary.GetBlocksOfType<IMyBatteryBlock>(batteryGroup.Blocks);
-        ZALibrary.EnableBlocks(batteries, true);
-        ZALibrary.SetBatteryRecharge(batteries, false);
+        var batteries = ZACommons.GetBlocksOfType<IMyBatteryBlock>(batteryGroup.Blocks);
+        ZACommons.EnableBlocks(batteries, true);
+        ZACommons.SetBatteryRecharge(batteries, false);
 
         // Activate flight systems
-        ZALibrary.EnableBlocks(systemsGroup.Blocks, true);
+        ZACommons.EnableBlocks(systemsGroup.Blocks, true);
 
         eventDriver.Schedule(1.0, Release);
     }
 
-    public void Release(MyGridProgram program, EventDriver eventDriver)
+    public void Release(ZACommons commons, EventDriver eventDriver)
     {
-        var releaseGroup = ZALibrary.GetBlockGroupWithName(program, RELEASE_GROUP + MISSILE_GROUP_SUFFIX);
+        var releaseGroup = commons.GetBlockGroupWithName(RELEASE_GROUP + MISSILE_GROUP_SUFFIX);
         if (releaseGroup == null)
         {
             throw new Exception("Group missing: " + RELEASE_GROUP + MISSILE_GROUP_SUFFIX);
         }
 
         // Unlock any landing gear
-        ZALibrary.ForEachBlockOfType<IMyLandingGear>(releaseGroup.Blocks,
+        ZACommons.ForEachBlockOfType<IMyLandingGear>(releaseGroup.Blocks,
                                                      gear => gear.GetActionWithName("Unlock").Apply(gear));
         // And then turn everything off (connectors, merge blocks, etc)
-        ZALibrary.EnableBlocks(releaseGroup.Blocks, false);
+        ZACommons.EnableBlocks(releaseGroup.Blocks, false);
 
         eventDriver.Schedule(1.0, Burn);
     }
 
-    public void Burn(MyGridProgram program, EventDriver eventDriver)
+    public void Burn(ZACommons commons, EventDriver eventDriver)
     {
         // Boost away from launcher, initialize flight control
-        UpdateShipReference(program);
+        UpdateShipReference(commons);
 
         thrustControl = new ThrustControl();
-        thrustControl.Init(program, shipUp: ShipUp, shipForward: ShipForward);
+        thrustControl.Init(commons.Blocks, shipUp: ShipUp, shipForward: ShipForward);
         thrustControl.Reset();
         thrustControl.SetOverride(Base6Directions.Direction.Forward, BURN_FORCE);
         if (BURN_DOWNWARD) thrustControl.SetOverride(Base6Directions.Direction.Down);
 
         gyroControl = new GyroControl();
-        gyroControl.Init(program, shipUp: ShipUp, shipForward: ShipForward);
+        gyroControl.Init(commons.Blocks, shipUp: ShipUp, shipForward: ShipForward);
         gyroControl.Reset();
         gyroControl.EnableOverride(true);
 
         eventDriver.Schedule(BURN_TIME, Arm);
     }
 
-    public void Arm(MyGridProgram program, EventDriver eventDriver)
+    public void Arm(ZACommons commons, EventDriver eventDriver)
     {
         if (BURN_DOWNWARD) thrustControl.SetOverride(Base6Directions.Direction.Down, 0.0f);
 
         // Just find all warheads on board and turn off safeties
-        List<IMyTerminalBlock> warheads = new List<IMyTerminalBlock>();
-        program.GridTerminalSystem.GetBlocksOfType<IMyWarhead>(warheads);
+        var warheads = ZACommons.GetBlocksOfType<IMyWarhead>(commons.Blocks);
         warheads.ForEach(warhead => warhead.SetValue<bool>("Safety", false));
 
         // We're done, let MissileGuidance take over
-        missileGuidance.Init(program, eventDriver, thrustControl, gyroControl,
+        missileGuidance.Init(commons, eventDriver, thrustControl, gyroControl,
                              shipUp: ShipUp,
                              shipForward: ShipForward);
         for (int i = 0; i < postLaunch.Length; i++)
         {
-            postLaunch[i](program, eventDriver);
+            postLaunch[i](commons, eventDriver);
         }
     }
 }

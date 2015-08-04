@@ -1,4 +1,4 @@
 [script]
 modules=backupmedical, batterymanager, solargyrocontroller, gyrocontrol,
-    doorautocloser, backupmedicallaunch, eventdriver, ZALibrary
+    doorautocloser, backupmedicallaunch, eventdriver, commons
 out=out/Backup Medical Controller/Script.cs

@@ -18,6 +18,8 @@ private const double ThrustKd = 0.0;
 
 void Main(string argument)
 {
+    var commons = new ZACommons(this);
+
     if (FirstRun)
     {
         FirstRun = false;
@@ -33,9 +35,9 @@ void Main(string argument)
     if (argument.Length > 0)
     {
         Base6Directions.Direction shipUp, shipForward;
-        GetReference(out shipUp, out shipForward);
-        var gyroControl = GetGyroControl(shipUp: shipUp, shipForward: shipForward);
-        var thrustControl = GetThrustControl(shipUp: shipUp, shipForward: shipForward);
+        GetReference(commons, out shipUp, out shipForward);
+        var gyroControl = GetGyroControl(commons, shipUp: shipUp, shipForward: shipForward);
+        var thrustControl = GetThrustControl(commons, shipUp: shipUp, shipForward: shipForward);
 
         switch (argument)
         {
@@ -49,7 +51,7 @@ void Main(string argument)
                 if (!Mining)
                 {
                     Mining = true;
-                    eventDriver.Schedule(1, Mine);
+                    eventDriver.Schedule(0, Mine);
                 }
                 break;
             case "stop":
@@ -58,35 +60,32 @@ void Main(string argument)
                 thrustControl.Reset();
                 break;
             default:
-                var ship = new ZALibrary.Ship(this);
-                dockingManager.HandleCommand(this, ship, argument);
+                dockingManager.HandleCommand(commons, argument);
                 break;
         }
     }
 
-    eventDriver.Tick(this);
+    eventDriver.Tick(commons);
 }
 
-public void DroneController(MyGridProgram program, EventDriver eventDriver)
+public void DroneController(ZACommons commons, EventDriver eventDriver)
 {
-    var ship = new ZALibrary.Ship(this);
-
     // This really seems like it should be determined once per run
-    var isConnected = ship.IsConnectedAnywhere();
+    var isConnected = ZACommons.IsConnectedAnywhere(commons.Blocks);
 
-    dockingManager.Run(this, ship, isConnected);
-    safeMode.Run(this, ship, isConnected);
-    batteryMonitor.Run(this, ship, isConnected);
+    dockingManager.Run(commons, isConnected);
+    safeMode.Run(commons, isConnected);
+    batteryMonitor.Run(commons, isConnected);
 
     eventDriver.Schedule(1.0, DroneController);
 }
 
-public void Mine(MyGridProgram program, EventDriver eventDriver)
+public void Mine(ZACommons commons, EventDriver eventDriver)
 {
     if (!Mining) return;
 
     Base6Directions.Direction shipUp, shipForward;
-    var reference = GetReference(out shipUp, out shipForward);
+    var reference = GetReference(commons, out shipUp, out shipForward);
     velocimeter.TakeSample(reference.GetPosition(), eventDriver.TimeSinceStart);
 
     // Determine velocity
@@ -99,12 +98,12 @@ public void Mine(MyGridProgram program, EventDriver eventDriver)
         var error = TARGET_MINING_SPEED - speed;
 
         var force = thrustPID.Compute(error);
-        // program.Echo(string.Format("Speed: {0:F2} m/s", speed));
-        // program.Echo(string.Format("Error: {0:F2}", error));
-        // program.Echo(string.Format("Force: {0:F1} N", force));
-        program.Echo("Mining");
+        // commons.Echo(string.Format("Speed: {0:F2} m/s", speed));
+        // commons.Echo(string.Format("Error: {0:F2}", error));
+        // commons.Echo(string.Format("Force: {0:F1} N", force));
+        commons.Echo("Mining");
 
-        var thrustControl = GetThrustControl(shipUp: shipUp, shipForward: shipForward);
+        var thrustControl = GetThrustControl(commons, shipUp: shipUp, shipForward: shipForward);
         if (force > 0.0)
         {
             // Thrust forward
@@ -121,9 +120,9 @@ public void Mine(MyGridProgram program, EventDriver eventDriver)
     eventDriver.Schedule(FramesPerRun, Mine);
 }
 
-private IMyCubeBlock GetReference(out Base6Directions.Direction shipUp, out Base6Directions.Direction shipForward)
+private IMyCubeBlock GetReference(ZACommons commons, out Base6Directions.Direction shipUp, out Base6Directions.Direction shipForward)
 {
-    var referenceGroup = ZALibrary.GetBlockGroupWithName(this, MINER_REFERENCE_GROUP);
+    var referenceGroup = commons.GetBlockGroupWithName(MINER_REFERENCE_GROUP);
     if (referenceGroup == null)
     {
         throw new Exception("Missing group: " + MINER_REFERENCE_GROUP);
@@ -136,16 +135,16 @@ private IMyCubeBlock GetReference(out Base6Directions.Direction shipUp, out Base
     return reference;
 }
 
-private GyroControl GetGyroControl(Base6Directions.Direction shipUp, Base6Directions.Direction shipForward)
+private GyroControl GetGyroControl(ZACommons commons, Base6Directions.Direction shipUp, Base6Directions.Direction shipForward)
 {
     var gyroControl = new GyroControl();
-    gyroControl.Init(this, shipUp: shipUp, shipForward: shipForward);
+    gyroControl.Init(commons.Blocks, shipUp: shipUp, shipForward: shipForward);
     return gyroControl;
 }
 
-private ThrustControl GetThrustControl(Base6Directions.Direction shipUp, Base6Directions.Direction shipForward)
+private ThrustControl GetThrustControl(ZACommons commons, Base6Directions.Direction shipUp, Base6Directions.Direction shipForward)
 {
     var thrustControl = new ThrustControl();
-    thrustControl.Init(this, shipUp: shipUp, shipForward: shipForward);
+    thrustControl.Init(commons.Blocks, shipUp: shipUp, shipForward: shipForward);
     return thrustControl;
 }

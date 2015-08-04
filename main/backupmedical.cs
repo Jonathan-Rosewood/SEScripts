@@ -1,38 +1,38 @@
-private readonly EventDriver eventDriver = new EventDriver(timerName: ZALIBRARY_LOOP_TIMER_BLOCK_NAME);
-private readonly BatteryManager batteryManager = new BatteryManager();
-private readonly SolarGyroController solarGyroController = new SolarGyroController(
-                                                                                   // GyroControl.Yaw,
-                                                                                   GyroControl.Pitch,
-                                                                                   GyroControl.Roll
+public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
+public readonly BatteryManager batteryManager = new BatteryManager();
+public readonly SolarGyroController solarGyroController = new SolarGyroController(
+                                                                                  // GyroControl.Yaw,
+                                                                                  GyroControl.Pitch,
+                                                                                  GyroControl.Roll
 );
-private readonly DoorAutoCloser doorAutoCloser = new DoorAutoCloser();
-private readonly BackupMedicalLaunch backupMedicalLaunch = new BackupMedicalLaunch();
+public readonly DoorAutoCloser doorAutoCloser = new DoorAutoCloser();
+public readonly BackupMedicalLaunch backupMedicalLaunch = new BackupMedicalLaunch();
 
 private bool FirstRun = true;
 
 void Main(string argument)
 {
+    var commons = new ZACommons(this);
+
     if (FirstRun)
     {
         FirstRun = false;
-        backupMedicalLaunch.Init(this, eventDriver);
+        backupMedicalLaunch.Init(commons, eventDriver);
     }
 
-    ZALibrary.Ship ship = new ZALibrary.Ship(this);
-    batteryManager.HandleCommand(this, ship, argument);
-    solarGyroController.HandleCommand(this, ship, argument,
+    batteryManager.HandleCommand(commons, argument);
+    solarGyroController.HandleCommand(commons, argument,
                                       shipUp: backupMedicalLaunch.ShipUp,
                                       shipForward: backupMedicalLaunch.ShipForward);
 
-    if (eventDriver.Tick(this))
-    {
-        batteryManager.Run(this, ship);
-        solarGyroController.Run(this, ship,
-                                shipUp: backupMedicalLaunch.ShipUp,
-                                shipForward: backupMedicalLaunch.ShipForward);
-        doorAutoCloser.Run(this);
+    eventDriver.Tick(commons, () =>
+            {
+                batteryManager.Run(commons);
+                solarGyroController.Run(commons,
+                                        shipUp: backupMedicalLaunch.ShipUp,
+                                        shipForward: backupMedicalLaunch.ShipForward);
+                doorAutoCloser.Run(commons);
 
-        eventDriver.Schedule(1.0);
-        eventDriver.KickTimer(this);
-    }
+                eventDriver.Schedule(1.0);
+            });
 }

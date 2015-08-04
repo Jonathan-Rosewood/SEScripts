@@ -1,3 +1,3 @@
 [script]
-modules=solarroller, solargyrocontroller, gyrocontrol, eventdriver, ZALibrary
+modules=solarroller, solargyrocontroller, gyrocontrol, eventdriver, commons
 out=out/Solar Roller/Script.cs

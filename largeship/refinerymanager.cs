@@ -27,15 +27,14 @@ public class RefineryManager
 
     private readonly RefineryComparer refineryComparer = new RefineryComparer();
 
-    public void Run(MyGridProgram program, List<IMyTerminalBlock> ship)
+    public void Run(ZACommons commons)
     {
-        var refineries =
-            ZALibrary.GetBlocksOfType<IMyRefinery>(ship,
-                                                   block => block.CubeGrid == program.Me.CubeGrid &&
-                                                   block.IsFunctional &&
-                                                   block.IsWorking &&
-                                                   block.Enabled &&
-                                                   block.UseConveyorSystem);
+        var refineries = ZACommons
+            .GetBlocksOfType<IMyRefinery>(commons.Blocks,
+                                          block => block.IsFunctional &&
+                                          block.IsWorking &&
+                                          block.Enabled &&
+                                          block.UseConveyorSystem);
 
         var isProducing = false;
         var isIdle = false;

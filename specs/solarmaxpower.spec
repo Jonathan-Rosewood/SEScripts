@@ -1,3 +1,3 @@
 [script]
-modules = solarmaxpower, solarrotorcontroller, ZALibrary
+modules = solarmaxpower, solarrotorcontroller, commons
 out = out/Solar Max Power/Script.cs

@@ -1,4 +1,4 @@
-private readonly EventDriver eventDriver = new EventDriver(timerName: ZALIBRARY_LOOP_TIMER_BLOCK_NAME);
+private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
 private readonly DockingManager dockingManager = new DockingManager();
 private readonly SafeMode safeMode = new SafeMode();
 private readonly BatteryMonitor batteryMonitor = new BatteryMonitor();
@@ -8,26 +8,27 @@ private bool FirstRun = true;
 
 void Main(string argument)
 {
+    var commons = new ZACommons(this, shipGroup: SHIP_NAME);
+
     if (FirstRun)
     {
         FirstRun = false;
         eventDriver.Schedule(0.0);
     }
 
-    var ship = new ZALibrary.Ship(this, SHIP_NAME);
-    dockingManager.HandleCommand(this, ship, argument);
+    dockingManager.HandleCommand(commons, argument);
 
-    if (eventDriver.Tick(this))
+    if (eventDriver.Tick(commons))
     {
         // This really seems like it should be determined once per run
-        var isConnected = ship.IsConnectedAnywhere();
+        var isConnected = ZACommons.IsConnectedAnywhere(commons.Blocks);
 
-        dockingManager.Run(this, ship, isConnected);
-        safeMode.Run(this, ship, isConnected);
-        batteryMonitor.Run(this, ship, isConnected);
-        if (MAX_POWER_ENABLED) rotorController.Run(this);
+        dockingManager.Run(commons, isConnected);
+        safeMode.Run(commons, isConnected);
+        batteryMonitor.Run(commons, isConnected);
+        if (MAX_POWER_ENABLED) rotorController.Run(commons);
 
         eventDriver.Schedule(1.0);
-        eventDriver.KickTimer(this);
+        eventDriver.KickTimer(commons);
     }
 }

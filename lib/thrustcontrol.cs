@@ -8,19 +8,11 @@ public class ThrustControl
         thrusterList.Add(thruster);
     }
 
-    public void Init(MyGridProgram program,
-                     List<IMyTerminalBlock> blocks = null,
+    public void Init(List<IMyTerminalBlock> blocks,
                      Func<IMyThrust, bool> collect = null,
                      Base6Directions.Direction shipUp = Base6Directions.Direction.Up,
                      Base6Directions.Direction shipForward = Base6Directions.Direction.Forward)
     {
-        if (blocks == null)
-        {
-            blocks = new List<IMyTerminalBlock>();
-            program.GridTerminalSystem.GetBlocksOfType<IMyThrust>(blocks,
-                                                                  block => block.CubeGrid == program.Me.CubeGrid);
-        }
-
         MyBlockOrientation shipOrientation = new MyBlockOrientation(shipForward, shipUp);
 
         thrusters.Clear();

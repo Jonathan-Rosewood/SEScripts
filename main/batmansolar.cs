@@ -1,37 +1,37 @@
 public class TimerBlockPowerDrainHandler : BatteryManager.PowerDrainHandler
 {
-    public void PowerDrainStarted(ZALibrary.Ship ship)
+    public void PowerDrainStarted(ZACommons commons)
     {
-        ZALibrary.StartTimerBlockWithName(ship.Blocks, POWER_DRAIN_START_NAME);
+        ZACommons.StartTimerBlockWithName(commons.Blocks, POWER_DRAIN_START_NAME);
     }
 
-    public void PowerDrainEnded(ZALibrary.Ship ship)
+    public void PowerDrainEnded(ZACommons commons)
     {
-        ZALibrary.StartTimerBlockWithName(ship.Blocks, POWER_DRAIN_END_NAME);
+        ZACommons.StartTimerBlockWithName(commons.Blocks, POWER_DRAIN_END_NAME);
     }
 }
 
-private readonly EventDriver eventDriver = new EventDriver(timerName: ZALIBRARY_LOOP_TIMER_BLOCK_NAME);
-private readonly BatteryManager batteryManager = new BatteryManager(new TimerBlockPowerDrainHandler());
+public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
+public readonly BatteryManager batteryManager = new BatteryManager(new TimerBlockPowerDrainHandler());
 
 private bool FirstRun = true;
 
 void Main(string argument)
 {
+    var commons = new ZACommons(this);
+
     if (FirstRun)
     {
         FirstRun = false;
         eventDriver.Schedule(0.0);
     }
 
-    ZALibrary.Ship ship = new ZALibrary.Ship(this);
-    batteryManager.HandleCommand(this, ship, argument);
+    batteryManager.HandleCommand(commons, argument);
 
-    if (eventDriver.Tick(this))
-    {
-        batteryManager.Run(this, ship);
+    eventDriver.Tick(commons, () =>
+            {
+                batteryManager.Run(commons);
 
-        eventDriver.Schedule(1.0);
-        eventDriver.KickTimer(this);
-    }
+                eventDriver.Schedule(1.0);
+            });
 }

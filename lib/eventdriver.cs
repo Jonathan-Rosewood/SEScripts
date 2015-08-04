@@ -3,9 +3,9 @@ public class EventDriver
     public struct FutureTickAction : IComparable<FutureTickAction>
     {
         public ulong When;
-        public Action<MyGridProgram, EventDriver> Action;
+        public Action<ZACommons, EventDriver> Action;
 
-        public FutureTickAction(ulong when, Action<MyGridProgram, EventDriver> action = null)
+        public FutureTickAction(ulong when, Action<ZACommons, EventDriver> action = null)
         {
             When = when;
             Action = action;
@@ -20,9 +20,9 @@ public class EventDriver
     public struct FutureTimeAction : IComparable<FutureTimeAction>
     {
         public TimeSpan When;
-        public Action<MyGridProgram, EventDriver> Action;
+        public Action<ZACommons, EventDriver> Action;
 
-        public FutureTimeAction(TimeSpan when, Action<MyGridProgram, EventDriver> action = null)
+        public FutureTimeAction(TimeSpan when, Action<ZACommons, EventDriver> action = null)
         {
             When = when;
             Action = action;
@@ -49,8 +49,6 @@ public class EventDriver
     }
     private TimeSpan m_timeSinceStart = TimeSpan.FromSeconds(0);
 
-    private bool Kicked;
-    
     // If neither timerName nor timerGroup are given, it's assumed the timer will kick itself
     public EventDriver(string timerName = null, string timerGroup = null)
     {
@@ -58,19 +56,14 @@ public class EventDriver
         TimerGroup = timerGroup;
     }
 
-    // If you have a main event, you should call this as well
-    public void KickTimer(MyGridProgram program)
+    private void KickTimer(ZACommons commons)
     {
-        if (Kicked) return;
-
         IMyTimerBlock timer = null;
         // Name takes priority over group
         if (TimerName != null)
         {
-            var blocks = new List<IMyTerminalBlock>();
-            program.GridTerminalSystem.SearchBlocksOfName(TimerName, blocks,
-                                                          block => block is IMyTimerBlock &&
-                                                          block.CubeGrid == program.Me.CubeGrid);
+            var blocks = ZACommons.SearchBlocksOfName(commons.Blocks, TimerName,
+                                                      block => block is IMyTimerBlock);
             if (blocks.Count > 0)
             {
                 timer = blocks[0] as IMyTimerBlock;
@@ -78,7 +71,7 @@ public class EventDriver
         }
         else if (TimerGroup != null)
         {
-            var group = ZALibrary.GetBlockGroupWithName(program, TimerGroup);
+            var group = commons.GetBlockGroupWithName(TimerGroup);
             if (group != null && group.Blocks.Count > 0)
             {
                 // NB We only check the first block of the group, whatever that may be
@@ -94,7 +87,6 @@ public class EventDriver
             if (TickQueue.First != null)
             {
                 timer.GetActionWithName("TriggerNow").Apply(timer);
-                Kicked = true;
             }
             else if (TimeQueue.First != null)
             {
@@ -106,20 +98,17 @@ public class EventDriver
 
                 timer.SetValue<float>("TriggerDelay", next);
                 timer.GetActionWithName("Start").Apply(timer);
-                Kicked = true;
             }
             // NB If both queues are empty, we stop running
         }
     }
 
-    // Returns true if main should run
-    public bool Tick(MyGridProgram program)
+    public void Tick(ZACommons commons, Action mainAction = null)
     {
         Ticks++;
-        TimeSinceStart += program.ElapsedTime;
-        Kicked = false;
+        TimeSinceStart += commons.Program.ElapsedTime;
 
-        bool result = false;
+        bool runMain = false;
 
         // Process each queue independently
         while (TickQueue.First != null &&
@@ -129,11 +118,11 @@ public class EventDriver
             TickQueue.RemoveFirst();
             if (action != null)
             {
-                action(program, this);
+                action(commons, this);
             }
             else
             {
-                result = true;
+                runMain = true;
             }
         }
 
@@ -144,20 +133,20 @@ public class EventDriver
             TimeQueue.RemoveFirst();
             if (action != null)
             {
-                action(program, this);
+                action(commons, this);
             }
             else
             {
-                result = true;
+                runMain = true;
             }
         }
 
-        KickTimer(program);
+        if (runMain && mainAction != null) mainAction();
 
-        return result;
+        KickTimer(commons);
     }
 
-    public void Schedule(ulong delay, Action<MyGridProgram, EventDriver> action = null)
+    public void Schedule(ulong delay, Action<ZACommons, EventDriver> action = null)
     {
         var future = new FutureTickAction(Ticks + delay, action);
         for (var current = TickQueue.First;
@@ -175,7 +164,7 @@ public class EventDriver
         TickQueue.AddLast(future);
     }
 
-    public void Schedule(double seconds, Action<MyGridProgram, EventDriver> action = null)
+    public void Schedule(double seconds, Action<ZACommons, EventDriver> action = null)
     {
         var delay = Math.Max(seconds, 0.0);
 

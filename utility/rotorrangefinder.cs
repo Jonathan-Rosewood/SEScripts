@@ -33,14 +33,14 @@ public class RotorRangefinder
 
     private double MinError; // Also our current step size
 
-    private IMyMotorStator GetRotor(MyGridProgram program)
+    private IMyMotorStator GetRotor(ZACommons commons)
     {
-        var rotorGroup = ZALibrary.GetBlockGroupWithName(program, ROTOR_REFERENCE_GROUP);
+        var rotorGroup = commons.GetBlockGroupWithName(ROTOR_REFERENCE_GROUP);
         if (rotorGroup == null)
         {
             throw new Exception("Missing group: " + ROTOR_REFERENCE_GROUP);
         }
-        var rotors = ZALibrary.GetBlocksOfType<IMyMotorStator>(rotorGroup.Blocks);
+        var rotors = ZACommons.GetBlocksOfType<IMyMotorStator>(rotorGroup.Blocks);
         if (rotors.Count != 1)
         {
             throw new Exception("Expecting exactly 1 rotor in " + ROTOR_REFERENCE_GROUP);
@@ -49,21 +49,21 @@ public class RotorRangefinder
         return rotors[0];
     }
 
-    private void UpdateMinError(MyGridProgram program)
+    private void UpdateMinError(ZACommons commons)
     {
         MinError = BaseRotorStep * Math.Pow(10.0, StepFactor);
-        var rotor = GetRotor(program);
+        var rotor = GetRotor(commons);
         SetPoint = rotor.Angle;
     }
 
-    private IMyCubeBlock GetReference(MyGridProgram program, string groupName)
+    private IMyCubeBlock GetReference(ZACommons commons, string groupName)
     {
-        var group = ZALibrary.GetBlockGroupWithName(program, groupName);
+        var group = commons.GetBlockGroupWithName(groupName);
         if (group == null)
         {
             throw new Exception("Missing group: " + groupName);
         }
-        var controllers = ZALibrary.GetBlocksOfType<IMyShipController>(group.Blocks);
+        var controllers = ZACommons.GetBlocksOfType<IMyShipController>(group.Blocks);
         if (controllers.Count == 0)
         {
             throw new Exception("Expecting at least 1 ship controller in " + groupName);
@@ -71,19 +71,19 @@ public class RotorRangefinder
         return controllers[0];
     }
 
-    public void Init(MyGridProgram program, EventDriver eventDriver)
+    public void Init(ZACommons commons, EventDriver eventDriver)
     {
         pid.Kp = RotorKp;
         pid.Ki = RotorKi;
         pid.Kd = RotorKd;
 
-        UpdateMinError(program);
+        UpdateMinError(commons);
 
         eventDriver.Schedule(0, Run);
     }
 
-    public void HandleCommand(MyGridProgram program, EventDriver eventDriver,
-                              string argument, Action<Vector3D> targetAction)
+    public void HandleCommand(ZACommons commons, EventDriver eventDriver,
+                              string argument, Action<ZACommons, Vector3D> targetAction)
     {
         argument = argument.Trim().ToLower();
         switch (argument)
@@ -99,19 +99,19 @@ public class RotorRangefinder
                 break;
             case "factorup":
                 StepFactor++;
-                UpdateMinError(program);
+                UpdateMinError(commons);
                 break;
             case "factordown":
                 StepFactor--;
-                UpdateMinError(program);
+                UpdateMinError(commons);
                 break;
             case "factorreset":
                 StepFactor = -1;
-                UpdateMinError(program);
+                UpdateMinError(commons);
                 break;
             case "compute":
-                var firstReference = GetReference(program, STATIC_REFERENCE_GROUP);
-                var rotorReference = GetReference(program, ROTOR_REFERENCE_GROUP);
+                var firstReference = GetReference(commons, STATIC_REFERENCE_GROUP);
+                var rotorReference = GetReference(commons, ROTOR_REFERENCE_GROUP);
 
                 var first = new Rangefinder.LineSample(firstReference);
                 var second = new Rangefinder.LineSample(rotorReference);
@@ -120,7 +120,7 @@ public class RotorRangefinder
                 {
                     // Take midpoint of closestFirst-closestSecond segment
                     var target = (closestFirst + closestSecond) / 2.0;
-                    targetAction(target);
+                    targetAction(commons, target);
                 }
                 break;
             default:
@@ -128,16 +128,16 @@ public class RotorRangefinder
         }
     }
 
-    public void Run(MyGridProgram program, EventDriver eventDriver)
+    public void Run(ZACommons commons, EventDriver eventDriver)
     {
-        var rotor = GetRotor(program);
+        var rotor = GetRotor(commons);
 
-        //program.Echo("Angle: " + rotor.Angle);
-        //program.Echo("SetPoint: " + SetPoint);
+        //commons.Echo("Angle: " + rotor.Angle);
+        //commons.Echo("SetPoint: " + SetPoint);
         var error = SetPoint - rotor.Angle;
         if (error > Math.PI) error -= Math.PI * 2.0;
         if (error < -Math.PI) error += Math.PI * 2.0;
-        //program.Echo("Error: " + error);
+        //commons.Echo("Error: " + error);
 
         if (Math.Abs(error) > MinError / 2.0)
         {

@@ -104,19 +104,11 @@ public class GyroControl
 
     private readonly List<GyroDetails> gyros = new List<GyroDetails>();
 
-    public void Init(MyGridProgram program,
-                     List<IMyTerminalBlock> blocks = null,
+    public void Init(List<IMyTerminalBlock> blocks,
                      Func<IMyGyro, bool> collect = null,
                      Base6Directions.Direction shipUp = Base6Directions.Direction.Up,
                      Base6Directions.Direction shipForward = Base6Directions.Direction.Forward)
     {
-        if (blocks == null)
-        {
-            blocks = new List<IMyTerminalBlock>();
-            program.GridTerminalSystem.GetBlocksOfType<IMyGyro>(blocks,
-                                                                block => block.CubeGrid == program.Me.CubeGrid);
-        }
-
         gyros.Clear();
         for (var e = blocks.GetEnumerator(); e.MoveNext();)
         {

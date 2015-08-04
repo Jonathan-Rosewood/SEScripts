@@ -31,8 +31,8 @@ public class BatteryManager
 
     public interface PowerDrainHandler
     {
-        void PowerDrainStarted(ZALibrary.Ship ship);
-        void PowerDrainEnded(ZALibrary.Ship ship);
+        void PowerDrainStarted(ZACommons commons);
+        void PowerDrainEnded(ZACommons commons);
     }
 
     private const int STATE_DISABLED = -1;
@@ -71,25 +71,25 @@ public class BatteryManager
         return DrainCounts >= BATTERY_MANAGER_DRAIN_CHECK_THRESHOLD;
     }
 
-    private List<IMyBatteryBlock> GetBatteries(ZALibrary.Ship ship)
+    private List<IMyBatteryBlock> GetBatteries(ZACommons commons)
     {
-        return ship.GetBlocksOfType<IMyBatteryBlock>(battery => battery.IsFunctional && battery.Enabled);
+        return ZACommons.GetBlocksOfType<IMyBatteryBlock>(commons.Blocks, battery => battery.IsFunctional && battery.Enabled);
     }
     
-    public void Run(MyGridProgram program, ZALibrary.Ship ship)
+    public void Run(ZACommons commons)
     {
-        var batteries = GetBatteries(ship);
+        var batteries = GetBatteries(commons);
 
         if (CurrentState == null)
         {
             // First time run, get to known state and return
             CurrentState = STATE_NORMAL;
             SinceLastStateChange = TimeSpan.FromSeconds(0);
-            ZALibrary.SetBatteryRecharge(batteries, false);
+            ZACommons.SetBatteryRecharge(batteries, false);
             return;
         }
 
-        SinceLastStateChange += program.ElapsedTime;
+        SinceLastStateChange += commons.Program.ElapsedTime;
 
         var aggregateDetails = new AggregateBatteryDetails(batteries);
         string stateStr = "Unknown";
@@ -110,12 +110,12 @@ public class BatteryManager
                         Active)
                     {
                         CurrentState = STATE_RECHARGE;
-                        ZALibrary.SetBatteryRecharge(batteries, true);
+                        ZACommons.SetBatteryRecharge(batteries, true);
                     }
                     else
                     {
                         // Force discharge, just in case
-                        ZALibrary.SetBatteryRecharge(batteries, false);
+                        ZACommons.SetBatteryRecharge(batteries, false);
                     }
                 }
                 stateStr = Active ? "Normal" : "Paused";
@@ -128,7 +128,7 @@ public class BatteryManager
                 {
                     CurrentState = STATE_NORMAL;
                     SinceLastStateChange = TimeSpan.FromSeconds(0);
-                    ZALibrary.SetBatteryRecharge(batteries, false);
+                    ZACommons.SetBatteryRecharge(batteries, false);
                 }
                 stateStr = "Recharging";
                 break;
@@ -138,7 +138,7 @@ public class BatteryManager
                 {
                     CurrentState = STATE_NORMAL;
                     SinceLastStateChange = TimeSpan.FromSeconds(0);
-                    ZALibrary.SetBatteryRecharge(batteries, false);
+                    ZACommons.SetBatteryRecharge(batteries, false);
                 }
                 stateStr = "Disabled";
                 break;
@@ -150,31 +150,31 @@ public class BatteryManager
         {
             if (!Draining && newDraining)
             {
-                powerDrainHandler.PowerDrainStarted(ship);
+                powerDrainHandler.PowerDrainStarted(commons);
             }
             else if (Draining && !newDraining)
             {
-                powerDrainHandler.PowerDrainEnded(ship);
+                powerDrainHandler.PowerDrainEnded(commons);
             }
         }
             
         Draining = newDraining;
 
-        program.Echo(string.Format("Battery Manager: {0}", stateStr));
-        program.Echo(string.Format("Total Stored Power: {0}h", ZALibrary.FormatPower(aggregateDetails.CurrentStoredPower)));
-        program.Echo(string.Format("Max Stored Power: {0}h", ZALibrary.FormatPower(aggregateDetails.MaxStoredPower)));
-        if (Draining) program.Echo("Net power loss!");
+        commons.Echo(string.Format("Battery Manager: {0}", stateStr));
+        commons.Echo(string.Format("Total Stored Power: {0}h", ZACommons.FormatPower(aggregateDetails.CurrentStoredPower)));
+        commons.Echo(string.Format("Max Stored Power: {0}h", ZACommons.FormatPower(aggregateDetails.MaxStoredPower)));
+        if (Draining) commons.Echo("Net power loss!");
     }
 
-    public void HandleCommand(MyGridProgram program, ZALibrary.Ship ship, string argument)
+    public void HandleCommand(ZACommons commons, string argument)
     {
         argument = argument.Trim().ToLower();
         if (argument == "forcerecharge")
         {
-            var batteries = GetBatteries(ship);
+            var batteries = GetBatteries(commons);
 
             CurrentState = STATE_DISABLED;
-            ZALibrary.SetBatteryRecharge(batteries, true);
+            ZACommons.SetBatteryRecharge(batteries, true);
             return;
         }
         else if (argument == "pause")

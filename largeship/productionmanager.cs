@@ -144,7 +144,7 @@ public class ProductionManager
         }
 
         // Get assemblers
-        var assemblers = ZALibrary.GetBlocksOfType<IMyAssembler>(ship);
+        var assemblers = ZACommons.GetBlocksOfType<IMyAssembler>(ship);
         var candidates = new LinkedList<IMyAssembler>();
 
         // If anything has already been appropriately named, remove it from our map
@@ -184,26 +184,23 @@ public class ProductionManager
         }
     }
 
-    public void Run(MyGridProgram program, List<IMyTerminalBlock> ship)
+    public void Run(ZACommons commons)
     {
         if (CurrentState == STATE_INACTIVE) return;
 
-        if (LIMIT_PRODUCTION_MANAGER_SAME_GRID)
-        {
-            ship = ZALibrary.GetBlocksOfType<IMyTerminalBlock>(ship, block => block.CubeGrid == program.Me.CubeGrid);
-        }
+        var ship = LIMIT_PRODUCTION_MANAGER_SAME_GRID ? commons.Blocks : commons.AllBlocks;
 
         if (PRODUCTION_MANAGER_SETUP)
         {
             Setup(ship);
-            program.Echo("Setup complete. Set PRODUCTION_MANAGER_SETUP to false to enable ProductionManager");
+            commons.Echo("Setup complete. Set PRODUCTION_MANAGER_SETUP to false to enable ProductionManager");
             return;
         }
 
         var allowedSubtypes = new HashSet<string>();
         var assemblerTargets = new Dictionary<string, AssemblerTarget>();
 
-        var assemblers = ZALibrary.GetBlocksOfType<IMyAssembler>(ship);
+        var assemblers = ZACommons.GetBlocksOfType<IMyAssembler>(ship);
         for (var e = assemblers.GetEnumerator(); e.MoveNext();)
         {
             var assembler = e.Current;

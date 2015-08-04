@@ -3,10 +3,9 @@ public class BackupMedicalLaunch
     public Base6Directions.Direction ShipUp { get; private set; }
     public Base6Directions.Direction ShipForward { get; private set; }
 
-    private IMyRemoteControl GetRemoteControl(MyGridProgram program)
+    private IMyRemoteControl GetRemoteControl(ZACommons commons)
     {
-        var remotes = new List<IMyTerminalBlock>();
-        program.GridTerminalSystem.GetBlocksOfType<IMyRemoteControl>(remotes);
+        var remotes = ZACommons.GetBlocksOfType<IMyRemoteControl>(commons.Blocks);
         if (remotes.Count != 1)
         {
             throw new Exception("Expecting exactly 1 remote control");
@@ -14,9 +13,9 @@ public class BackupMedicalLaunch
         return (IMyRemoteControl)remotes[0];
     }
 
-    public void Init(MyGridProgram program, EventDriver eventDriver)
+    public void Init(ZACommons commons, EventDriver eventDriver)
     {
-        var remote = GetRemoteControl(program);
+        var remote = GetRemoteControl(commons);
         ShipUp = remote.Orientation.TransformDirection(Base6Directions.Direction.Up);
         ShipForward = remote.Orientation.TransformDirection(Base6Directions.Direction.Forward);
 
@@ -31,9 +30,9 @@ public class BackupMedicalLaunch
         }
     }
 
-    public void AutopilotEnd(MyGridProgram program, EventDriver eventDriver)
+    public void AutopilotEnd(ZACommons commons, EventDriver eventDriver)
     {
-        var remote = GetRemoteControl(program);
+        var remote = GetRemoteControl(commons);
         if (remote.GetValue<bool>("AutoPilot"))
         {
             // Wait it out

@@ -9,13 +9,13 @@ public class SimpleAirlock
         return false;
     }
 
-    public void Run(MyGridProgram program)
+    public void Run(ZACommons commons)
     {
-        var groups = ZALibrary.GetBlockGroupsWithPrefix(program, SIMPLE_AIRLOCK_GROUP_PREFIX);
+        var groups = commons.GetBlockGroupsWithPrefix(SIMPLE_AIRLOCK_GROUP_PREFIX);
         for (var e = groups.GetEnumerator(); e.MoveNext();)
         {
-            var doors = ZALibrary.GetBlocksOfType<IMyDoor>(e.Current.Blocks,
-                                                           door => door.CubeGrid == program.Me.CubeGrid &&
+            var doors = ZACommons.GetBlocksOfType<IMyDoor>(e.Current.Blocks,
+                                                           door => door.CubeGrid == commons.Me.CubeGrid &&
                                                            door.IsFunctional);
 
             var opened = IsAnyDoorOpen(doors);

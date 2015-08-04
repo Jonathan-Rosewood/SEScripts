@@ -2,10 +2,10 @@ public class DockingManager
 {
     private bool? IsConnected = null;
 
-    public void Run(MyGridProgram program, ZALibrary.Ship ship, bool? isConnected = null)
+    public void Run(ZACommons commons, bool? isConnected = null)
     {
         var currentState = isConnected != null ? (bool)isConnected :
-            ship.IsConnectedAnywhere();
+            ZACommons.IsConnectedAnywhere(commons.Blocks);
 
         if (IsConnected == null)
         {
@@ -17,18 +17,18 @@ public class DockingManager
         {
             IsConnected = currentState;
 
-            ZALibrary.EnableBlocks(ship.GetBlocksOfType<IMyThrust>(), !(bool)IsConnected);
-            ZALibrary.EnableBlocks(ship.GetBlocksOfType<IMyGyro>(), !(bool)IsConnected);
-            ZALibrary.SetBatteryRecharge(ship.GetBlocksOfType<IMyBatteryBlock>(), (bool)IsConnected);
+            ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyThrust>(commons.Blocks), !(bool)IsConnected);
+            ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyGyro>(commons.Blocks), !(bool)IsConnected);
+            ZACommons.SetBatteryRecharge(ZACommons.GetBlocksOfType<IMyBatteryBlock>(commons.Blocks), (bool)IsConnected);
 
-            if (TOUCH_ANTENNA) ZALibrary.EnableBlocks(ship.GetBlocksOfType<IMyRadioAntenna>(), !(bool)IsConnected);
-            if (TOUCH_LANTENNA) ZALibrary.EnableBlocks(ship.GetBlocksOfType<IMyLaserAntenna>(), !(bool)IsConnected);
-            if (TOUCH_BEACON) ZALibrary.EnableBlocks(ship.GetBlocksOfType<IMyBeacon>(), !(bool)IsConnected);
-            if (TOUCH_LIGHTS) ZALibrary.EnableBlocks(ship.GetBlocksOfType<IMyLightingBlock>(), !(bool)IsConnected);
+            if (TOUCH_ANTENNA) ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyRadioAntenna>(commons.Blocks), !(bool)IsConnected);
+            if (TOUCH_LANTENNA) ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyLaserAntenna>(commons.Blocks), !(bool)IsConnected);
+            if (TOUCH_BEACON) ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyBeacon>(commons.Blocks), !(bool)IsConnected);
+            if (TOUCH_LIGHTS) ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyLightingBlock>(commons.Blocks), !(bool)IsConnected);
         }
     }
 
-    public void HandleCommand(MyGridProgram program, ZALibrary.Ship ship, string argument)
+    public void HandleCommand(ZACommons commons, string argument)
     {
         var command = argument.Trim().ToLower();
         if (command == "undock")
@@ -36,10 +36,10 @@ public class DockingManager
             // Just a cheap way to avoid using a timer block. Turn off all
             // connectors and unlock all landing gear.
             // I added this because 'P' sometimes unlocks other ships as well...
-            ZALibrary.EnableBlocks(ship.GetBlocksOfType<IMyShipConnector>(connector => connector.DefinitionDisplayNameText == "Connector"),
+            ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyShipConnector>(commons.Blocks, connector => connector.DefinitionDisplayNameText == "Connector"),
                                    false); // Avoid Ejectors
 
-            var gears = ship.GetBlocksOfType<IMyLandingGear>();
+            var gears = ZACommons.GetBlocksOfType<IMyLandingGear>(commons.Blocks);
             for (var e = gears.GetEnumerator(); e.MoveNext();)
             {
                 var gear = e.Current;

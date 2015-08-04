@@ -47,12 +47,12 @@ public class OxygenManager
         }
     }
 
-    public void Run(MyGridProgram program, List<IMyTerminalBlock> ship)
+    public void Run(ZACommons commons)
     {
-        var tanks = ZALibrary.GetBlocksOfType<IMyOxygenTank>(ship,
+        var tanks = ZACommons.GetBlocksOfType<IMyOxygenTank>(commons.AllBlocks,
                                                              tank => tank.IsFunctional &&
                                                              tank.IsWorking &&
-                                                             tank.CustomName.IndexOf("[Excluded]", ZALibrary.IGNORE_CASE) < 0);
+                                                             tank.CustomName.IndexOf("[Excluded]", ZACommons.IGNORE_CASE) < 0);
 
         var currentState = GetOxygenState(tanks);
 
@@ -87,7 +87,7 @@ public class OxygenManager
                     farmOxygen = true;
                     // For now, it's intentional that we start timer blocks
                     // on all grids... we'll see how it goes
-                    ZALibrary.StartTimerBlockWithName(ship, LOW_OXYGEN_NAME);
+                    ZACommons.StartTimerBlockWithName(commons.AllBlocks, LOW_OXYGEN_NAME);
                     break;
             }
 
@@ -95,20 +95,18 @@ public class OxygenManager
             {
                 // Limit to this grid -- don't mess with any other ship's systems
                 var generators =
-                    ZALibrary.GetBlocksOfType<IMyOxygenGenerator>(ship,
-                                                                  block => block.CubeGrid == program.Me.CubeGrid &&
-                                                                  block.IsFunctional);
-                ZALibrary.EnableBlocks(generators, (bool)generateOxygen);
+                    ZACommons.GetBlocksOfType<IMyOxygenGenerator>(commons.Blocks,
+                                                                  block => block.IsFunctional);
+                ZACommons.EnableBlocks(generators, (bool)generateOxygen);
             }
             if (farmOxygen != null)
             {
                 var farms =
-                    ZALibrary.GetBlocksOfType<IMyOxygenFarm>(ship,
-                                                             block => block.CubeGrid == program.Me.CubeGrid &&
-                                                             block.IsFunctional);
+                    ZACommons.GetBlocksOfType<IMyOxygenFarm>(commons.Blocks,
+                                                             block => block.IsFunctional);
 
                 // Farms don't implement IMyFunctionalBlock??
-                ZALibrary.EnableBlocks(farms, (bool)farmOxygen);
+                ZACommons.EnableBlocks(farms, (bool)farmOxygen);
             }
         }
     }

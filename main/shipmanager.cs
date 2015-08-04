@@ -1,4 +1,4 @@
-private readonly EventDriver eventDriver = new EventDriver(timerName: ZALIBRARY_LOOP_TIMER_BLOCK_NAME);
+private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
 private readonly DoorAutoCloser doorAutoCloser = new DoorAutoCloser();
 private readonly SimpleAirlock simpleAirlock = new SimpleAirlock();
 private readonly ComplexAirlock complexAirlock = new ComplexAirlock();
@@ -12,39 +12,34 @@ private bool FirstRun = true;
 
 void Main(string argument)
 {
+    var commons = new ZACommons(this);
+
     if (FirstRun)
     {
         FirstRun = false;
         eventDriver.Schedule(0.0, Run);
-        if (TIMER_KICKER_ENABLE) timerKicker.Init(this, eventDriver);
+        if (TIMER_KICKER_ENABLE) timerKicker.Init(commons, eventDriver);
     }
 
     // Handle commands
-    if (COMPLEX_AIRLOCK_ENABLE) complexAirlock.HandleCommand(this, eventDriver, argument);
+    if (COMPLEX_AIRLOCK_ENABLE) complexAirlock.HandleCommand(commons, eventDriver, argument);
     if (PRODUCTION_MANAGER_ENABLE) productionManager.HandleCommand(argument);
 
-    eventDriver.Tick(this);
+    eventDriver.Tick(commons);
 }
 
-public void Run(MyGridProgram program, EventDriver eventDriver)
+public void Run(ZACommons commons, EventDriver eventDriver)
 {
     // Door management
-    if (AUTO_CLOSE_DOORS_ENABLE) doorAutoCloser.Run(this);
-    if (SIMPLE_AIRLOCK_ENABLE) simpleAirlock.Run(this);
-    if (COMPLEX_AIRLOCK_ENABLE) complexAirlock.Run(this, eventDriver);
+    if (AUTO_CLOSE_DOORS_ENABLE) doorAutoCloser.Run(commons);
+    if (SIMPLE_AIRLOCK_ENABLE) simpleAirlock.Run(commons);
+    if (COMPLEX_AIRLOCK_ENABLE) complexAirlock.Run(commons, eventDriver);
 
-    if (OXYGEN_MANAGER_ENABLE || POWER_MANAGER_ENABLE || REFINERY_MANAGER_ENABLE ||
-        PRODUCTION_MANAGER_ENABLE)
-    {
-        // Systems management
-        List<IMyTerminalBlock> ship = new List<IMyTerminalBlock>();
-        GridTerminalSystem.GetBlocks(ship);
-
-        if (OXYGEN_MANAGER_ENABLE) oxygenManager.Run(this, ship);
-        if (POWER_MANAGER_ENABLE) powerManager.Run(this, ship);
-        if (REFINERY_MANAGER_ENABLE) refineryManager.Run(this, ship);
-        if (PRODUCTION_MANAGER_ENABLE) productionManager.Run(this, ship);
-    }
+    // Systems management
+    if (OXYGEN_MANAGER_ENABLE) oxygenManager.Run(commons);
+    if (POWER_MANAGER_ENABLE) powerManager.Run(commons);
+    if (REFINERY_MANAGER_ENABLE) refineryManager.Run(commons);
+    if (PRODUCTION_MANAGER_ENABLE) productionManager.Run(commons);
 
     eventDriver.Schedule(1.0, Run);
 }

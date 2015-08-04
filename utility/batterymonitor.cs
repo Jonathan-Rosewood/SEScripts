@@ -1,13 +1,12 @@
 public class BatteryMonitor
 {
-    public void Run(MyGridProgram program, ZALibrary.Ship ship,
-                    bool? isConnected = null)
+    public void Run(ZACommons commons, bool? isConnected = null)
     {
-        var lowBattery = ship.GetBlockWithName<IMyTimerBlock>(LOW_BATTERY_NAME);
+        var lowBattery = ZACommons.GetBlockWithName<IMyTimerBlock>(commons.Blocks, LOW_BATTERY_NAME);
         // Don't bother if there's no timer block
         if (lowBattery == null) return;
 
-        var batteries = ship.GetBlocksOfType<IMyBatteryBlock>(battery => battery.IsFunctional && battery.Enabled);
+        var batteries = ZACommons.GetBlocksOfType<IMyBatteryBlock>(commons.Blocks, battery => battery.IsFunctional && battery.Enabled);
 
         // Avoid divide-by-zero in case there are no batteries
         if (batteries.Count == 0) return;
@@ -27,7 +26,7 @@ public class BatteryMonitor
         var batteryPercent = currentStoredPower / maxStoredPower;
 
         var connected = isConnected != null ? (bool)isConnected :
-            ship.IsConnectedAnywhere();
+            ZACommons.IsConnectedAnywhere(commons.Blocks);
 
         if (lowBattery.Enabled && !lowBattery.IsCountingDown && batteryPercent < BATTERY_THRESHOLD &&
             !connected)

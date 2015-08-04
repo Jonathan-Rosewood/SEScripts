@@ -3,14 +3,12 @@ public class DoorAutoCloser
     // Yeah, not sure if it's a good idea to hold references between invocations...
     private readonly Dictionary<IMyDoor, TimeSpan> opened = new Dictionary<IMyDoor, TimeSpan>();
 
-    public void Run(MyGridProgram program)
+    public void Run(ZACommons commons)
     {
-        var doors = new List<IMyTerminalBlock>();
-        program.GridTerminalSystem
-            .GetBlocksOfType<IMyDoor>(doors,
-                                      block => block.CubeGrid == program.Me.CubeGrid &&
-                                      block.IsFunctional &&
-                                      block.CustomName.IndexOf("[Excluded]", ZALibrary.IGNORE_CASE) < 0 &&
+        var doors = ZACommons
+            .GetBlocksOfType<IMyDoor>(commons.Blocks,
+                                      block => block.IsFunctional &&
+                                      block.CustomName.IndexOf("[Excluded]", ZACommons.IGNORE_CASE) < 0 &&
                                       block.DefinitionDisplayNameText != "Airtight Hangar Door");
 
         for (var e = doors.GetEnumerator(); e.MoveNext();)
@@ -22,7 +20,7 @@ public class DoorAutoCloser
                 TimeSpan openTime;
                 if (opened.TryGetValue(door, out openTime))
                 {
-                    openTime += program.ElapsedTime;
+                    openTime += commons.Program.ElapsedTime;
                     if (openTime >= MAX_DOOR_OPEN_TIME)
                     {
                         // Time to close it

@@ -27,13 +27,13 @@ public class SolarRotorController
 
     private IMyMotorStator GetRotor(IMyBlockGroup group)
     {
-        var rotors = ZALibrary.GetBlocksOfType<IMyMotorStator>(group.Blocks);
+        var rotors = ZACommons.GetBlocksOfType<IMyMotorStator>(group.Blocks);
         return rotors.Count == 1 ? rotors[0] : null;
     }
 
-    public void Run(MyGridProgram program)
+    public void Run(ZACommons commons)
     {
-        var solarGroups = ZALibrary.GetBlockGroupsWithPrefix(program, MAX_POWER_GROUP_PREFIX);
+        var solarGroups = commons.GetBlockGroupsWithPrefix(MAX_POWER_GROUP_PREFIX);
         if (solarGroups.Count == 0) return; // Nothing to do
 
         var totalPower = 0.0f;
@@ -45,10 +45,10 @@ public class SolarRotorController
             var rotor = GetRotor(group);
             if (rotor == null)
             {
-                program.Echo(string.Format("Group {0} ignored; needs exactly 1 rotor", group.Name));
+                commons.Echo(string.Format("Group {0} ignored; needs exactly 1 rotor", group.Name));
                 continue;
             }
-            else if (rotor.CubeGrid != program.Me.CubeGrid)
+            else if (rotor.CubeGrid != commons.Me.CubeGrid)
             {
                 // Skip if rotor is on a different grid than this programmable block
                 continue;
@@ -86,6 +86,6 @@ public class SolarRotorController
             totalPower += currentMaxPower;
         }
 
-        program.Echo(string.Format("Solar Max Power: {0}", ZALibrary.FormatPower(totalPower)));
+        commons.Echo(string.Format("Solar Max Power: {0}", ZACommons.FormatPower(totalPower)));
     }
 }

@@ -25,18 +25,17 @@ public class SafeMode
         Abandoned = false;
     }
 
-    public void Run(MyGridProgram program, ZALibrary.Ship ship,
-                    bool? isConnected = null)
+    public void Run(ZACommons commons, bool? isConnected = null)
     {
         var connected = isConnected != null ? (bool)isConnected :
-            ship.IsConnectedAnywhere();
+            ZACommons.IsConnectedAnywhere(commons.Blocks);
         if (connected)
         {
             PreviouslyDocked = true;
             return; // Don't bother if we're docked
         }
 
-        var controllers = ship.GetBlocksOfType<IMyShipController>(controller => controller.IsFunctional);
+        var controllers = ZACommons.GetBlocksOfType<IMyShipController>(commons.Blocks, controller => controller.IsFunctional);
         var currentState = IsShipControlled(controllers);
 
         if (IsControlled == null)
@@ -66,7 +65,7 @@ public class SafeMode
                 }
 
                 // Only trigger timer block if dampeners were actually engaged
-                if (dampenersChanged) ship.StartTimerBlockWithName(EMERGENCY_STOP_NAME);
+                if (dampenersChanged) ZACommons.StartTimerBlockWithName(commons.Blocks, EMERGENCY_STOP_NAME);
             }
         }
 
@@ -82,20 +81,20 @@ public class SafeMode
             // Abandonment check
             if (!(bool)IsControlled)
             {
-                LastControlled += program.ElapsedTime;
+                LastControlled += commons.Program.ElapsedTime;
 
                 if (!Abandoned && LastControlled >= AbandonmentTimeout)
                 {
                     Abandoned = true;
-                    ship.StartTimerBlockWithName(SAFE_MODE_NAME);
+                    ZACommons.StartTimerBlockWithName(commons.Blocks, SAFE_MODE_NAME);
                 }
             }
             else
             {
                 ResetAbandonment();
             }
-            // program.Echo("Timeout: " + AbandonmentTimeout);
-            // program.Echo("Last Controlled: " + LastControlled);
+            // commons.Echo("Timeout: " + AbandonmentTimeout);
+            // commons.Echo("Last Controlled: " + LastControlled);
         }
     }
 }

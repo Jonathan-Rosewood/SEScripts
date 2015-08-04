@@ -24,17 +24,17 @@ public class MissilePayload
         return false;
     }
 
-    public void Init(MyGridProgram program, EventDriver eventDriver)
+    public void Init(ZACommons commons, EventDriver eventDriver)
     {
         eventDriver.Schedule(0, Run);
     }
 
-    public void Run(MyGridProgram program, EventDriver eventDriver)
+    public void Run(ZACommons commons, EventDriver eventDriver)
     {
         // Bleah, might be merged, so use a group
-        var payloadGroup = ZALibrary.GetBlockGroupWithName(program, PAYLOAD_GROUP + MISSILE_GROUP_SUFFIX);
+        var payloadGroup = commons.GetBlockGroupWithName(PAYLOAD_GROUP + MISSILE_GROUP_SUFFIX);
         if (payloadGroup == null) return;
-        var containers = ZALibrary.GetBlocksOfType<IMyCargoContainer>(payloadGroup.Blocks);
+        var containers = ZACommons.GetBlocksOfType<IMyCargoContainer>(payloadGroup.Blocks);
         if (containers.Count == 0) return;
 
         // Leisurely pace of one stack per container per frame

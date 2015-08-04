@@ -3,9 +3,9 @@ private readonly RotorRangefinder rotorRangefinder = new RotorRangefinder();
 
 private bool FirstRun = true;
 
-public void UpdateTargetTextPanels(Vector3D target)
+public void UpdateTargetTextPanels(ZACommons commons, Vector3D target)
 {
-    var targetGroup = ZALibrary.GetBlockGroupWithName(this, RANGEFINDER_TARGET_GROUP);
+    var targetGroup = commons.GetBlockGroupWithName(RANGEFINDER_TARGET_GROUP);
     if (targetGroup != null)
     {
         var targetString = string.Format(RANGEFINDER_TARGET_FORMAT,
@@ -13,7 +13,7 @@ public void UpdateTargetTextPanels(Vector3D target)
                                          target.GetDim(1),
                                          target.GetDim(2));
 
-        for (var e = ZALibrary.GetBlocksOfType<IMyTextPanel>(targetGroup.Blocks).GetEnumerator(); e.MoveNext();)
+        for (var e = ZACommons.GetBlocksOfType<IMyTextPanel>(targetGroup.Blocks).GetEnumerator(); e.MoveNext();)
         {
             e.Current.WritePublicText(targetString);
         }
@@ -22,14 +22,16 @@ public void UpdateTargetTextPanels(Vector3D target)
 
 void Main(string argument)
 {
+    var commons = new ZACommons(this);
+
     if (FirstRun)
     {
         FirstRun = false;
-        rotorRangefinder.Init(this, eventDriver);
+        rotorRangefinder.Init(commons, eventDriver);
     }
         
-    eventDriver.Tick(this);
-
-    rotorRangefinder.HandleCommand(this, eventDriver, argument,
+    rotorRangefinder.HandleCommand(commons, eventDriver, argument,
                                    UpdateTargetTextPanels);
+
+    eventDriver.Tick(commons);
 }

@@ -1,11 +1,22 @@
-private readonly PowerManager powerManager = new PowerManager();
+public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
+public readonly PowerManager powerManager = new PowerManager();
+
+private bool FirstRun = true;
 
 void Main(string argument)
 {
-    var ship = new List<IMyTerminalBlock>();
-    GridTerminalSystem.GetBlocks(ship);
+    var commons = new ZACommons(this);
 
-    powerManager.Run(this, ship);
+    if (FirstRun)
+    {
+        FirstRun = false;
+        eventDriver.Schedule(0.0);
+    }
 
-    ZALibrary.KickLoopTimerBlock(this, argument);
+    eventDriver.Tick(commons, () =>
+            {
+                powerManager.Run(commons);
+
+                eventDriver.Schedule(1.0);
+            });
 }

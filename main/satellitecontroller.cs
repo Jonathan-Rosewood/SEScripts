@@ -4,10 +4,10 @@ public class SatellitePowerDrainHandler : BatteryManager.PowerDrainHandler
 
     private string OldAntennaName;
 
-    public void PowerDrainStarted(ZALibrary.Ship ship)
+    public void PowerDrainStarted(ZACommons commons)
     {
         // Just change the name of the first active antenna
-        for (var e = ship.GetBlocksOfType<IMyRadioAntenna>().GetEnumerator(); e.MoveNext();)
+        for (var e = ZACommons.GetBlocksOfType<IMyRadioAntenna>(commons.Blocks).GetEnumerator(); e.MoveNext();)
         {
             var antenna = e.Current;
 
@@ -20,10 +20,10 @@ public class SatellitePowerDrainHandler : BatteryManager.PowerDrainHandler
         }
     }
 
-    public void PowerDrainEnded(ZALibrary.Ship ship)
+    public void PowerDrainEnded(ZACommons commons)
     {
         // Scan for the antenna with the message, change it back
-        for (var e = ship.GetBlocksOfType<IMyRadioAntenna>().GetEnumerator(); e.MoveNext();)
+        for (var e = ZACommons.GetBlocksOfType<IMyRadioAntenna>(commons.Blocks).GetEnumerator(); e.MoveNext();)
         {
             var antenna = e.Current;
 
@@ -36,57 +36,57 @@ public class SatellitePowerDrainHandler : BatteryManager.PowerDrainHandler
     }
 }
 
-private readonly EventDriver eventDriver = new EventDriver(timerName: ZALIBRARY_LOOP_TIMER_BLOCK_NAME);
-private readonly BatteryManager batteryManager = new BatteryManager(new SatellitePowerDrainHandler());
-private readonly SolarGyroController solarGyroController = new SolarGyroController(
-                                                                                   // GyroControl.Yaw,
-                                                                                   GyroControl.Pitch,
-                                                                                   GyroControl.Roll
+public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
+public readonly BatteryManager batteryManager = new BatteryManager(new SatellitePowerDrainHandler());
+public readonly SolarGyroController solarGyroController = new SolarGyroController(
+                                                                                  // GyroControl.Yaw,
+                                                                                  GyroControl.Pitch,
+                                                                                  GyroControl.Roll
 );
+
+public Base6Directions.Direction ShipUp, ShipForward;
 
 private bool FirstRun = true;
 
 void Main(string argument)
 {
+    var commons = new ZACommons(this);
+
     if (FirstRun)
     {
         FirstRun = false;
+
+        // Look for our ship controllers
+        var controllers = ZACommons.GetBlocksOfType<IMyShipController>(commons.Blocks);
+        // Pick one. Assume they're all oriented the same.
+        var reference = controllers.Count > 0 ? controllers[0] : null;
+        if (reference != null)
+        {
+            ShipUp = reference.Orientation.TransformDirection(Base6Directions.Direction.Up);
+            ShipForward = reference.Orientation.TransformDirection(Base6Directions.Direction.Forward);
+        }
+        else
+        {
+            // Default to grid up/forward
+            ShipUp = Base6Directions.Direction.Up;
+            ShipForward = Base6Directions.Direction.Forward;
+        }
+
         eventDriver.Schedule(0.0);
     }
 
-    Base6Directions.Direction shipUp, shipForward;
+    batteryManager.HandleCommand(commons, argument);
+    solarGyroController.HandleCommand(commons, argument,
+                                      shipUp: ShipUp,
+                                      shipForward: ShipForward);
 
-    // Look for our ship controllers
-    var controllers = new List<IMyTerminalBlock>();
-    GridTerminalSystem.GetBlocksOfType<IMyShipController>(controllers, block => block.CubeGrid == Me.CubeGrid);
-    // Pick one. Assume they're all oriented the same.
-    var reference = controllers.Count > 0 ? controllers[0] : null;
-    if (reference != null)
-    {
-        shipUp = reference.Orientation.TransformDirection(Base6Directions.Direction.Up);
-        shipForward = reference.Orientation.TransformDirection(Base6Directions.Direction.Forward);
-    }
-    else
-    {
-        // Default to grid up/forward
-        shipUp = Base6Directions.Direction.Up;
-        shipForward = Base6Directions.Direction.Forward;
-    }
+    eventDriver.Tick(commons, () =>
+            {
+                batteryManager.Run(commons);
+                solarGyroController.Run(commons,
+                                        shipUp: ShipUp,
+                                        shipForward: ShipForward);
 
-    ZALibrary.Ship ship = new ZALibrary.Ship(this);
-    batteryManager.HandleCommand(this, ship, argument);
-    solarGyroController.HandleCommand(this, ship, argument,
-                                      shipUp: shipUp,
-                                      shipForward: shipForward);
-
-    if (eventDriver.Tick(this))
-    {
-        batteryManager.Run(this, ship);
-        solarGyroController.Run(this, ship,
-                                shipUp: shipUp,
-                                shipForward: shipForward);
-
-        eventDriver.Schedule(1.0);
-        eventDriver.KickTimer(this);
-    }
+                eventDriver.Schedule(1.0);
+            });
 }

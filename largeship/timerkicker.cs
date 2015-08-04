@@ -2,26 +2,25 @@ public class TimerKicker
 {
     private const double RunDelay = 5.0;
 
-    public void Init(MyGridProgram program, EventDriver eventDriver)
+    public void Init(ZACommons commons, EventDriver eventDriver)
     {
         eventDriver.Schedule(0.0, Run);
     }
 
-    public void Run(MyGridProgram program, EventDriver eventDriver)
+    public void Run(ZACommons commons, EventDriver eventDriver)
     {
-        Run(program);
+        Run(commons);
         eventDriver.Schedule(RunDelay, Run);
     }
 
-    public void Run(MyGridProgram program)
+    public void Run(ZACommons commons)
     {
-        var timers = new List<IMyTerminalBlock>();
-        program.GridTerminalSystem.SearchBlocksOfName(ZALIBRARY_LOOP_TIMER_BLOCK_NAME, timers,
-                                                      block => block is IMyTimerBlock &&
-                                                      block.IsFunctional &&
-                                                      block.IsWorking &&
-                                                      ((IMyTimerBlock)block).Enabled &&
-                                                      !((IMyTimerBlock)block).IsCountingDown);
+        var timers = ZACommons.SearchBlocksOfName(commons.AllBlocks, STANDARD_LOOP_TIMER_BLOCK_NAME,
+                                                  block => block is IMyTimerBlock &&
+                                                  block.IsFunctional &&
+                                                  block.IsWorking &&
+                                                  ((IMyTimerBlock)block).Enabled &&
+                                                  !((IMyTimerBlock)block).IsCountingDown);
         timers.ForEach(timer => timer.GetActionWithName("Start").Apply(timer));
     }
 }

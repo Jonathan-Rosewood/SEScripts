@@ -1,3 +1,3 @@
 [script]
-modules=powman, powermanager, ZALibrary
+modules=powman, powermanager, eventdriver, commons
 out=out/Power Manager/Script.cs

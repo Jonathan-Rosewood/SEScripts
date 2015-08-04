@@ -2,7 +2,9 @@ private Rangefinder.LineSample first, second;
 
 public void Main(string argument)
 {
-    var referenceGroup = ZALibrary.GetBlockGroupWithName(this, RANGEFINDER_REFERENCE_GROUP);
+    var commons = new ZACommons(this);
+
+    var referenceGroup = commons.GetBlockGroupWithName(RANGEFINDER_REFERENCE_GROUP);
     if (referenceGroup == null)
     {
         throw new Exception("Missing group: " + RANGEFINDER_REFERENCE_GROUP);
@@ -22,14 +24,14 @@ public void Main(string argument)
     {
         second = new Rangefinder.LineSample(reference);
 
-        VRageMath.Vector3D closestFirst, closestSecond;
+        Vector3D closestFirst, closestSecond;
         if (Rangefinder.Compute(first, second, out closestFirst, out closestSecond))
         {
             // We're interested in the midpoint of the closestFirst-closestSecond segment
             var target = (closestFirst + closestSecond) / 2.0;
             Echo("Target: " + target);
 
-            var targetGroup = ZALibrary.GetBlockGroupWithName(this, RANGEFINDER_TARGET_GROUP);
+            var targetGroup = commons.GetBlockGroupWithName(RANGEFINDER_TARGET_GROUP);
             if (targetGroup != null)
             {
                 var targetString = string.Format(RANGEFINDER_TARGET_FORMAT,
@@ -37,7 +39,7 @@ public void Main(string argument)
                                                  target.GetDim(1),
                                                  target.GetDim(2));
 
-                for (var e = ZALibrary.GetBlocksOfType<IMyTextPanel>(targetGroup.Blocks).GetEnumerator(); e.MoveNext();)
+                for (var e = ZACommons.GetBlocksOfType<IMyTextPanel>(targetGroup.Blocks).GetEnumerator(); e.MoveNext();)
                 {
                     e.Current.WritePublicText(targetString);
                 }

@@ -29,27 +29,27 @@ public class ComplexAirlock
 
     private readonly Dictionary<string, OpenQueueEntry> openQueue = new Dictionary<string, OpenQueueEntry>();
 
-    private void Init(MyGridProgram program)
+    private void Init(ZACommons commons)
     {
-        var groups = ZALibrary.GetBlockGroupsWithPrefix(program, "Airlock");
+        var groups = commons.GetBlockGroupsWithPrefix("Airlock");
         // Classify each group
         for (var e = groups.GetEnumerator(); e.MoveNext();)
         {
             var group = e.Current;
-            if (string.Equals("AirlockDoorInner", group.Name, ZALibrary.IGNORE_CASE))
+            if (string.Equals("AirlockDoorInner", group.Name, ZACommons.IGNORE_CASE))
             {
-                innerDoors.UnionWith(ZALibrary.GetBlocksOfType<IMyDoor>(group.Blocks));
+                innerDoors.UnionWith(ZACommons.GetBlocksOfType<IMyDoor>(group.Blocks));
             }
-            else if (string.Equals("AirlockDoorSpace", group.Name, ZALibrary.IGNORE_CASE))
+            else if (string.Equals("AirlockDoorSpace", group.Name, ZACommons.IGNORE_CASE))
             {
-                spaceDoors.UnionWith(ZALibrary.GetBlocksOfType<IMyDoor>(group.Blocks));
+                spaceDoors.UnionWith(ZACommons.GetBlocksOfType<IMyDoor>(group.Blocks));
             }
-            else if (group.Name.StartsWith("AirlockDoor", ZALibrary.IGNORE_CASE))
+            else if (group.Name.StartsWith("AirlockDoor", ZACommons.IGNORE_CASE))
             {
                 doorVentGroups.Add(group.Name, group);
 
-                var vents = ZALibrary.GetBlocksOfType<IMyAirVent>(group.Blocks);
-                var doors = ZALibrary.GetBlocksOfType<IMyDoor>(group.Blocks);
+                var vents = ZACommons.GetBlocksOfType<IMyAirVent>(group.Blocks);
+                var doors = ZACommons.GetBlocksOfType<IMyDoor>(group.Blocks);
                 for (var f = doors.GetEnumerator(); f.MoveNext();)
                 {
                     doorVentMap.Add(f.Current, vents);
@@ -61,7 +61,7 @@ public class ComplexAirlock
 
                 roomsMap.Add(group.Name, group);
 
-                var doors = ZALibrary.GetBlocksOfType<IMyDoor>(group.Blocks);
+                var doors = ZACommons.GetBlocksOfType<IMyDoor>(group.Blocks);
                 for (var f = doors.GetEnumerator(); f.MoveNext();)
                 {
                     doorVentRooms.Add(f.Current, group);
@@ -149,7 +149,7 @@ public class ComplexAirlock
             IMyBlockGroup room;
             if (roomsMap.TryGetValue(argument, out room))
             {
-                var vents = ZALibrary.GetBlocksOfType<IMyAirVent>(room.Blocks);
+                var vents = ZACommons.GetBlocksOfType<IMyAirVent>(room.Blocks);
                 var current = GetAirlockState(vents);
                 int target = AIRLOCK_STATE_UNKNOWN;
                 switch (command)
@@ -167,7 +167,7 @@ public class ComplexAirlock
                 }
 
                 ChangeRoomState(room.Name,
-                                vents, ZALibrary.GetBlocksOfType<IMyDoor>(room.Blocks),
+                                vents, ZACommons.GetBlocksOfType<IMyDoor>(room.Blocks),
                                 current, target, null);
             }
         }
@@ -177,7 +177,7 @@ public class ComplexAirlock
             IMyBlockGroup group;
             if (doorVentGroups.TryGetValue(argument, out group))
             {
-                var doors = ZALibrary.GetBlocksOfType<IMyDoor>(group.Blocks);
+                var doors = ZACommons.GetBlocksOfType<IMyDoor>(group.Blocks);
                 // Only need to do one (assumes door groups were set up correctly... heh)
                 if (doors.Count > 0)
                 {
@@ -185,14 +185,14 @@ public class ComplexAirlock
                     IMyBlockGroup room;
                     if (doorVentRooms.TryGetValue(door, out room))
                     {
-                        var otherVents = ZALibrary.GetBlocksOfType<IMyAirVent>(group.Blocks);
-                        var roomVents = ZALibrary.GetBlocksOfType<IMyAirVent>(room.Blocks);
+                        var otherVents = ZACommons.GetBlocksOfType<IMyAirVent>(group.Blocks);
+                        var roomVents = ZACommons.GetBlocksOfType<IMyAirVent>(room.Blocks);
                         var target = GetAirlockState(otherVents);
                         var current = GetAirlockState(roomVents);
 
                         ChangeRoomState(room.Name,
                                         roomVents,
-                                        ZALibrary.GetBlocksOfType<IMyDoor>(room.Blocks),
+                                        ZACommons.GetBlocksOfType<IMyDoor>(room.Blocks),
                                         current, target, doors);
                     }
                 }
@@ -258,7 +258,7 @@ public class ComplexAirlock
             }
         }
 
-        // Open all required doors at next tick
+        // Open all required doors after some delay
         if (openDoors.Count > 0)
         {
             eventDriver.Schedule(2.5, (p, e) =>
@@ -277,10 +277,10 @@ public class ComplexAirlock
         for (var e = rooms.GetEnumerator(); e.MoveNext();)
         {
             var room = e.Current;
-            var vents = ZALibrary.GetBlocksOfType<IMyAirVent>(room.Blocks);
+            var vents = ZACommons.GetBlocksOfType<IMyAirVent>(room.Blocks);
             if (vents.Count == 0) continue;
 
-            var doors = ZALibrary.GetBlocksOfType<IMyDoor>(room.Blocks);
+            var doors = ZACommons.GetBlocksOfType<IMyDoor>(room.Blocks);
             if (doors.Count == 0) continue;
 
             // Determine room state
@@ -314,9 +314,9 @@ public class ComplexAirlock
         }
     }
 
-    public void Run(MyGridProgram program, EventDriver eventDriver, string argument)
+    public void Run(ZACommons commons, EventDriver eventDriver, string argument)
     {
-        Init(program);
+        Init(commons);
 
         if (!string.IsNullOrWhiteSpace(argument))
         {
@@ -328,13 +328,13 @@ public class ComplexAirlock
         Clear();
     }
 
-    public void Run(MyGridProgram program, EventDriver eventDriver)
+    public void Run(ZACommons commons, EventDriver eventDriver)
     {
-        Run(program, eventDriver, ""); // Why...
+        Run(commons, eventDriver, ""); // Why...
     }
 
-    public void HandleCommand(MyGridProgram program, EventDriver eventDriver, string argument)
+    public void HandleCommand(ZACommons commons, EventDriver eventDriver, string argument)
     {
-        Run(program, eventDriver, argument); // Why...
+        Run(commons, eventDriver, argument); // Why...
     }
 }

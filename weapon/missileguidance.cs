@@ -73,16 +73,16 @@ public class MissileGuidance
         return distance;
     }
 
-    public void AcquireTarget(MyGridProgram program)
+    public void AcquireTarget(ZACommons commons)
     {
         // Find the sole text panel
-        var panelGroup = ZALibrary.GetBlockGroupWithName(program, "CM Target");
+        var panelGroup = commons.GetBlockGroupWithName("CM Target");
         if (panelGroup == null)
         {
             throw new Exception("Missing group: CM Target");
         }
 
-        var panels = ZALibrary.GetBlocksOfType<IMyTextPanel>(panelGroup.Blocks);
+        var panels = ZACommons.GetBlocksOfType<IMyTextPanel>(panelGroup.Blocks);
         if (panels.Count == 0)
         {
             throw new Exception("Expecting at least 1 text panel");
@@ -103,7 +103,7 @@ public class MissileGuidance
         }
     }
 
-    public void Init(MyGridProgram program, EventDriver eventDriver,
+    public void Init(ZACommons commons, EventDriver eventDriver,
                      ThrustControl thrustControl, GyroControl gyroControl,
                      Base6Directions.Direction shipUp = Base6Directions.Direction.Up,
                      Base6Directions.Direction shipForward = Base6Directions.Direction.Forward)
@@ -129,9 +129,9 @@ public class MissileGuidance
         eventDriver.Schedule(0, Run);
     }
 
-    public void Run(MyGridProgram program, EventDriver eventDriver)
+    public void Run(ZACommons commons, EventDriver eventDriver)
     {
-        var orientation = new Orientation(program.Me, shipUp: ShipUp,
+        var orientation = new Orientation(commons.Me, shipUp: ShipUp,
                                           shipForward: ShipForward);
 
         Vector3D targetVector;
@@ -177,8 +177,7 @@ public class MissileGuidance
         if (distance < DetonationDistance || eventDriver.TimeSinceStart >= DetonationTime)
         {
             // Sensor should have triggered already, just detonate/self-destruct
-            var warheads = new List<IMyTerminalBlock>();
-            program.GridTerminalSystem.GetBlocksOfType<IMyWarhead>(warheads);
+            var warheads = ZACommons.GetBlocksOfType<IMyWarhead>(commons.Blocks);
             warheads.ForEach(warhead => warhead.GetActionWithName("Detonate").Apply(warhead));
         }
 

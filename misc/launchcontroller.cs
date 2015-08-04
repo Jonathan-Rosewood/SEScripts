@@ -8,20 +8,20 @@ public class LaunchController
     public Base6Directions.Direction ShipUp { get; private set; }
     public Base6Directions.Direction ShipForward { get; private set; }
 
-    private bool IsInLauncher(MyGridProgram program)
+    private bool IsInLauncher(ZACommons commons)
     {
-        var launcherRelease = ZALibrary.GetBlockGroupWithName(program, "Launcher Release");
+        var launcherRelease = commons.GetBlockGroupWithName("Launcher Release");
         return launcherRelease != null;
     }
 
-    private IMyRemoteControl GetRemoteControl(MyGridProgram program)
+    private IMyRemoteControl GetRemoteControl(ZACommons commons)
     {
-        var remoteGroup = ZALibrary.GetBlockGroupWithName(program, REMOTE_GROUP);
+        var remoteGroup = commons.GetBlockGroupWithName(REMOTE_GROUP);
         if (remoteGroup == null)
         {
             throw new Exception("Missing group: " + REMOTE_GROUP);
         }
-        var remotes = ZALibrary.GetBlocksOfType<IMyRemoteControl>(remoteGroup.Blocks);
+        var remotes = ZACommons.GetBlocksOfType<IMyRemoteControl>(remoteGroup.Blocks);
         if (remotes.Count != 1)
         {
             throw new Exception("Expecting exactly 1 remote control");
@@ -29,14 +29,14 @@ public class LaunchController
         return remotes[0];
     }
 
-    public void Init(MyGridProgram program, EventDriver eventDriver)
+    public void Init(ZACommons commons, EventDriver eventDriver)
     {
-        var remote = GetRemoteControl(program);
+        var remote = GetRemoteControl(commons);
         ShipUp = remote.Orientation.TransformDirection(Base6Directions.Direction.Up);
         ShipForward = remote.Orientation.TransformDirection(Base6Directions.Direction.Forward);
 
         // Determine current state
-        if (IsInLauncher(program))
+        if (IsInLauncher(commons))
         {
             eventDriver.Schedule(0.0, Prime);
         }
@@ -50,71 +50,70 @@ public class LaunchController
         }
     }
 
-    public void Prime(MyGridProgram program, EventDriver eventDriver)
+    public void Prime(ZACommons commons, EventDriver eventDriver)
     {
-        var relayBatteries = ZALibrary.GetBlockGroupWithName(program, BATTERY_GROUP);
+        var relayBatteries = commons.GetBlockGroupWithName(BATTERY_GROUP);
         if (relayBatteries == null)
         {
             throw new Exception("Missing group: " + BATTERY_GROUP);
         }
-        var relaySystems = ZALibrary.GetBlockGroupWithName(program, SYSTEMS_GROUP);
+        var relaySystems = commons.GetBlockGroupWithName(SYSTEMS_GROUP);
         if (relaySystems == null)
         {
             throw new Exception("Missing group: " + SYSTEMS_GROUP);
         }
 
         // Wake up batteries
-        var batteries = ZALibrary.GetBlocksOfType<IMyBatteryBlock>(relayBatteries.Blocks);
-        ZALibrary.EnableBlocks(batteries, true);
-        ZALibrary.SetBatteryRecharge(batteries, false);
+        var batteries = ZACommons.GetBlocksOfType<IMyBatteryBlock>(relayBatteries.Blocks);
+        ZACommons.EnableBlocks(batteries, true);
+        ZACommons.SetBatteryRecharge(batteries, false);
         // And activate flight systems
-        ZALibrary.EnableBlocks(relaySystems.Blocks, true);
+        ZACommons.EnableBlocks(relaySystems.Blocks, true);
 
         eventDriver.Schedule(1.0, Release);
     }
 
-    public void Release(MyGridProgram program, EventDriver eventDriver)
+    public void Release(ZACommons commons, EventDriver eventDriver)
     {
-        var relayRelease = ZALibrary.GetBlockGroupWithName(program, RELEASE_GROUP);
+        var relayRelease = commons.GetBlockGroupWithName(RELEASE_GROUP);
         if (relayRelease == null)
         {
             throw new Exception("Missing group: " + RELEASE_GROUP);
         }
-        ZALibrary.EnableBlocks(relayRelease.Blocks, false);
+        ZACommons.EnableBlocks(relayRelease.Blocks, false);
 
         eventDriver.Schedule(1.0, Burn);
     }
 
-    public void Burn(MyGridProgram program, EventDriver eventDriver)
+    public void Burn(ZACommons commons, EventDriver eventDriver)
     {
         var thrustControl = new ThrustControl();
-        thrustControl.Init(program, shipUp: ShipUp, shipForward: ShipForward);
-        // NB We inherit the launcher's grid pivot
+        thrustControl.Init(commons.Blocks, shipUp: ShipUp, shipForward: ShipForward);
         thrustControl.SetOverride(Base6Directions.Direction.Down);
 
         eventDriver.Schedule(LAUNCH_BURN_DURATION, BurnEnd);
     }
 
-    public void BurnEnd(MyGridProgram program, EventDriver eventDriver)
+    public void BurnEnd(ZACommons commons, EventDriver eventDriver)
     {
         var thrustControl = new ThrustControl();
-        thrustControl.Init(program, shipUp: ShipUp, shipForward: ShipForward);
+        thrustControl.Init(commons.Blocks, shipUp: ShipUp, shipForward: ShipForward);
         thrustControl.Reset();
 
         eventDriver.Schedule(0.0, Autopilot);
     }
 
-    public void Autopilot(MyGridProgram program, EventDriver eventDriver)
+    public void Autopilot(ZACommons commons, EventDriver eventDriver)
     {
-        var remote = GetRemoteControl(program);
+        var remote = GetRemoteControl(commons);
         remote.SetValue<bool>("AutoPilot", true);
 
         eventDriver.Schedule(1.0, AutopilotEnd);
     }
 
-    public void AutopilotEnd(MyGridProgram program, EventDriver eventDriver)
+    public void AutopilotEnd(ZACommons commons, EventDriver eventDriver)
     {
-        var remote = GetRemoteControl(program);
+        var remote = GetRemoteControl(commons);
         if (remote.GetValue<bool>("AutoPilot"))
         {
             // Wait it out

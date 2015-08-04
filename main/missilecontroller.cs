@@ -8,15 +8,17 @@ private bool FirstRun = true;
 
 void Main(string argument)
 {
+    var commons = new ZACommons(this);
+
     if (FirstRun)
     {
         FirstRun = false;
-        missileLaunch.Init(this, eventDriver, missileGuidance, missilePayload.Init,
+        missileLaunch.Init(commons, eventDriver, missileGuidance, missilePayload.Init,
                            randomDecoy.Init);
         // Guidance, payload, decoy will be initialized by launch,
         // but we'll acquire the target here so it fails early if missing
-        missileGuidance.AcquireTarget(this);
+        missileGuidance.AcquireTarget(commons);
     }
 
-    eventDriver.Tick(this);
+    eventDriver.Tick(commons);
 }

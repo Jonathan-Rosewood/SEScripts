@@ -47,8 +47,8 @@ public class PowerManager
         public string ToString()
         {
             return string.Format("{0}/{1}",
-                                 ZALibrary.FormatPower(CurrentPowerOutput),
-                                 ZALibrary.FormatPower(MaxPowerOutput));
+                                 ZACommons.FormatPower(CurrentPowerOutput),
+                                 ZACommons.FormatPower(MaxPowerOutput));
         }
     }
 
@@ -91,7 +91,7 @@ public class PowerManager
                 if (wouldBeLoad <= POWER_MANAGER_HIGH_LOAD_THRESHOLD)
                 {
                     battery.GetActionWithName("OnOff_Off").Apply(battery);
-                    ZALibrary.SetBatteryRecharge(battery, true);
+                    ZACommons.SetBatteryRecharge(battery, true);
                 }
                 return;
             }
@@ -107,26 +107,25 @@ public class PowerManager
             if (!battery.Enabled || battery.ProductionEnabled /* huh?! */)
             {
                 if (!battery.Enabled) battery.GetActionWithName("OnOff_On").Apply(battery);
-                ZALibrary.SetBatteryRecharge(battery, true);
+                ZACommons.SetBatteryRecharge(battery, true);
                 return;
             }
         }
     }
 
-    public void Run(MyGridProgram program, List<IMyTerminalBlock> ship)
+    public void Run(ZACommons commons)
     {
         // Only care about power producers on this ship
-        var producers = ZALibrary.GetBlocksOfType<IMyTerminalBlock>(ship,
-                                                                    block => block is IMyPowerProducer &&
-                                                                    block.CubeGrid == program.Me.CubeGrid);
+        var producers = ZACommons.GetBlocksOfType<IMyTerminalBlock>(commons.Blocks,
+                                                                    block => block is IMyPowerProducer);
 
         // Limit to functional batteries
-        var batteries = ZALibrary.GetBlocksOfType<IMyBatteryBlock>(producers,
+        var batteries = ZACommons.GetBlocksOfType<IMyBatteryBlock>(producers,
                                                                    battery => battery.IsFunctional);
         if (batteries.Count == 0) return; // Nothing to do if no batteries to manage
 
         // All other power producers
-        var otherProducers = ZALibrary.GetBlocksOfType<IMyTerminalBlock>(producers,
+        var otherProducers = ZACommons.GetBlocksOfType<IMyTerminalBlock>(producers,
                                                                          block => !(block is IMyBatteryBlock));
 
         var batteryDetails = GetPowerDetails<IMyBatteryBlock>(batteries);
@@ -134,17 +133,17 @@ public class PowerManager
 
         var totalDetails = batteryDetails + otherDetails;
 
-        //program.Echo("Battery Load: " + batteryDetails.ToString());
-        //program.Echo("Other Load: " + otherDetails.ToString());
-        //program.Echo("Total Load: " + totalDetails.ToString());
+        //commons.Echo("Battery Load: " + batteryDetails.ToString());
+        //commons.Echo("Other Load: " + otherDetails.ToString());
+        //commons.Echo("Total Load: " + totalDetails.ToString());
 
         // First, the degenerate cases...
         if (totalDetails.MaxPowerOutput == 0.0f) return; // Don't think this is possible...
         if (otherDetails.MaxPowerOutput == 0.0f)
         {
             // Nothing but our batteries. Just put all batteries online.
-            ZALibrary.EnableBlocks(batteries, true);
-            ZALibrary.SetBatteryRecharge(batteries, false);
+            ZACommons.EnableBlocks(batteries, true);
+            ZACommons.SetBatteryRecharge(batteries, false);
             return;
         }
         
@@ -172,7 +171,7 @@ public class PowerManager
                 {
                     // Found the first one, bring it online
                     if (!battery.Enabled) battery.GetActionWithName("OnOff_On").Apply(battery);
-                    ZALibrary.SetBatteryRecharge(battery, false);
+                    ZACommons.SetBatteryRecharge(battery, false);
                     found = true;
                 }
                 else
@@ -184,7 +183,7 @@ public class PowerManager
         }
         else if (totalLoad < POWER_MANAGER_LOW_LOAD_THRESHOLD)
         {
-            QuietTimer += program.ElapsedTime;
+            QuietTimer += commons.Program.ElapsedTime;
 
             if (QuietTimer >= QuietTimeout)
             {
@@ -209,9 +208,9 @@ public class PowerManager
                     // But first, check if it would put us over the threshold
                     var first = batteries[0]; // Assume all the same
                     var wouldBeOutput = otherDetails.CurrentPowerOutput + first.DefinedPowerOutput; // Assume MaxPowerOutput = MaxPowerInput (not available to us)
-                    //program.Echo("Would-be Output: " + ZALibrary.FormatPower(wouldBeOutput));
+                    //commons.Echo("Would-be Output: " + ZACommons.FormatPower(wouldBeOutput));
                     var wouldBeLoad = wouldBeOutput / otherDetails.MaxPowerOutput;
-                    //program.Echo("Would-be Load: " + wouldBeLoad);
+                    //commons.Echo("Would-be Load: " + wouldBeLoad);
 
                     if (wouldBeLoad <= POWER_MANAGER_HIGH_LOAD_THRESHOLD)
                     {

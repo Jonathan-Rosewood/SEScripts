@@ -1,3 +1,3 @@
 [script]
-modules=batmansolar, batterymanager, eventdriver, ZALibrary
+modules=batmansolar, batterymanager, eventdriver, commons
 out=out/Battery Manager/Script.cs

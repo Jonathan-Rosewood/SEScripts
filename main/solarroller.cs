@@ -1,17 +1,20 @@
-private readonly EventDriver eventDriver = new EventDriver(timerName: ZALIBRARY_LOOP_TIMER_BLOCK_NAME);
-private readonly SolarGyroController solarGyroController = new SolarGyroController(GyroControl.Roll);
+public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
+public readonly SolarGyroController solarGyroController = new SolarGyroController(GyroControl.Roll);
+
+public Base6Directions.Direction ShipUp, ShipForward;
 
 private bool FirstRun = true;
 
-private Base6Directions.Direction ShipUp, ShipForward;
-
 void Main(string argument)
 {
+    var commons = new ZACommons(this);
+
     if (FirstRun)
     {
         FirstRun = false;
+
         // See if there's a reference group
-        var referenceGroup = ZALibrary.GetBlockGroupWithName(this, "SolarGyroReference");
+        var referenceGroup = commons.GetBlockGroupWithName("SolarGyroReference");
         var reference = (referenceGroup != null && referenceGroup.Blocks.Count > 0) ? referenceGroup.Blocks[0] : null;
         if (reference != null)
         {
@@ -28,18 +31,16 @@ void Main(string argument)
         eventDriver.Schedule(0.0);
     }
 
-    ZALibrary.Ship ship = new ZALibrary.Ship(this);
-    solarGyroController.HandleCommand(this, ship, argument,
+    solarGyroController.HandleCommand(commons, argument,
                                       shipUp: ShipUp,
                                       shipForward: ShipForward);
 
-    if (eventDriver.Tick(this))
-    {
-        solarGyroController.Run(this, ship,
-                                shipUp: ShipUp,
-                                shipForward: ShipForward);
+    eventDriver.Tick(commons, () =>
+            {
+                solarGyroController.Run(commons,
+                                        shipUp: ShipUp,
+                                        shipForward: ShipForward);
 
         eventDriver.Schedule(1.0);
-        eventDriver.KickTimer(this);
-    }
+            });
 }

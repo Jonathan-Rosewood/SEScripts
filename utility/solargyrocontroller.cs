@@ -5,12 +5,12 @@ public class SolarGyroController
         public float MaxPowerOutput;
         public float DefinedPowerOutput;
 
-        public SolarPanelDetails(ZALibrary.Ship ship)
+        public SolarPanelDetails(IEnumerable<IMyTerminalBlock> blocks)
         {
             MaxPowerOutput = 0.0f;
             DefinedPowerOutput = 0.0f;
 
-            for (var e = ship.GetBlocksOfType<IMySolarPanel>().GetEnumerator(); e.MoveNext();)
+            for (var e = ZACommons.GetBlocksOfType<IMySolarPanel>(blocks).GetEnumerator(); e.MoveNext();)
             {
                 var panel = e.Current;
 
@@ -44,26 +44,26 @@ public class SolarGyroController
         }
     }
 
-    private GyroControl GetGyroControl(MyGridProgram program, ZALibrary.Ship ship,
+    private GyroControl GetGyroControl(ZACommons commons,
                                        Base6Directions.Direction shipUp,
                                        Base6Directions.Direction shipForward)
     {
         var gyroControl = new GyroControl();
-        gyroControl.Init(program, blocks: ship.Blocks, shipUp: shipUp, shipForward: shipForward);
+        gyroControl.Init(commons.Blocks, shipUp: shipUp, shipForward: shipForward);
         return gyroControl;
     }
 
-    public void Run(MyGridProgram program, ZALibrary.Ship ship,
+    public void Run(ZACommons commons,
                     Base6Directions.Direction shipUp = Base6Directions.Direction.Up,
                     Base6Directions.Direction shipForward = Base6Directions.Direction.Forward)
     {
         if (!Active)
         {
-            program.Echo("Solar Max Power: Paused");
+            commons.Echo("Solar Max Power: Paused");
             return;
         }
 
-        var gyroControl = GetGyroControl(program, ship, shipUp, shipForward);
+        var gyroControl = GetGyroControl(commons, shipUp, shipForward);
         var currentAxis = AllowedAxes[AxisIndex];
 
         if (MaxPower == null)
@@ -75,7 +75,7 @@ public class SolarGyroController
             TimeOnAxis = TimeSpan.FromSeconds(0);
         }
 
-        var solarPanelDetails = new SolarPanelDetails(ship);
+        var solarPanelDetails = new SolarPanelDetails(commons.Blocks);
         var currentMaxPower = solarPanelDetails.MaxPowerOutput;
 
         var minError = solarPanelDetails.DefinedPowerOutput * 0.005f; // From experimentation
@@ -100,7 +100,7 @@ public class SolarGyroController
             gyroControl.EnableOverride(false);
         }
 
-        TimeOnAxis += program.ElapsedTime;
+        TimeOnAxis += commons.Program.ElapsedTime;
 
         if (TimeOnAxis > AxisTimeout)
         {
@@ -114,10 +114,10 @@ public class SolarGyroController
             TimeOnAxis = TimeSpan.FromSeconds(0);
         }
 
-        program.Echo(string.Format("Solar Max Power: {0}", ZALibrary.FormatPower(currentMaxPower)));
+        commons.Echo(string.Format("Solar Max Power: {0}", ZACommons.FormatPower(currentMaxPower)));
     }
 
-    public void HandleCommand(MyGridProgram program, ZALibrary.Ship ship, string argument,
+    public void HandleCommand(ZACommons commons, string argument,
                               Base6Directions.Direction shipUp = Base6Directions.Direction.Up,
                               Base6Directions.Direction shipForward = Base6Directions.Direction.Forward)
     {
@@ -126,7 +126,7 @@ public class SolarGyroController
         if (argument == "pause")
         {
             // Hmm, shipUp and shipForward not really needed...
-            var gyroControl = GetGyroControl(program, ship, shipUp, shipForward);
+            var gyroControl = GetGyroControl(commons, shipUp, shipForward);
 
             Active = false;
             gyroControl.EnableOverride(false);
