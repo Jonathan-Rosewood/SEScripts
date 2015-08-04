@@ -11,6 +11,7 @@ SCRIPT_DIRECTORIES = [
     'largeship',
     'lib',
     'main',
+    'misc',
     'smallship',
     'standalone',
     'utility',
