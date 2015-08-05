@@ -6,44 +6,28 @@ public readonly SolarGyroController solarGyroController =
                             GyroControl.Roll
                             );
 
+private readonly ShipOrientation shipOrientation = new ShipOrientation();
+
 private bool FirstRun = true;
 
 void Main(string argument)
 {
-    var commons = new ZACommons(this);
+    var commons = new ShipControlCommons(this, shipOrientation);
 
     if (FirstRun)
     {
         FirstRun = false;
+
+        shipOrientation.SetShipReference(commons, "SolarGyroReference");
+
         eventDriver.Schedule(0.0);
     }
 
-    Base6Directions.Direction shipUp, shipForward;
-
-    // See if there's a reference group
-    var referenceGroup = commons.GetBlockGroupWithName("SolarGyroReference");
-    var reference = (referenceGroup != null && referenceGroup.Blocks.Count > 0) ? referenceGroup.Blocks[0] : null;
-    if (reference != null)
-    {
-        shipUp = reference.Orientation.TransformDirection(Base6Directions.Direction.Up);
-        shipForward = reference.Orientation.TransformDirection(Base6Directions.Direction.Forward);
-    }
-    else
-    {
-        // Default to grid up/forward
-        shipUp = Base6Directions.Direction.Up;
-        shipForward = Base6Directions.Direction.Forward;
-    }
-
-    solarGyroController.HandleCommand(commons, argument,
-                                      shipUp: shipUp,
-                                      shipForward: shipForward);
+    solarGyroController.HandleCommand(commons, argument);
 
     eventDriver.Tick(commons, () =>
             {
-                solarGyroController.Run(commons,
-                                        shipUp: shipUp,
-                                        shipForward: shipForward);
+                solarGyroController.Run(commons);
 
                 eventDriver.Schedule(1.0);
             });

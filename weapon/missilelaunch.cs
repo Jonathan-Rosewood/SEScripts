@@ -1,36 +1,13 @@
 public class MissileLaunch
 {
     private const string BATTERY_GROUP = "CM Batteries";
-    private const string SYSTEMS_GROUP = "CM Systems";
+    public const string SYSTEMS_GROUP = "CM Systems";
     private const string RELEASE_GROUP = "CM Release";
 
     private const double BURN_TIME = 3.0; // In seconds
 
     private MissileGuidance missileGuidance;
     private Action<ZACommons, EventDriver>[] postLaunch;
-    private ThrustControl thrustControl;
-    private GyroControl gyroControl;
-
-    private Base6Directions.Direction ShipUp, ShipForward;
-
-    private void UpdateShipReference(ZACommons commons)
-    {
-        // Use the gyro in SYSTEMS_GROUP as reference
-        var systemsGroup = commons.GetBlockGroupWithName(SYSTEMS_GROUP + MISSILE_GROUP_SUFFIX);
-        if (systemsGroup == null)
-        {
-            throw new Exception("Group missing: " + SYSTEMS_GROUP + MISSILE_GROUP_SUFFIX);
-        }
-        var references = ZACommons.GetBlocksOfType<IMyGyro>(systemsGroup.Blocks);
-        if (references.Count == 0)
-        {
-            throw new Exception("Expecting at least 1 gyro: " + SYSTEMS_GROUP + MISSILE_GROUP_SUFFIX);
-        }
-        var reference = references[0];
-
-        ShipUp = reference.Orientation.TransformDirection(Base6Directions.Direction.Up);
-        ShipForward = reference.Orientation.TransformDirection(Base6Directions.Direction.Forward);
-    }
 
     public void Init(ZACommons commons, EventDriver eventDriver,
                      MissileGuidance missileGuidance,
@@ -86,16 +63,14 @@ public class MissileLaunch
     public void Burn(ZACommons commons, EventDriver eventDriver)
     {
         // Boost away from launcher, initialize flight control
-        UpdateShipReference(commons);
+        var shipControl = (ShipControlCommons)commons;
 
-        thrustControl = new ThrustControl();
-        thrustControl.Init(commons.Blocks, shipUp: ShipUp, shipForward: ShipForward);
+        var thrustControl = shipControl.ThrustControl;
         thrustControl.Reset();
         thrustControl.SetOverride(Base6Directions.Direction.Forward, BURN_FORCE);
         if (BURN_DOWNWARD) thrustControl.SetOverride(Base6Directions.Direction.Down);
 
-        gyroControl = new GyroControl();
-        gyroControl.Init(commons.Blocks, shipUp: ShipUp, shipForward: ShipForward);
+        var gyroControl = shipControl.GyroControl;
         gyroControl.Reset();
         gyroControl.EnableOverride(true);
 
@@ -104,16 +79,18 @@ public class MissileLaunch
 
     public void Arm(ZACommons commons, EventDriver eventDriver)
     {
-        if (BURN_DOWNWARD) thrustControl.SetOverride(Base6Directions.Direction.Down, 0.0f);
+        if (BURN_DOWNWARD)
+        {
+            var thrustControl = ((ShipControlCommons)commons).ThrustControl;
+            thrustControl.SetOverride(Base6Directions.Direction.Down, 0.0f);
+        }
 
         // Just find all warheads on board and turn off safeties
         var warheads = ZACommons.GetBlocksOfType<IMyWarhead>(commons.Blocks);
         warheads.ForEach(warhead => warhead.SetValue<bool>("Safety", false));
 
         // We're done, let MissileGuidance take over
-        missileGuidance.Init(commons, eventDriver, thrustControl, gyroControl,
-                             shipUp: ShipUp,
-                             shipForward: ShipForward);
+        missileGuidance.Init(commons, eventDriver);
         for (int i = 0; i < postLaunch.Length; i++)
         {
             postLaunch[i](commons, eventDriver);

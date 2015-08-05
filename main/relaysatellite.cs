@@ -45,29 +45,30 @@ public readonly SolarGyroController solarGyroController = new SolarGyroControlle
                                                                                   // GyroControl.Roll
 );
 
+private readonly ShipOrientation shipOrientation = new ShipOrientation();
+
 private bool FirstRun = true;
 
 void Main(string argument)
 {
-    var commons = new ZACommons(this);
+    var commons = new ShipControlCommons(this, shipOrientation);
 
     if (FirstRun)
     {
         FirstRun = false;
+
+        shipOrientation.SetShipReference(commons, LaunchController.REMOTE_GROUP);
+
         launchController.Init(commons, eventDriver);
     }
 
     batteryManager.HandleCommand(commons, argument);
-    solarGyroController.HandleCommand(commons, argument,
-                                      shipUp: launchController.ShipUp,
-                                      shipForward: launchController.ShipForward);
+    solarGyroController.HandleCommand(commons, argument);
 
     eventDriver.Tick(commons, () =>
             {
                 batteryManager.Run(commons);
-                solarGyroController.Run(commons,
-                                        shipUp: launchController.ShipUp,
-                                        shipForward: launchController.ShipForward);
+                solarGyroController.Run(commons);
 
                 eventDriver.Schedule(1.0);
             });

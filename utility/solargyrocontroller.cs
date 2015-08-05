@@ -44,18 +44,7 @@ public class SolarGyroController
         }
     }
 
-    private GyroControl GetGyroControl(ZACommons commons,
-                                       Base6Directions.Direction shipUp,
-                                       Base6Directions.Direction shipForward)
-    {
-        var gyroControl = new GyroControl();
-        gyroControl.Init(commons.Blocks, shipUp: shipUp, shipForward: shipForward);
-        return gyroControl;
-    }
-
-    public void Run(ZACommons commons,
-                    Base6Directions.Direction shipUp = Base6Directions.Direction.Up,
-                    Base6Directions.Direction shipForward = Base6Directions.Direction.Forward)
+    public void Run(ShipControlCommons commons)
     {
         if (!Active)
         {
@@ -63,7 +52,7 @@ public class SolarGyroController
             return;
         }
 
-        var gyroControl = GetGyroControl(commons, shipUp, shipForward);
+        var gyroControl = commons.GyroControl;
         var currentAxis = AllowedAxes[AxisIndex];
 
         if (MaxPower == null)
@@ -117,19 +106,14 @@ public class SolarGyroController
         commons.Echo(string.Format("Solar Max Power: {0}", ZACommons.FormatPower(currentMaxPower)));
     }
 
-    public void HandleCommand(ZACommons commons, string argument,
-                              Base6Directions.Direction shipUp = Base6Directions.Direction.Up,
-                              Base6Directions.Direction shipForward = Base6Directions.Direction.Forward)
+    public void HandleCommand(ShipControlCommons commons, string argument)
     {
         // Handle commands
         argument = argument.Trim().ToLower();
         if (argument == "pause")
         {
-            // Hmm, shipUp and shipForward not really needed...
-            var gyroControl = GetGyroControl(commons, shipUp, shipForward);
-
             Active = false;
-            gyroControl.EnableOverride(false);
+            commons.GyroControl.EnableOverride(false);
         }
         else if (argument == "resume")
         {

@@ -9,16 +9,18 @@ private const double RunsPerSecond = 60.0 / FramesPerRun;
 private readonly Velocimeter velocimeter = new Velocimeter(10);
 private readonly PIDController thrustPID = new PIDController(1.0 / RunsPerSecond);
 
-private bool FirstRun = true;
-private bool Mining = false;
-
 private const double ThrustKp = 10000.0;
 private const double ThrustKi = 100.0;
 private const double ThrustKd = 0.0;
 
+private readonly ShipOrientation shipOrientation = new ShipOrientation();
+
+private bool FirstRun = true;
+private bool Mining = false;
+
 void Main(string argument)
 {
-    var commons = new ZACommons(this);
+    var commons = new ShipControlCommons(this, shipOrientation);
 
     if (FirstRun)
     {
@@ -28,23 +30,20 @@ void Main(string argument)
         thrustPID.Ki = ThrustKi;
         thrustPID.Kd = ThrustKd;
 
+        shipOrientation.SetShipReference(commons, MINER_REFERENCE_GROUP);
+
         eventDriver.Schedule(0.0, DroneController);
     }
 
     argument = argument.Trim().ToLower();
     if (argument.Length > 0)
     {
-        Base6Directions.Direction shipUp, shipForward;
-        GetReference(commons, out shipUp, out shipForward);
-        var gyroControl = GetGyroControl(commons, shipUp: shipUp, shipForward: shipForward);
-        var thrustControl = GetThrustControl(commons, shipUp: shipUp, shipForward: shipForward);
-
         switch (argument)
         {
             case "start":
-                gyroControl.EnableOverride(true);
-                thrustControl.Reset();
-                thrustControl.SetOverride(Base6Directions.Direction.Forward); // Get things moving
+                commons.GyroControl.EnableOverride(true);
+                commons.ThrustControl.Reset();
+                commons.ThrustControl.SetOverride(Base6Directions.Direction.Forward); // Get things moving
                 thrustPID.Reset();
                 velocimeter.Reset();
 
@@ -56,8 +55,8 @@ void Main(string argument)
                 break;
             case "stop":
                 Mining = false;
-                gyroControl.EnableOverride(false);
-                thrustControl.Reset();
+                commons.GyroControl.EnableOverride(false);
+                commons.ThrustControl.Reset();
                 break;
             default:
                 dockingManager.HandleCommand(commons, argument);
@@ -84,8 +83,14 @@ public void Mine(ZACommons commons, EventDriver eventDriver)
 {
     if (!Mining) return;
 
-    Base6Directions.Direction shipUp, shipForward;
-    var reference = GetReference(commons, out shipUp, out shipForward);
+    var shipControl = (ShipControlCommons)commons;
+
+    var referenceGroup = commons.GetBlockGroupWithName(MINER_REFERENCE_GROUP);
+    if (referenceGroup == null)
+    {
+        throw new Exception("Missing group: " + MINER_REFERENCE_GROUP);
+    }
+    var reference = referenceGroup.Blocks[0];
     velocimeter.TakeSample(reference.GetPosition(), eventDriver.TimeSinceStart);
 
     // Determine velocity
@@ -103,7 +108,7 @@ public void Mine(ZACommons commons, EventDriver eventDriver)
         // commons.Echo(string.Format("Force: {0:F1} N", force));
         commons.Echo("Mining");
 
-        var thrustControl = GetThrustControl(commons, shipUp: shipUp, shipForward: shipForward);
+        var thrustControl = shipControl.ThrustControl;
         if (force > 0.0)
         {
             // Thrust forward
@@ -118,33 +123,4 @@ public void Mine(ZACommons commons, EventDriver eventDriver)
     }
 
     eventDriver.Schedule(FramesPerRun, Mine);
-}
-
-private IMyCubeBlock GetReference(ZACommons commons, out Base6Directions.Direction shipUp, out Base6Directions.Direction shipForward)
-{
-    var referenceGroup = commons.GetBlockGroupWithName(MINER_REFERENCE_GROUP);
-    if (referenceGroup == null)
-    {
-        throw new Exception("Missing group: " + MINER_REFERENCE_GROUP);
-    }
-    var reference = referenceGroup.Blocks[0];
-
-    shipUp = reference.Orientation.TransformDirection(Base6Directions.Direction.Up);
-    shipForward = reference.Orientation.TransformDirection(Base6Directions.Direction.Forward);
-
-    return reference;
-}
-
-private GyroControl GetGyroControl(ZACommons commons, Base6Directions.Direction shipUp, Base6Directions.Direction shipForward)
-{
-    var gyroControl = new GyroControl();
-    gyroControl.Init(commons.Blocks, shipUp: shipUp, shipForward: shipForward);
-    return gyroControl;
-}
-
-private ThrustControl GetThrustControl(ZACommons commons, Base6Directions.Direction shipUp, Base6Directions.Direction shipForward)
-{
-    var thrustControl = new ThrustControl();
-    thrustControl.Init(commons.Blocks, shipUp: shipUp, shipForward: shipForward);
-    return thrustControl;
 }

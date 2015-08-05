@@ -1,4 +1,5 @@
 [script]
-modules = missilecontroller, missileguidance, randomdecoy, missilelaunch, missilepayload,
-    eventdriver, thrustcontrol, gyrocontrol, pid, commons
+modules = missilecontroller, missileguidance, randomdecoy, missilelaunch,
+    missilepayload, gyrocontrol, thrustcontrol, shiporientation, shipcontrol,
+    pid, eventdriver, commons
 out = out/Missile Controller/Script.cs

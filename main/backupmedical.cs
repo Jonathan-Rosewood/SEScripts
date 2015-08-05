@@ -8,29 +8,30 @@ public readonly SolarGyroController solarGyroController = new SolarGyroControlle
 public readonly DoorAutoCloser doorAutoCloser = new DoorAutoCloser();
 public readonly BackupMedicalLaunch backupMedicalLaunch = new BackupMedicalLaunch();
 
+private readonly ShipOrientation shipOrientation = new ShipOrientation();
+
 private bool FirstRun = true;
 
 void Main(string argument)
 {
-    var commons = new ZACommons(this);
+    var commons = new ShipControlCommons(this, shipOrientation);
 
     if (FirstRun)
     {
         FirstRun = false;
+
+        shipOrientation.SetShipReference<IMyRemoteControl>(commons.Blocks);
+
         backupMedicalLaunch.Init(commons, eventDriver);
     }
 
     batteryManager.HandleCommand(commons, argument);
-    solarGyroController.HandleCommand(commons, argument,
-                                      shipUp: backupMedicalLaunch.ShipUp,
-                                      shipForward: backupMedicalLaunch.ShipForward);
+    solarGyroController.HandleCommand(commons, argument);
 
     eventDriver.Tick(commons, () =>
             {
                 batteryManager.Run(commons);
-                solarGyroController.Run(commons,
-                                        shipUp: backupMedicalLaunch.ShipUp,
-                                        shipForward: backupMedicalLaunch.ShipForward);
+                solarGyroController.Run(commons);
                 doorAutoCloser.Run(commons);
 
                 eventDriver.Schedule(1.0);

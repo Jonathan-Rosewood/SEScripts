@@ -1,4 +1,4 @@
 [script]
 modules=satellitecontroller, batterymanager, solargyrocontroller, gyrocontrol,
-    eventdriver, commons
+    thrustcontrol, shiporientation, shipcontrol, eventdriver, commons
 out=out/MUP Controller/Script.cs

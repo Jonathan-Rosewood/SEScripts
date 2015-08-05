@@ -44,48 +44,30 @@ public readonly SolarGyroController solarGyroController = new SolarGyroControlle
                                                                                   GyroControl.Roll
 );
 
-public Base6Directions.Direction ShipUp, ShipForward;
+private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
 private bool FirstRun = true;
 
 void Main(string argument)
 {
-    var commons = new ZACommons(this);
+    var commons = new ShipControlCommons(this, shipOrientation);
 
     if (FirstRun)
     {
         FirstRun = false;
 
-        // Look for our ship controllers
-        var controllers = ZACommons.GetBlocksOfType<IMyShipController>(commons.Blocks);
-        // Pick one. Assume they're all oriented the same.
-        var reference = controllers.Count > 0 ? controllers[0] : null;
-        if (reference != null)
-        {
-            ShipUp = reference.Orientation.TransformDirection(Base6Directions.Direction.Up);
-            ShipForward = reference.Orientation.TransformDirection(Base6Directions.Direction.Forward);
-        }
-        else
-        {
-            // Default to grid up/forward
-            ShipUp = Base6Directions.Direction.Up;
-            ShipForward = Base6Directions.Direction.Forward;
-        }
+        shipOrientation.SetShipReference<IMyShipController>(commons.Blocks);
 
         eventDriver.Schedule(0.0);
     }
 
     batteryManager.HandleCommand(commons, argument);
-    solarGyroController.HandleCommand(commons, argument,
-                                      shipUp: ShipUp,
-                                      shipForward: ShipForward);
+    solarGyroController.HandleCommand(commons, argument);
 
     eventDriver.Tick(commons, () =>
             {
                 batteryManager.Run(commons);
-                solarGyroController.Run(commons,
-                                        shipUp: ShipUp,
-                                        shipForward: ShipForward);
+                solarGyroController.Run(commons);
 
                 eventDriver.Schedule(1.0);
             });

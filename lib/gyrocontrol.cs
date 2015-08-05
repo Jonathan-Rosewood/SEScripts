@@ -104,7 +104,7 @@ public class GyroControl
 
     private readonly List<GyroDetails> gyros = new List<GyroDetails>();
 
-    public void Init(List<IMyTerminalBlock> blocks,
+    public void Init(IEnumerable<IMyTerminalBlock> blocks,
                      Func<IMyGyro, bool> collect = null,
                      Base6Directions.Direction shipUp = Base6Directions.Direction.Up,
                      Base6Directions.Direction shipForward = Base6Directions.Direction.Forward)

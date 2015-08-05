@@ -3,10 +3,7 @@ public class LaunchController
     private const string BATTERY_GROUP = "Relay Batteries";
     private const string SYSTEMS_GROUP = "Relay Systems";
     private const string RELEASE_GROUP = "Relay Release";
-    private const string REMOTE_GROUP = "Relay RC";
-
-    public Base6Directions.Direction ShipUp { get; private set; }
-    public Base6Directions.Direction ShipForward { get; private set; }
+    public const string REMOTE_GROUP = "Relay RC";
 
     private bool IsInLauncher(ZACommons commons)
     {
@@ -32,9 +29,6 @@ public class LaunchController
     public void Init(ZACommons commons, EventDriver eventDriver)
     {
         var remote = GetRemoteControl(commons);
-        ShipUp = remote.Orientation.TransformDirection(Base6Directions.Direction.Up);
-        ShipForward = remote.Orientation.TransformDirection(Base6Directions.Direction.Forward);
-
         // Determine current state
         if (IsInLauncher(commons))
         {
@@ -86,19 +80,17 @@ public class LaunchController
     }
 
     public void Burn(ZACommons commons, EventDriver eventDriver)
-    {
-        var thrustControl = new ThrustControl();
-        thrustControl.Init(commons.Blocks, shipUp: ShipUp, shipForward: ShipForward);
-        thrustControl.SetOverride(Base6Directions.Direction.Down);
+    { 
+        var shipControl = (ShipControlCommons)commons;
+        shipControl.ThrustControl.SetOverride(Base6Directions.Direction.Down);
 
         eventDriver.Schedule(LAUNCH_BURN_DURATION, BurnEnd);
     }
 
     public void BurnEnd(ZACommons commons, EventDriver eventDriver)
     {
-        var thrustControl = new ThrustControl();
-        thrustControl.Init(commons.Blocks, shipUp: ShipUp, shipForward: ShipForward);
-        thrustControl.Reset();
+        var shipControl = (ShipControlCommons)commons;
+        shipControl.ThrustControl.Reset();
 
         eventDriver.Schedule(0.0, Autopilot);
     }

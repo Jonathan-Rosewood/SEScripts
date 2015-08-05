@@ -31,9 +31,6 @@ public class MissileGuidance
 
     private Vector3D Target;
     private double RandomOffset;
-    private ThrustControl thrustControl;
-    private GyroControl gyroControl;
-    private Base6Directions.Direction ShipUp, ShipForward;
 
     private const bool PerturbTarget = true;
     private const double PerturbAmplitude = 5000.0;
@@ -103,20 +100,11 @@ public class MissileGuidance
         }
     }
 
-    public void Init(ZACommons commons, EventDriver eventDriver,
-                     ThrustControl thrustControl, GyroControl gyroControl,
-                     Base6Directions.Direction shipUp = Base6Directions.Direction.Up,
-                     Base6Directions.Direction shipForward = Base6Directions.Direction.Forward)
+    public void Init(ZACommons commons, EventDriver eventDriver)
     {
         // Randomize in case of simultaneous launch with other missiles
         Random random = new Random(this.GetHashCode());
         RandomOffset = 1000.0 * random.NextDouble();
-
-        this.thrustControl = thrustControl;
-        this.gyroControl = gyroControl;
-
-        ShipUp = shipUp;
-        ShipForward = shipForward;
 
         yawPID.Kp = GyroKp;
         yawPID.Ki = GyroKi;
@@ -131,8 +119,11 @@ public class MissileGuidance
 
     public void Run(ZACommons commons, EventDriver eventDriver)
     {
-        var orientation = new Orientation(commons.Me, shipUp: ShipUp,
-                                          shipForward: ShipForward);
+        var shipControl = (ShipControlCommons)commons;
+
+        var orientation = new Orientation(commons.Me,
+                                          shipUp: shipControl.ShipUp,
+                                          shipForward: shipControl.ShipForward);
 
         Vector3D targetVector;
         double distance;
@@ -167,6 +158,7 @@ public class MissileGuidance
             gyroPitch *= adjust;
         }
 
+        var gyroControl = shipControl.GyroControl;
         gyroControl.SetAxisVelocity(GyroControl.Yaw, (float)gyroYaw);
         gyroControl.SetAxisVelocity(GyroControl.Pitch, (float)gyroPitch);
 

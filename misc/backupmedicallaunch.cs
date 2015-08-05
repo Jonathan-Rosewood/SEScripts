@@ -1,8 +1,5 @@
 public class BackupMedicalLaunch
 {
-    public Base6Directions.Direction ShipUp { get; private set; }
-    public Base6Directions.Direction ShipForward { get; private set; }
-
     private IMyRemoteControl GetRemoteControl(ZACommons commons)
     {
         var remotes = ZACommons.GetBlocksOfType<IMyRemoteControl>(commons.Blocks);
@@ -16,9 +13,6 @@ public class BackupMedicalLaunch
     public void Init(ZACommons commons, EventDriver eventDriver)
     {
         var remote = GetRemoteControl(commons);
-        ShipUp = remote.Orientation.TransformDirection(Base6Directions.Direction.Up);
-        ShipForward = remote.Orientation.TransformDirection(Base6Directions.Direction.Forward);
-
         // Determine current state
         if (remote.GetValue<bool>("AutoPilot"))
         {
