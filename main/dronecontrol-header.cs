@@ -34,5 +34,6 @@ const bool MAX_POWER_ENABLED = false; // Set to true to enable rotor code
 
 // SmartUndock (ship-dependent)
 const double SMART_UNDOCK_RTB_SPEED = 25.0; // In meters per second
-const double YPAUTO_TTT_BUFFER = 2.5; // Time-to-target buffer, in seconds
-const double YPAUTO_DISENGAGE_DISTANCE = 2.5; // In meters
+const double AUTOPILOT_MIN_SPEED = 1.0; // In meters per second
+const double AUTOPILOT_TTT_BUFFER = 2.5; // Time-to-target buffer, in seconds
+const double AUTOPILOT_DISENGAGE_DISTANCE = 2.5; // In meters

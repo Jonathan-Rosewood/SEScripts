@@ -74,7 +74,7 @@ public class YawPitchAutopilot
         if (!AutopilotEngaged)
         {
             AutopilotTarget = target;
-            AutopilotSpeed = Math.Max(speed, YPAUTO_MIN_SPEED);
+            AutopilotSpeed = Math.Max(speed, AUTOPILOT_MIN_SPEED);
             AutopilotUp = autopilotUp;
             AutopilotForward = autopilotForward;
             AutopilotEngaged = true;
@@ -154,9 +154,9 @@ public class YawPitchAutopilot
             //var speed = Vector3D.Dot((Vector3D)velocity, orientation.Forward);
             var speed = ((Vector3D)velocity).Length();
 
-            var targetSpeed = Math.Min(distance / YPAUTO_TTT_BUFFER,
+            var targetSpeed = Math.Min(distance / AUTOPILOT_TTT_BUFFER,
                                        AutopilotSpeed);
-            targetSpeed = Math.Max(targetSpeed, YPAUTO_MIN_SPEED); // Avoid Zeno's paradox...
+            targetSpeed = Math.Max(targetSpeed, AUTOPILOT_MIN_SPEED); // Avoid Zeno's paradox...
 
             var error = targetSpeed - speed;
 
@@ -177,7 +177,7 @@ public class YawPitchAutopilot
             }
         }
 
-        if (distance < YPAUTO_DISENGAGE_DISTANCE)
+        if (distance < AUTOPILOT_DISENGAGE_DISTANCE)
         {
             // All done
             Reset(commons);
