@@ -27,7 +27,8 @@ public class ShipOrientation
             for (var e = group.Blocks.GetEnumerator(); e.MoveNext();)
             {
                 var block = e.Current;
-                if (condition == null || condition(block))
+                if (block.CubeGrid == commons.Me.CubeGrid &&
+                    (condition == null || condition(block)))
                 {
                     SetShipReference(block);
                     return;
