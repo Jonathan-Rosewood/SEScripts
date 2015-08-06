@@ -3,20 +3,28 @@ public readonly DockingManager dockingManager = new DockingManager();
 public readonly SafeMode safeMode = new SafeMode();
 public readonly BatteryMonitor batteryMonitor = new BatteryMonitor();
 public readonly SolarRotorController rotorController = new SolarRotorController();
+private readonly SmartUndock smartUndock = new SmartUndock();
+
+private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
 private bool FirstRun = true;
 
 void Main(string argument)
 {
-    var commons = new ZACommons(this, shipGroup: SHIP_NAME);
+    var commons = new ShipControlCommons(this, shipOrientation,
+                                         shipGroup: SHIP_NAME);
 
     if (FirstRun)
     {
         FirstRun = false;
+
+        shipOrientation.SetShipReference(commons, "Autopilot Reference");
+
         eventDriver.Schedule(0.0);
     }
 
     dockingManager.HandleCommand(commons, argument);
+    smartUndock.HandleCommand(commons, eventDriver, argument);
 
     eventDriver.Tick(commons, () =>
             {
