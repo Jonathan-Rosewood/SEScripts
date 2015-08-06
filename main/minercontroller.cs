@@ -2,6 +2,7 @@ private readonly EventDriver eventDriver = new EventDriver(timerGroup: MINER_CLO
 private readonly DockingManager dockingManager = new DockingManager();
 private readonly SafeMode safeMode = new SafeMode();
 private readonly BatteryMonitor batteryMonitor = new BatteryMonitor();
+private readonly SmartUndock smartUndock = new SmartUndock();
 
 private const uint FramesPerRun = 5;
 private const double RunsPerSecond = 60.0 / FramesPerRun;
@@ -60,6 +61,7 @@ void Main(string argument)
                 break;
             default:
                 dockingManager.HandleCommand(commons, argument);
+                smartUndock.HandleCommand(commons, eventDriver, argument);
                 break;
         }
     }

@@ -1,9 +1,9 @@
 public class SmartUndock
 {
-    private IMyCubeBlock AutopilotReference;
-    private Vector3D AutopilotTarget;
+    private Vector3D? AutopilotTarget = null;
     private Base6Directions.Direction AutopilotForward, AutopilotUp;
     private double AutopilotSpeed;
+    private bool AutopilotEngaged;
 
     public void HandleCommand(ZACommons commons, EventDriver eventDriver,
                               string argument)
@@ -26,24 +26,24 @@ public class SmartUndock
                 }
             }
 
-            AutopilotReference = null;
-            if (connected != null)
+            AutopilotTarget = null;
+            if (connected != null && !AutopilotEngaged)
             {
-                AutopilotReference = connected; // Hmmm, not sure about this
-
                 // Undock the opposite direction of connector
-                AutopilotForward = AutopilotReference.Orientation.TransformDirection(Base6Directions.Direction.Backward);
-                AutopilotUp = AutopilotReference.Orientation.TransformDirection(Base6Directions.Direction.Up);
+                AutopilotForward = connected.Orientation.TransformDirection(Base6Directions.Direction.Backward);
+                AutopilotUp = connected.Orientation.TransformDirection(Base6Directions.Direction.Up);
 
-                var backwardPoint = AutopilotReference.CubeGrid.GridIntegerToWorld(AutopilotReference.Position + Base6Directions.GetIntVector(AutopilotForward));
-                var backwardVector = Vector3D.Normalize(backwardPoint - AutopilotReference.GetPosition());
+                var reference = commons.Me;
+                var backwardPoint = reference.CubeGrid.GridIntegerToWorld(reference.Position + Base6Directions.GetIntVector(AutopilotForward));
+                var backwardVector = Vector3D.Normalize(backwardPoint - reference.GetPosition());
                 // Determine target undock point
-                AutopilotTarget = AutopilotReference.GetPosition() + SMART_UNDOCK_DISTANCE * backwardVector;
+                AutopilotTarget = reference.GetPosition() + SMART_UNDOCK_DISTANCE * backwardVector;
 
                 AutopilotSpeed = SMART_UNDOCK_UNDOCK_SPEED;
 
                 // Schedule the autopilot
                 eventDriver.Schedule(2.0, AutopilotStart);
+                AutopilotEngaged = true;
             }
 
             // Next, physically undock
@@ -57,27 +57,26 @@ public class SmartUndock
         }
         else if (argument == "rtb")
         {
-            // If we don't have an existing reference, we don't have an
-            // existing target
-            if (AutopilotReference == null) return;
+            // No target or already moving, no RTB
+            if (AutopilotTarget == null || AutopilotEngaged) return;
 
-            // Find the ship controller that issued this command
-            var controllers = ZACommons.GetBlocksOfType<IMyShipController>(commons.Blocks,
-                                                                           controller => controller.IsUnderControl);
-
-            if (controllers.Count > 0)
-            {
-                // Use ship controller as new reference
-                AutopilotReference = controllers[0];
-            } // Otherwise use existing reference
-
-            AutopilotForward = AutopilotReference.Orientation.TransformDirection(Base6Directions.Direction.Forward);
-            AutopilotUp = AutopilotReference.Orientation.TransformDirection(Base6Directions.Direction.Up);
+            var shipControl = (ShipControlCommons)commons;
+            AutopilotForward = shipControl.ShipForward;
+            AutopilotUp = shipControl.ShipUp;
 
             AutopilotSpeed = SMART_UNDOCK_RTB_SPEED;
 
             // Schedule the autopilot
             eventDriver.Schedule(1.0, AutopilotStart);
+            AutopilotEngaged = true;
+        }
+        else if (argument == "smartreset")
+        {
+            var shipControl = (ShipControlCommons)commons;
+            shipControl.GyroControl.Reset();
+            shipControl.GyroControl.EnableOverride(false);
+            shipControl.ThrustControl.Reset();
+            AutopilotEngaged = false;
         }
     }
 
@@ -163,11 +162,20 @@ public class SmartUndock
     {
         var shipControl = (ShipControlCommons)commons;
 
-        var orientation = new Orientation(AutopilotReference,
+        if (!AutopilotEngaged)
+        {
+            shipControl.GyroControl.Reset();
+            shipControl.GyroControl.EnableOverride(false);
+            shipControl.ThrustControl.Reset();
+            return;
+        }
+
+        var reference = commons.Me;
+        var orientation = new Orientation(reference,
                                           shipUp: AutopilotUp,
                                           shipForward: AutopilotForward);
 
-        var targetVector = AutopilotTarget - orientation.Point;
+        var targetVector = (Vector3D)AutopilotTarget - orientation.Point;
         var distance = targetVector.Normalize();
 
         // Transform relative to our forward vector
@@ -191,13 +199,14 @@ public class SmartUndock
         gyroControl.SetAxisVelocity(GyroControl.Pitch, (float)gyroPitch);
 
         // Velocity control
-        velocimeter.TakeSample(AutopilotReference.GetPosition(), eventDriver.TimeSinceStart);
+        velocimeter.TakeSample(reference.GetPosition(), eventDriver.TimeSinceStart);
 
         // Determine velocity
         var velocity = velocimeter.GetAverageVelocity();
         if (velocity != null)
         {
-            var speed = Vector3D.Dot((Vector3D)velocity, orientation.Forward);
+            //var speed = Vector3D.Dot((Vector3D)velocity, orientation.Forward);
+            var speed = ((Vector3D)velocity).Length();
 
             var timeToTarget = distance / speed;
             double targetSpeed;
@@ -231,12 +240,13 @@ public class SmartUndock
             }
         }
 
-        if (distance < 1.0)
+        if (distance < SMART_UNDOCK_DISENGAGE_DISTANCE)
         {
             // All done
             gyroControl.Reset();
             gyroControl.EnableOverride(false);
             thrustControl.Reset();
+            AutopilotEngaged = false;
         }
         else
         {
