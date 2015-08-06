@@ -11,5 +11,5 @@ const bool ABANDONMENT_ENABLED = true; // Set to false to disable abandonment ch
 
 // SmartUndock (ship-dependent)
 const double SMART_UNDOCK_RTB_SPEED = 10.0; // In meters per second
-const double SMART_UNDOCK_TTT_BUFFER = 2.5; // Time-to-target buffer, in seconds
-const double SMART_UNDOCK_DISENGAGE_DISTANCE = 10.0; // In meters
+const double YPAUTO_TTT_BUFFER = 10.0; // Time-to-target buffer, in seconds
+const double YPAUTO_DISENGAGE_DISTANCE = 10.0; // In meters
