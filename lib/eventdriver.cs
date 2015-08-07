@@ -69,13 +69,14 @@ public class EventDriver
                 timer = blocks[0] as IMyTimerBlock;
             }
         }
-        else if (TimerGroup != null)
+        if (timer == null && TimerGroup != null)
         {
             var group = commons.GetBlockGroupWithName(TimerGroup);
-            if (group != null && group.Blocks.Count > 0)
+            if (group != null)
             {
-                // NB We only check the first block of the group, whatever that may be
-                timer = group.Blocks[0] as IMyTimerBlock;
+                var blocks = ZACommons.GetBlocksOfType<IMyTimerBlock>(group.Blocks,
+                                                                      block => block.CubeGrid == commons.Me.CubeGrid);
+                timer = blocks.Count > 0 ? blocks[0] : null;
             }
         }
 
