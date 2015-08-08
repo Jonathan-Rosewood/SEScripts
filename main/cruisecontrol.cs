@@ -43,6 +43,15 @@ public class CruiseControl
         thrustPID.Kd = ThrustKd;
     }
 
+    private void Reset(ZACommons commons)
+    {
+        var thrustControl = ((ShipControlCommons)commons).ThrustControl;
+        thrustControl.Enable(Base6Directions.Direction.Forward, true);
+        thrustControl.SetOverride(Base6Directions.Direction.Forward, 0.0f);
+        thrustControl.Enable(Base6Directions.Direction.Backward, true);
+        thrustControl.SetOverride(Base6Directions.Direction.Backward, 0.0f);
+    }
+
     public void HandleCommand(ZACommons commons, EventDriver eventDriver,
                               string argument)
     {
@@ -56,7 +65,8 @@ public class CruiseControl
         {
             if (argument == "stop")
             {
-                if (Active) Active = false;
+                Reset(commons);
+                Active = false;
             }
             else
             {
@@ -82,11 +92,7 @@ public class CruiseControl
     {
         var shipControl = (ShipControlCommons)commons;
         
-        if (!Active)
-        {
-            shipControl.ThrustControl.Reset();
-            return;
-        }
+        if (!Active) return;
 
         var reference = commons.Me;
         velocimeter.TakeSample(reference.GetPosition(), eventDriver.TimeSinceStart);
@@ -109,15 +115,23 @@ public class CruiseControl
             //commons.Echo("Force: " + force);
 
             var thrustControl = shipControl.ThrustControl;
-            if (force > 0.0)
+            if (Math.Abs(error) < 0.25)
+            {
+                // Close enough, just disable both sets of thrusters
+                thrustControl.Enable(Base6Directions.Direction.Forward, false);
+                thrustControl.Enable(Base6Directions.Direction.Backward, false);
+            }
+            else if (force > 0.0)
             {
                 // Thrust forward
+                thrustControl.Enable(Base6Directions.Direction.Forward, true);
                 thrustControl.SetOverridePercent(Base6Directions.Direction.Forward, force);
-                thrustControl.SetOverride(Base6Directions.Direction.Backward, 0.0f);
+                thrustControl.Enable(Base6Directions.Direction.Backward, false);
             }
             else
             {
-                thrustControl.SetOverride(Base6Directions.Direction.Forward, 0.0f);
+                thrustControl.Enable(Base6Directions.Direction.Forward, false);
+                thrustControl.Enable(Base6Directions.Direction.Backward, true);
                 thrustControl.SetOverridePercent(Base6Directions.Direction.Backward, -force);
             }
         }
