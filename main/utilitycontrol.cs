@@ -3,6 +3,9 @@ public readonly DockingManager dockingManager = new DockingManager();
 public readonly SafeMode safeMode = new SafeMode();
 public readonly BatteryMonitor batteryMonitor = new BatteryMonitor();
 public readonly SolarRotorController rotorController = new SolarRotorController();
+private readonly SmartUndock smartUndock = new SmartUndock();
+
+private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
 private Rangefinder.LineSample first, second;
 private StringBuilder rangefinderResult = new StringBuilder();
@@ -11,15 +14,19 @@ private bool FirstRun = true;
 
 void Main(string argument)
 {
-    var commons = new ZACommons(this);
+    var commons = new ShipControlCommons(this, shipOrientation);
 
     if (FirstRun)
     {
         FirstRun = true;
+
+        shipOrientation.SetShipReference(commons, RANGEFINDER_REFERENCE_GROUP);
+
         eventDriver.Schedule(0.0);
     }
 
     dockingManager.HandleCommand(commons, argument);
+    smartUndock.HandleCommand(commons, eventDriver, argument);
     HandleCommand(commons, argument);
 
     eventDriver.Tick(commons, () =>
@@ -82,5 +89,11 @@ private IMyCubeBlock GetReference(ZACommons commons)
     {
         throw new Exception("Missing group: " + RANGEFINDER_REFERENCE_GROUP);
     }
-    return referenceGroup.Blocks[0];
+    var references = ZACommons.GetBlocksOfType<IMyTerminalBlock>(referenceGroup.Blocks,
+                                                                 block => block.CubeGrid == commons.Me.CubeGrid);
+    if (references.Count == 0)
+    {
+        throw new Exception("Expecting at least 1 block on the same grid: " + RANGEFINDER_REFERENCE_GROUP);
+    }
+    return references[0];
 }
