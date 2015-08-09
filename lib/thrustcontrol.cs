@@ -41,16 +41,16 @@ public class ThrustControl
         return thrusterList;
     }
 
-    public void SetOverride(Base6Directions.Direction direction, float? force = null)
+    public void SetOverride(Base6Directions.Direction direction, bool enable = true)
     {
         var thrusterList = GetThrusters(direction);
         thrusterList.ForEach(thruster =>
-                             thruster.SetValue<float>("Override", force != null ?
-                                                      (float)force :
-                                                      thruster.GetMaximum<float>("Override")));
+                             thruster.SetValue<float>("Override", enable ?
+                                                      thruster.GetMaximum<float>("Override") :
+                                                      0.0f));
     }
 
-    public void SetOverridePercent(Base6Directions.Direction direction, double percent)
+    public void SetOverride(Base6Directions.Direction direction, double percent)
     {
         percent = Math.Max(percent, 0.0);
         percent = Math.Min(percent, 1.0);

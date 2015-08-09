@@ -30,7 +30,7 @@ public class YawPitchAutopilot
         }
     }
 
-    private const uint FramesPerRun = 1;
+    private const uint FramesPerRun = 2;
     private const double RunsPerSecond = 60.0 / FramesPerRun;
 
     private const double GyroMaxRadiansPerSecond = Math.PI; // Really pi*2, but something's odd...
@@ -43,12 +43,12 @@ public class YawPitchAutopilot
 
     // From my miner script...
 
-    private readonly Velocimeter velocimeter = new Velocimeter(10);
+    private readonly Velocimeter velocimeter = new Velocimeter(30);
     private readonly PIDController thrustPID = new PIDController(1.0 / RunsPerSecond);
 
-    private const double ThrustKp = 10000.0;
-    private const double ThrustKi = 100.0;
-    private const double ThrustKd = 0.0;
+    private const double ThrustKp = 1.0;
+    private const double ThrustKi = 0.001;
+    private const double ThrustKd = 1.0;
 
     public YawPitchAutopilot()
     {
@@ -90,7 +90,6 @@ public class YawPitchAutopilot
         shipControl.GyroControl.Reset();
         shipControl.GyroControl.EnableOverride(true);
         shipControl.ThrustControl.Reset();
-        shipControl.ThrustControl.SetOverride(AutopilotForward); // Get moving
         yawPID.Reset();
         pitchPID.Reset();
         thrustPID.Reset();
@@ -167,13 +166,13 @@ public class YawPitchAutopilot
             if (force > 0.0)
             {
                 // Thrust forward
-                thrustControl.SetOverride(AutopilotForward, (float)force);
-                thrustControl.SetOverride(backward, 0.0f);
+                thrustControl.SetOverride(AutopilotForward, force);
+                thrustControl.SetOverride(backward, false);
             }
             else
             {
-                thrustControl.SetOverride(AutopilotForward, 0.0f);
-                thrustControl.SetOverride(backward, (float)(-force));
+                thrustControl.SetOverride(AutopilotForward, false);
+                thrustControl.SetOverride(backward, -force);
             }
         }
 

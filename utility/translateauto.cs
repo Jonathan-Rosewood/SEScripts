@@ -21,7 +21,7 @@ public class TranslateAutopilot
         }
     }
 
-    private const uint FramesPerRun = 1;
+    private const uint FramesPerRun = 2;
     private const double RunsPerSecond = 60.0 / FramesPerRun;
 
     private readonly Velocimeter velocimeter = new Velocimeter(30);
@@ -29,9 +29,9 @@ public class TranslateAutopilot
     private readonly PIDController upPID = new PIDController(1.0 / RunsPerSecond);
     private readonly PIDController leftPID = new PIDController(1.0 / RunsPerSecond);
 
-    private const double ThrustKp = 10000.0;
-    private const double ThrustKi = 100.0;
-    private const double ThrustKd = 0.0;
+    private const double ThrustKp = 1.0;
+    private const double ThrustKi = 0.001;
+    private const double ThrustKd = 1.0;
 
     private Vector3D AutopilotTarget;
     private double AutopilotSpeed;
@@ -147,18 +147,18 @@ public class TranslateAutopilot
         if (Math.Abs(distance) < 1.0)
         {
             // Good enough
-            thrustControl.SetOverride(direction, 0.0f);
-            thrustControl.SetOverride(flipped, 0.0f);
+            thrustControl.SetOverride(direction, false);
+            thrustControl.SetOverride(flipped, false);
         }
         else if (force > 0.0)
         {
-            thrustControl.SetOverride(direction, (float)force);
-            thrustControl.SetOverride(flipped, 0.0f);
+            thrustControl.SetOverride(direction, force);
+            thrustControl.SetOverride(flipped, false);
         }
         else
         {
-            thrustControl.SetOverride(direction, 0.0f);
-            thrustControl.SetOverride(flipped, (float)-force);
+            thrustControl.SetOverride(direction, false);
+            thrustControl.SetOverride(flipped, -force);
         }
     }
 

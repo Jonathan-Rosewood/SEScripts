@@ -47,9 +47,9 @@ public class CruiseControl
     {
         var thrustControl = ((ShipControlCommons)commons).ThrustControl;
         thrustControl.Enable(Base6Directions.Direction.Forward, true);
-        thrustControl.SetOverride(Base6Directions.Direction.Forward, 0.0f);
+        thrustControl.SetOverride(Base6Directions.Direction.Forward, false);
         thrustControl.Enable(Base6Directions.Direction.Backward, true);
-        thrustControl.SetOverride(Base6Directions.Direction.Backward, 0.0f);
+        thrustControl.SetOverride(Base6Directions.Direction.Backward, false);
     }
 
     public void HandleCommand(ZACommons commons, EventDriver eventDriver,
@@ -125,14 +125,14 @@ public class CruiseControl
             {
                 // Thrust forward
                 thrustControl.Enable(Base6Directions.Direction.Forward, true);
-                thrustControl.SetOverridePercent(Base6Directions.Direction.Forward, force);
+                thrustControl.SetOverride(Base6Directions.Direction.Forward, force);
                 thrustControl.Enable(Base6Directions.Direction.Backward, false);
             }
             else
             {
                 thrustControl.Enable(Base6Directions.Direction.Forward, false);
                 thrustControl.Enable(Base6Directions.Direction.Backward, true);
-                thrustControl.SetOverridePercent(Base6Directions.Direction.Backward, -force);
+                thrustControl.SetOverride(Base6Directions.Direction.Backward, -force);
             }
         }
 

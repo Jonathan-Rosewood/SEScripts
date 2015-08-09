@@ -82,7 +82,7 @@ public class MissileLaunch
         if (BURN_DOWNWARD)
         {
             var thrustControl = ((ShipControlCommons)commons).ThrustControl;
-            thrustControl.SetOverride(Base6Directions.Direction.Down, 0.0f);
+            thrustControl.SetOverride(Base6Directions.Direction.Down, false);
         }
 
         // Just find all warheads on board and turn off safeties

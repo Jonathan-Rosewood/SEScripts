@@ -4,15 +4,15 @@ private readonly SafeMode safeMode = new SafeMode();
 private readonly BatteryMonitor batteryMonitor = new BatteryMonitor();
 private readonly SmartUndock smartUndock = new SmartUndock();
 
-private const uint FramesPerRun = 5;
+private const uint FramesPerRun = 2;
 private const double RunsPerSecond = 60.0 / FramesPerRun;
 
-private readonly Velocimeter velocimeter = new Velocimeter(10);
+private readonly Velocimeter velocimeter = new Velocimeter(30);
 private readonly PIDController thrustPID = new PIDController(1.0 / RunsPerSecond);
 
-private const double ThrustKp = 10000.0;
-private const double ThrustKi = 100.0;
-private const double ThrustKd = 0.0;
+private const double ThrustKp = 1.0;
+private const double ThrustKi = 0.001;
+private const double ThrustKd = 1.0;
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
@@ -44,7 +44,6 @@ void Main(string argument)
             case "start":
                 commons.GyroControl.EnableOverride(true);
                 commons.ThrustControl.Reset();
-                commons.ThrustControl.SetOverride(Base6Directions.Direction.Forward); // Get things moving
                 thrustPID.Reset();
                 velocimeter.Reset();
 
@@ -87,12 +86,7 @@ public void Mine(ZACommons commons, EventDriver eventDriver)
 
     var shipControl = (ShipControlCommons)commons;
 
-    var referenceGroup = commons.GetBlockGroupWithName(MINER_REFERENCE_GROUP);
-    if (referenceGroup == null)
-    {
-        throw new Exception("Missing group: " + MINER_REFERENCE_GROUP);
-    }
-    var reference = referenceGroup.Blocks[0];
+    var reference = commons.Me;
     velocimeter.TakeSample(reference.GetPosition(), eventDriver.TimeSinceStart);
 
     // Determine velocity
@@ -114,13 +108,13 @@ public void Mine(ZACommons commons, EventDriver eventDriver)
         if (force > 0.0)
         {
             // Thrust forward
-            thrustControl.SetOverride(Base6Directions.Direction.Forward, (float)force);
-            thrustControl.SetOverride(Base6Directions.Direction.Backward, 0.0f);
+            thrustControl.SetOverride(Base6Directions.Direction.Forward, force);
+            thrustControl.SetOverride(Base6Directions.Direction.Backward, false);
         }
         else
         {
-            thrustControl.SetOverride(Base6Directions.Direction.Forward, 0.0f);
-            thrustControl.SetOverride(Base6Directions.Direction.Backward, (float)(-force));
+            thrustControl.SetOverride(Base6Directions.Direction.Forward, false);
+            thrustControl.SetOverride(Base6Directions.Direction.Backward, -force);
         }
     }
 
