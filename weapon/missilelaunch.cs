@@ -67,7 +67,7 @@ public class MissileLaunch
 
         var thrustControl = shipControl.ThrustControl;
         thrustControl.Reset();
-        thrustControl.SetOverride(Base6Directions.Direction.Forward, BURN_FORCE);
+        thrustControl.SetOverrideNewtons(Base6Directions.Direction.Forward, BURN_FORCE);
         if (BURN_DOWNWARD) thrustControl.SetOverride(Base6Directions.Direction.Down);
 
         var gyroControl = shipControl.GyroControl;
