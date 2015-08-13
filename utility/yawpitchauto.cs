@@ -12,6 +12,24 @@ public class YawPitchAutopilot
     public static Vector3D Zero3D = new Vector3D();
     public static Vector3D Forward3D = new Vector3D(0.0, 0.0, 1.0);
 
+    public struct Orientation
+    {
+        public Vector3D Point;
+        public Vector3D Forward;
+        public Vector3D Up;
+
+        public Orientation(IMyCubeBlock reference,
+                           Base6Directions.Direction shipUp = Base6Directions.Direction.Up,
+                           Base6Directions.Direction shipForward = Base6Directions.Direction.Forward)
+        {
+            Point = reference.GetPosition();
+            var forward3I = reference.Position + Base6Directions.GetIntVector(shipForward);
+            Forward = Vector3D.Normalize(reference.CubeGrid.GridIntegerToWorld(forward3I) - Point);
+            var up3I = reference.Position + Base6Directions.GetIntVector(shipUp);
+            Up = Vector3D.Normalize(reference.CubeGrid.GridIntegerToWorld(up3I) - Point);
+        }
+    }
+
     private const uint FramesPerRun = 2;
     private const double RunsPerSecond = 60.0 / FramesPerRun;
 
@@ -82,19 +100,24 @@ public class YawPitchAutopilot
 
     public void Run(ZACommons commons, EventDriver eventDriver)
     {
+        var shipControl = (ShipControlCommons)commons;
+
         if (!AutopilotEngaged)
         {
             Reset(commons);
             return;
         }
 
-        var shipControl = (ShipControlCommons)commons;
+        var reference = commons.Me;
+        var orientation = new Orientation(reference,
+                                          shipUp: AutopilotUp,
+                                          shipForward: AutopilotForward);
 
-        var targetVector = AutopilotTarget - shipControl.ReferencePoint;
+        var targetVector = AutopilotTarget - orientation.Point;
         var distance = targetVector.Normalize();
 
         // Transform relative to our forward vector
-        targetVector = Vector3D.Transform(targetVector, MatrixD.CreateLookAt(Zero3D, -shipControl.ReferenceForward, shipControl.ReferenceUp));
+        targetVector = Vector3D.Transform(targetVector, MatrixD.CreateLookAt(Zero3D, -orientation.Forward, orientation.Up));
 
         var yawVector = new Vector3D(targetVector.GetDim(0), 0, targetVector.GetDim(2));
         var pitchVector = new Vector3D(0, targetVector.GetDim(1), targetVector.GetDim(2));
@@ -121,13 +144,13 @@ public class YawPitchAutopilot
         gyroControl.SetAxisVelocity(GyroControl.Pitch, (float)gyroPitch);
 
         // Velocity control
-        velocimeter.TakeSample(shipControl.ReferencePoint, eventDriver.TimeSinceStart);
+        velocimeter.TakeSample(reference.GetPosition(), eventDriver.TimeSinceStart);
 
         // Determine velocity
         var velocity = velocimeter.GetAverageVelocity();
         if (velocity != null)
         {
-            //var speed = Vector3D.Dot((Vector3D)velocity, shipControl.ReferenceForward);
+            //var speed = Vector3D.Dot((Vector3D)velocity, orientation.Forward);
             var speed = ((Vector3D)velocity).Length();
 
             var targetSpeed = Math.Min(distance / AUTOPILOT_TTT_BUFFER,
