@@ -3,27 +3,6 @@ public class MissileGuidance
     public static Vector3D Zero3D = new Vector3D();
     public static Vector3D Forward3D = new Vector3D(0.0, 0.0, 1.0);
 
-    public struct Orientation
-    {
-        public Vector3D Point;
-        public Vector3D Forward;
-        public Vector3D Up;
-        public Vector3D Left;
-
-        public Orientation(IMyCubeBlock reference,
-                           Base6Directions.Direction shipUp = Base6Directions.Direction.Up,
-                           Base6Directions.Direction shipForward = Base6Directions.Direction.Forward)
-        {
-            Point = reference.GetPosition();
-            var forward3I = reference.Position + Base6Directions.GetIntVector(shipForward);
-            Forward = Vector3D.Normalize(reference.CubeGrid.GridIntegerToWorld(forward3I) - Point);
-            var up3I = reference.Position + Base6Directions.GetIntVector(shipUp);
-            Up = Vector3D.Normalize(reference.CubeGrid.GridIntegerToWorld(up3I) - Point);
-            var left3I = reference.Position + Base6Directions.GetIntVector(Base6Directions.GetLeft(shipUp, shipForward));
-            Left = Vector3D.Normalize(reference.CubeGrid.GridIntegerToWorld(left3I) - Point);
-        }
-    }
-
     private const uint FramesPerRun = 1;
     private const double RunsPerSecond = 60.0 / FramesPerRun;
 
@@ -58,15 +37,15 @@ public class MissileGuidance
         return PerturbAmplitude * distance / PerturbAmplitude;
     }
 
-    private double Perturb(TimeSpan timeSinceStart, Orientation orientation, out Vector3D targetVector)
+    private double Perturb(ShipControlCommons shipControl, TimeSpan timeSinceStart, out Vector3D targetVector)
     {
-        targetVector = Target - orientation.Point;
+        targetVector = Target - shipControl.ReferencePoint;
         var distance = targetVector.Normalize(); // Original distance
         var amp = ScaleAmplitude(distance);
         var newTarget = Target;
-        newTarget += orientation.Up * amp * Math.Cos(PerturbScale * timeSinceStart.TotalSeconds + RandomOffset) * PerturbPitchScale;
-        newTarget += orientation.Left * amp * Math.Sin(PerturbScale * timeSinceStart.TotalSeconds + RandomOffset) * PerturbYawScale;
-        targetVector = Vector3D.Normalize(newTarget - orientation.Point);
+        newTarget += shipControl.ReferenceUp * amp * Math.Cos(PerturbScale * timeSinceStart.TotalSeconds + RandomOffset) * PerturbPitchScale;
+        newTarget += shipControl.ReferenceLeft * amp * Math.Sin(PerturbScale * timeSinceStart.TotalSeconds + RandomOffset) * PerturbYawScale;
+        targetVector = Vector3D.Normalize(newTarget - shipControl.ReferencePoint);
         return distance;
     }
 
@@ -121,24 +100,20 @@ public class MissileGuidance
     {
         var shipControl = (ShipControlCommons)commons;
 
-        var orientation = new Orientation(commons.Me,
-                                          shipUp: shipControl.ShipUp,
-                                          shipForward: shipControl.ShipForward);
-
         Vector3D targetVector;
         double distance;
         if (PerturbTarget)
         {
-            distance = Perturb(eventDriver.TimeSinceStart, orientation, out targetVector);
+            distance = Perturb(shipControl, eventDriver.TimeSinceStart, out targetVector);
         }
         else
         {
-            targetVector = Target - orientation.Point;
+            targetVector = Target - shipControl.ReferencePoint;
             distance = targetVector.Normalize();
         }
 
         // Transform relative to our forward vector
-        targetVector = Vector3D.Transform(targetVector, MatrixD.CreateLookAt(Zero3D, -orientation.Forward, orientation.Up));
+        targetVector = Vector3D.Transform(targetVector, MatrixD.CreateLookAt(Zero3D, -shipControl.ReferenceForward, shipControl.ReferenceUp));
 
         var yawVector = new Vector3D(targetVector.GetDim(0), 0, targetVector.GetDim(2));
         var pitchVector = new Vector3D(0, targetVector.GetDim(1), targetVector.GetDim(2));

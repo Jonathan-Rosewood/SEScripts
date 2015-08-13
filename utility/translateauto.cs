@@ -1,26 +1,5 @@
 public class TranslateAutopilot
 {
-    public struct Orientation
-    {
-        public Vector3D Point;
-        public Vector3D Forward;
-        public Vector3D Up;
-        public Vector3D Left;
-
-        public Orientation(IMyCubeBlock reference,
-                           Base6Directions.Direction shipUp = Base6Directions.Direction.Up,
-                           Base6Directions.Direction shipForward = Base6Directions.Direction.Forward)
-        {
-            Point = reference.GetPosition();
-            var forward3I = reference.Position + Base6Directions.GetIntVector(shipForward);
-            Forward = Vector3D.Normalize(reference.CubeGrid.GridIntegerToWorld(forward3I) - Point);
-            var up3I = reference.Position + Base6Directions.GetIntVector(shipUp);
-            Up = Vector3D.Normalize(reference.CubeGrid.GridIntegerToWorld(up3I) - Point);
-            var left3I = reference.Position + Base6Directions.GetIntVector(Base6Directions.GetLeft(shipUp, shipForward));
-            Left = Vector3D.Normalize(reference.CubeGrid.GridIntegerToWorld(left3I) - Point);
-        }
-    }
-
     private const uint FramesPerRun = 2;
     private const double RunsPerSecond = 60.0 / FramesPerRun;
 
@@ -89,26 +68,21 @@ public class TranslateAutopilot
 
         var shipControl = (ShipControlCommons)commons;
 
-        var reference = commons.Me;
-        var orientation = new Orientation(reference,
-                                          shipUp: shipControl.ShipUp,
-                                          shipForward: shipControl.ShipForward);
-
-        var targetVector = AutopilotTarget - orientation.Point;
+        var targetVector = AutopilotTarget - shipControl.ReferencePoint;
         var distance = targetVector.Length();
 
         // Take projection of target vector on each of our axes
-        var forwardError = Vector3D.Dot(targetVector, orientation.Forward);
-        var upError = Vector3D.Dot(targetVector, orientation.Up);
-        var leftError = Vector3D.Dot(targetVector, orientation.Left);
+        var forwardError = Vector3D.Dot(targetVector, shipControl.ReferenceForward);
+        var upError = Vector3D.Dot(targetVector, shipControl.ReferenceUp);
+        var leftError = Vector3D.Dot(targetVector, shipControl.ReferenceLeft);
 
-        velocimeter.TakeSample(reference.GetPosition(), eventDriver.TimeSinceStart);
+        velocimeter.TakeSample(shipControl.ReferencePoint, eventDriver.TimeSinceStart);
         var velocity = velocimeter.GetAverageVelocity();
         if (velocity != null)
         {
-            var forwardSpeed = Vector3D.Dot((Vector3D)velocity, orientation.Forward);
-            var upSpeed = Vector3D.Dot((Vector3D)velocity, orientation.Up);
-            var leftSpeed = Vector3D.Dot((Vector3D)velocity, orientation.Left);
+            var forwardSpeed = Vector3D.Dot((Vector3D)velocity, shipControl.ReferenceForward);
+            var upSpeed = Vector3D.Dot((Vector3D)velocity, shipControl.ReferenceUp);
+            var leftSpeed = Vector3D.Dot((Vector3D)velocity, shipControl.ReferenceLeft);
 
             // Naive approach: independent control of each axis
             Thrust(shipControl, Base6Directions.Direction.Forward, forwardError, forwardSpeed, forwardPID);
