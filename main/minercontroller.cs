@@ -59,7 +59,7 @@ void Main(string argument)
                 commons.ThrustControl.Reset();
                 break;
             default:
-                dockingManager.HandleCommand(commons, argument);
+                dockingManager.HandleCommand(commons, eventDriver, argument);
                 smartUndock.HandleCommand(commons, eventDriver, argument);
                 break;
         }

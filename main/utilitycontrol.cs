@@ -25,7 +25,7 @@ void Main(string argument)
         eventDriver.Schedule(0.0);
     }
 
-    dockingManager.HandleCommand(commons, argument);
+    dockingManager.HandleCommand(commons, eventDriver, argument);
     smartUndock.HandleCommand(commons, eventDriver, argument);
     HandleCommand(commons, argument);
 

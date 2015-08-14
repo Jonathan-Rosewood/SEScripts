@@ -28,7 +28,8 @@ public class DockingManager
         }
     }
 
-    public void HandleCommand(ZACommons commons, string argument)
+    public void HandleCommand(ZACommons commons, EventDriver eventDriver,
+                              string argument)
     {
         var command = argument.Trim().ToLower();
         if (command == "undock")
@@ -45,6 +46,45 @@ public class DockingManager
                 var gear = e.Current;
                 if (gear.IsLocked) gear.GetActionWithName("Unlock").Apply(gear);
             }
+        }
+        else if (command == "dock")
+        {
+            // Enable all connectors
+            ZACommons.ForEachBlockOfType<IMyShipConnector>(commons.Blocks,
+                                                           connector =>
+                    {
+                        if (connector.IsFunctional &&
+                            connector.DefinitionDisplayNameText == "Connector")
+                        {
+                            connector.SetValue<bool>("OnOff", true);
+                        }
+                    });
+
+            // 1 second from now, lock connectors that are ready
+            eventDriver.Schedule(1.0, (c, ed) =>
+                    {
+                        ZACommons.ForEachBlockOfType<IMyShipConnector>(c.Blocks,
+                                                                       connector =>
+                                {
+                                    if (connector.IsFunctional &&
+                                        connector.DefinitionDisplayNameText == "Connector" &&
+                                        connector.IsLocked && !connector.IsConnected)
+                                    {
+                                        connector.GetActionWithName("Lock").Apply(connector);
+                                    }
+                                });
+                    });
+
+            // And 2 seconds from now, lock landing gear
+            eventDriver.Schedule(2.0, (c, ed) =>
+                    {
+                        ZACommons.ForEachBlockOfType<IMyLandingGear>(c.Blocks,
+                                                                     gear =>
+                                {
+                                    if (gear.IsFunctional && gear.IsWorking &&
+                                        gear.Enabled && !gear.IsLocked) gear.GetActionWithName("Lock").Apply(gear);
+                                });
+                    });
         }
     }
 }
