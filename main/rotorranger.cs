@@ -1,4 +1,4 @@
-private readonly EventDriver eventDriver = new EventDriver();
+private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME, timerGroup: "RotorRangerClock");
 private readonly RotorRangefinder rotorRangefinder = new RotorRangefinder();
 
 private bool FirstRun = true;
@@ -18,6 +18,14 @@ public void UpdateTargetTextPanels(ZACommons commons, Vector3D target)
             e.Current.WritePublicText(targetString);
         }
     }
+
+    // Also output to terminal
+    commons.Echo(string.Format("Target: {0:F2}, {1:F2}, {2:F2}",
+                               target.GetDim(0),
+                               target.GetDim(1),
+                               target.GetDim(2)));
+    var distance = (target - commons.Me.GetPosition()).Length();
+    commons.Echo(string.Format("Distance: {0:F2} m", distance));
 }
 
 void Main(string argument)
