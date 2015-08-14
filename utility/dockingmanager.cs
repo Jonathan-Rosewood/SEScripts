@@ -63,6 +63,7 @@ public class DockingManager
             // 1 second from now, lock connectors that are ready
             eventDriver.Schedule(1.0, (c, ed) =>
                     {
+                        bool connected = false;
                         ZACommons.ForEachBlockOfType<IMyShipConnector>(c.Blocks,
                                                                        connector =>
                                 {
@@ -71,19 +72,23 @@ public class DockingManager
                                         connector.IsLocked && !connector.IsConnected)
                                     {
                                         connector.GetActionWithName("Lock").Apply(connector);
+                                        connected = true;
                                     }
                                 });
-                    });
 
-            // And 2 seconds from now, lock landing gear
-            eventDriver.Schedule(2.0, (c, ed) =>
-                    {
-                        ZACommons.ForEachBlockOfType<IMyLandingGear>(c.Blocks,
-                                                                     gear =>
-                                {
-                                    if (gear.IsFunctional && gear.IsWorking &&
-                                        gear.Enabled && !gear.IsLocked) gear.GetActionWithName("Lock").Apply(gear);
-                                });
+                        if (connected)
+                        {
+                            // And 1 second from now, lock landing gear
+                            ed.Schedule(1.0, (c2, ed2) =>
+                                    {
+                                        ZACommons.ForEachBlockOfType<IMyLandingGear>(c2.Blocks,
+                                                                                     gear =>
+                                                {
+                                                    if (gear.IsFunctional && gear.IsWorking &&
+                                                        gear.Enabled && !gear.IsLocked) gear.GetActionWithName("Lock").Apply(gear);
+                                                });
+                                    });
+                        }
                     });
         }
     }
