@@ -104,12 +104,16 @@ public class EventDriver
         }
     }
 
-    public void Tick(ZACommons commons, Action mainAction = null)
+    public void Tick(ZACommons commons, Action mainAction = null,
+                     Action preAction = null,
+                     Action postAction = null)
     {
         Ticks++;
         TimeSinceStart += commons.Program.ElapsedTime;
 
         bool runMain = false;
+
+        if (preAction != null) preAction();
 
         // Process each queue independently
         while (TickQueue.First != null &&
@@ -143,6 +147,8 @@ public class EventDriver
         }
 
         if (runMain && mainAction != null) mainAction();
+
+        if (postAction != null) postAction();
 
         KickTimer(commons);
     }

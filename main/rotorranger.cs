@@ -1,5 +1,5 @@
-private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME, timerGroup: "RotorRangerClock");
-private readonly RotorRangefinder rotorRangefinder = new RotorRangefinder();
+public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME, timerGroup: "RotorRangerClock");
+public readonly RotorRangefinder rotorRangefinder = new RotorRangefinder();
 
 private bool FirstRun = true;
 
@@ -38,8 +38,8 @@ void Main(string argument)
         rotorRangefinder.Init(commons, eventDriver);
     }
         
-    rotorRangefinder.HandleCommand(commons, eventDriver, argument,
-                                   UpdateTargetTextPanels);
-
-    eventDriver.Tick(commons);
+    eventDriver.Tick(commons, preAction: () => {
+            rotorRangefinder.HandleCommand(commons, eventDriver, argument,
+                                           UpdateTargetTextPanels);
+        });
 }

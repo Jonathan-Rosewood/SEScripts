@@ -41,7 +41,7 @@ public class SmartUndock
                 // Schedule the autopilot
                 autopilot.Init(commons, eventDriver, (Vector3D)UndockTarget,
                                SMART_UNDOCK_UNDOCK_SPEED,
-                               delay: 3.0);
+                               delay: 2.0);
             }
 
             // Next, physically undock

@@ -1,11 +1,11 @@
-private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
+public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
 private readonly DoorAutoCloser doorAutoCloser = new DoorAutoCloser();
 private readonly SimpleAirlock simpleAirlock = new SimpleAirlock();
-private readonly ComplexAirlock complexAirlock = new ComplexAirlock();
+public readonly ComplexAirlock complexAirlock = new ComplexAirlock();
 private readonly OxygenManager oxygenManager = new OxygenManager();
 private readonly PowerManager powerManager = new PowerManager();
 private readonly RefineryManager refineryManager = new RefineryManager();
-private readonly ProductionManager productionManager = new ProductionManager();
+public readonly ProductionManager productionManager = new ProductionManager();
 private readonly TimerKicker timerKicker = new TimerKicker();
 
 private bool FirstRun = true;
@@ -21,11 +21,11 @@ void Main(string argument)
         if (TIMER_KICKER_ENABLE) timerKicker.Init(commons, eventDriver);
     }
 
-    // Handle commands
-    if (COMPLEX_AIRLOCK_ENABLE) complexAirlock.HandleCommand(commons, eventDriver, argument);
-    if (PRODUCTION_MANAGER_ENABLE) productionManager.HandleCommand(argument);
-
-    eventDriver.Tick(commons);
+    eventDriver.Tick(commons, preAction: () => {
+            // Handle commands
+            if (COMPLEX_AIRLOCK_ENABLE) complexAirlock.HandleCommand(commons, eventDriver, argument);
+            if (PRODUCTION_MANAGER_ENABLE) productionManager.HandleCommand(argument);
+        });
 }
 
 public void Run(ZACommons commons, EventDriver eventDriver)

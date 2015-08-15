@@ -1,5 +1,5 @@
-private readonly EventDriver eventDriver = new EventDriver(timerGroup: "CruiseControlClock");
-private readonly CruiseControl cruiseControl = new CruiseControl();
+public readonly EventDriver eventDriver = new EventDriver(timerGroup: "CruiseControlClock");
+public readonly CruiseControl cruiseControl = new CruiseControl();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
@@ -16,9 +16,10 @@ void Main(string argument)
         shipOrientation.SetShipReference(commons, "CruiseControlReference");
     }
 
-    cruiseControl.HandleCommand(commons, eventDriver, argument);
-
-    eventDriver.Tick(commons);
+    eventDriver.Tick(commons, preAction: () =>
+            {
+                cruiseControl.HandleCommand(commons, eventDriver, argument);
+            });
 }
 
 public class CruiseControl
