@@ -22,7 +22,7 @@ void Main(string argument)
     {
         FirstRun = true;
 
-        myStorage.Encode(Storage);
+        myStorage.Decode(Storage);
 
         shipOrientation.SetShipReference(commons, RANGEFINDER_REFERENCE_GROUP);
 
