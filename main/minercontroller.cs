@@ -4,6 +4,7 @@ public readonly SafeMode safeMode = new SafeMode();
 public readonly BatteryMonitor batteryMonitor = new BatteryMonitor();
 public readonly SmartUndock smartUndock = new SmartUndock();
 public readonly MinerController minerController = new MinerController();
+private readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
@@ -11,13 +12,18 @@ private bool FirstRun = true;
 
 void Main(string argument)
 {
-    var commons = new ShipControlCommons(this, shipOrientation);
+    var commons = new ShipControlCommons(this, shipOrientation,
+                                         storage: myStorage);
 
     if (FirstRun)
     {
         FirstRun = false;
 
+        myStorage.Decode(Storage);
+
         shipOrientation.SetShipReference(commons, MINER_REFERENCE_GROUP);
+
+        smartUndock.Init(commons);
 
         eventDriver.Schedule(0.0);
     }
@@ -36,6 +42,8 @@ void Main(string argument)
             smartUndock.HandleCommand(commons, eventDriver, argument);
             minerController.HandleCommand(commons, eventDriver, argument);
         });
+
+    if (commons.IsDirty) Storage = myStorage.Encode();
 }
 
 public class MinerController

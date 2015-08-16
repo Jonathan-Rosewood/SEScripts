@@ -1,8 +1,29 @@
 public class SmartUndock
 {
+    private const string UndockTargetKey = "SmartUndock_UndockTarget";
+
     private readonly TranslateAutopilot autopilot = new TranslateAutopilot();
 
     private Vector3D? UndockTarget = null;
+
+    public void Init(ZACommons commons)
+    {
+        UndockTarget = null;
+        var previousTarget = commons.GetValue(UndockTargetKey);
+        if (previousTarget != null)
+        {
+            var parts = previousTarget.Split(';');
+            if (parts.Length == 3)
+            {
+                var newTarget = new Vector3D();
+                for (int i = 0; i < 3; i++)
+                {
+                    newTarget.SetDim(i, double.Parse(parts[i]));
+                }
+                UndockTarget = newTarget;
+            }
+        }
+    }
 
     public void HandleCommand(ZACommons commons, EventDriver eventDriver,
                               string argument)
@@ -43,6 +64,7 @@ public class SmartUndock
                                SMART_UNDOCK_UNDOCK_SPEED,
                                delay: 2.0);
             }
+            SaveUndockTarget(commons);
 
             // Next, physically undock
             ZACommons.EnableBlocks(connectors, false);
@@ -68,5 +90,18 @@ public class SmartUndock
         {
             autopilot.Reset(commons);
         }
+    }
+
+    private void SaveUndockTarget(ZACommons commons)
+    {
+        string value = null;
+        if (UndockTarget != null)
+        {
+            value = string.Format("{0};{1};{2}",
+                                  ((Vector3D)UndockTarget).GetDim(0),
+                                  ((Vector3D)UndockTarget).GetDim(1),
+                                  ((Vector3D)UndockTarget).GetDim(2));
+        }
+        commons.SetValue(UndockTargetKey, value);
     }
 }

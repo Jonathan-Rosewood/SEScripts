@@ -7,6 +7,9 @@ public class ZACommons
     public readonly MyGridProgram Program;
     private readonly string ShipGroupName;
 
+    private readonly ZAStorage Storage;
+    public bool IsDirty { get; private set; }
+
     // All accessible blocks
     public List<IMyTerminalBlock> AllBlocks
     {
@@ -86,10 +89,13 @@ public class ZACommons
     }
     private Dictionary<string, IMyBlockGroup> m_groupsByName = null;
 
-    public ZACommons(MyGridProgram program, string shipGroup = null)
+    public ZACommons(MyGridProgram program, string shipGroup = null,
+                     ZAStorage storage = null)
     {
         Program = program;
         ShipGroupName = shipGroup;
+        Storage = storage;
+        IsDirty = false;
     }
 
     // Groups
@@ -261,5 +267,87 @@ public class ZACommons
     public static bool IsConnectedAnywhere(IEnumerable<IMyTerminalBlock> blocks)
     {
         return IsConnectedAnywhere(GetBlocksOfType<IMyShipConnector>(blocks));
+    }
+
+    // Storage
+
+    public void SetValue(string key, string value)
+    {
+        if (Storage != null)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                Storage.Data[key] = value;
+            }
+            else
+            {
+                Storage.Data.Remove(key);
+            }
+            IsDirty = true;
+        }
+    }
+
+    public string GetValue(string key)
+    {
+        string value;
+        if (Storage != null && Storage.Data.TryGetValue(key, out value))
+        {
+            return value;
+        }
+        return null;
+    }
+}
+
+// This should have a longer scope than ZACommons, hence a separate class
+// Aside from Init, this class should be considered private
+public class ZAStorage
+{
+    private const char KEY_DELIM = '\\';
+    private const char PAIR_DELIM = '$';
+    private readonly string PAIR_DELIM_STR = new string(PAIR_DELIM, 1);
+
+    public readonly Dictionary<string, string> Data = new Dictionary<string, string>();
+
+    public string Encode()
+    {
+        var encoded = new List<string>();
+
+        for (var e = Data.GetEnumerator(); e.MoveNext();)
+        {
+            var kv = e.Current;
+            ValidityCheck(kv.Key);
+            ValidityCheck(kv.Value);
+            var pair = new StringBuilder();
+            pair.Append(kv.Key);
+            pair.Append(KEY_DELIM);
+            pair.Append(kv.Value);
+            encoded.Add(pair.ToString());
+        }
+
+        return string.Join(PAIR_DELIM_STR, encoded);
+    }
+
+    public void Decode(string data)
+    {
+        Data.Clear();
+
+        var pairs = data.Split(PAIR_DELIM);
+        for (int i = 0; i < pairs.Length; i++)
+        {
+            var parts = pairs[i].Split(new char[] { KEY_DELIM }, 2);
+            if (parts.Length == 2)
+            {
+                Data[parts[0]] = parts[1];
+            }
+        }
+    }
+
+    private void ValidityCheck(string value)
+    {
+        if (value.IndexOf(KEY_DELIM) >= 0 ||
+            value.IndexOf(PAIR_DELIM) >= 0)
+        {
+            throw new Exception(string.Format("String '{0}' cannot be used by DumbSerializer!", value));
+        }
     }
 }

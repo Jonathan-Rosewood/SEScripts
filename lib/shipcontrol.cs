@@ -15,8 +15,9 @@ public class ShipControlCommons : ZACommons
 
     public ShipControlCommons(MyGridProgram program,
                               ShipOrientation shipOrientation,
-                              string shipGroup = null)
-        : base(program, shipGroup: shipGroup)
+                              string shipGroup = null,
+                              ZAStorage storage = null)
+        : base(program, shipGroup: shipGroup, storage: storage)
     {
         this.shipOrientation = shipOrientation;
         // Use own programmable block as reference point

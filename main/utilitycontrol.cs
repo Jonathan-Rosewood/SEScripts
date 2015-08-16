@@ -4,6 +4,7 @@ public readonly SafeMode safeMode = new SafeMode();
 public readonly BatteryMonitor batteryMonitor = new BatteryMonitor();
 public readonly SolarRotorController rotorController = new SolarRotorController();
 public readonly SmartUndock smartUndock = new SmartUndock();
+private readonly ZAStorage myStorage = new ZAStorage;
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
@@ -14,13 +15,18 @@ private bool FirstRun = true;
 
 void Main(string argument)
 {
-    var commons = new ShipControlCommons(this, shipOrientation);
+    var commons = new ShipControlCommons(this, shipOrientation,
+                                         storage: myStorage);
 
     if (FirstRun)
     {
         FirstRun = true;
 
+        myStorage.Encode(Storage);
+
         shipOrientation.SetShipReference(commons, RANGEFINDER_REFERENCE_GROUP);
+
+        smartUndock.Init(commons);
 
         eventDriver.Schedule(0.0);
     }
@@ -40,6 +46,8 @@ void Main(string argument)
             smartUndock.HandleCommand(commons, eventDriver, argument);
             HandleCommand(commons, argument);
         });
+
+    if (commons.IsDirty) Storage = myStorage.Encode();
 }
 
 public void HandleCommand(ZACommons commons, string argument)
