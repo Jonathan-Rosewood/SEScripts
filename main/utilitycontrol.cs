@@ -4,7 +4,7 @@ public readonly SafeMode safeMode = new SafeMode();
 public readonly BatteryMonitor batteryMonitor = new BatteryMonitor();
 public readonly SolarRotorController rotorController = new SolarRotorController();
 public readonly SmartUndock smartUndock = new SmartUndock();
-private readonly ZAStorage myStorage = new ZAStorage;
+private readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
