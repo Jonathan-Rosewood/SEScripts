@@ -29,13 +29,16 @@ def scan_modules():
     return result
 
 
-def create_chunk(fn):
+def create_chunk(fn, strip=False):
     if os.path.exists(fn):
         with io.StringIO() as out:
             with open(fn, 'rU') as content:
                 for line in content:
-                    out.write(line.rstrip() + NL)
-            return out.getvalue()
+                    if strip:
+                        out.write(line.strip() + NL)
+                    else:
+                        out.write(line.rstrip() + NL)
+                return out.getvalue()
 
 
 def generate_version_header(version, modules):
@@ -44,7 +47,7 @@ def generate_version_header(version, modules):
     return s.format(version, ', '.join(modules))
 
 
-def build_script(version, available_modules, spec):
+def build_script(version, available_modules, spec, strip=False):
     config = configparser.ConfigParser()
     config.read(spec)
 
@@ -53,13 +56,16 @@ def build_script(version, available_modules, spec):
 
     chunks = [generate_version_header(version, modules)]
 
+    if strip:
+        chunks.append('// NB Leading whitespace stripped to save bytes!' + NL)
+
     # Headers
     for module in modules:
         if module not in available_modules:
             sys.exit("""No such module '{}'""".format(module))
         header_fn = os.path.join(available_modules[module],
                                  module + '-header.cs')
-        chunk = create_chunk(header_fn)
+        chunk = create_chunk(header_fn, strip=strip)
         if chunk:
             chunks.append(chunk)
 
@@ -69,7 +75,7 @@ def build_script(version, available_modules, spec):
     for module in footers:
         footer_fn = os.path.join(available_modules[module],
                                  module + '-footer.cs')
-        chunk = create_chunk(footer_fn)
+        chunk = create_chunk(footer_fn, strip=strip)
         if chunk:
             chunks.append(chunk)
 
@@ -77,7 +83,7 @@ def build_script(version, available_modules, spec):
     for module in modules:
         body_fn = os.path.join(available_modules[module],
                                module + '.cs')
-        chunk = create_chunk(body_fn)
+        chunk = create_chunk(body_fn, strip=strip)
         if chunk:
             chunks.append(chunk)
 
@@ -87,7 +93,7 @@ def build_script(version, available_modules, spec):
         out.write(NL.join(chunks))
 
 
-def main(specs):
+def main(specs, strip=False):
     # Fetch version
     if os.path.isdir('.hg'):
         with subprocess.Popen('hg identify', shell=True, stdout=subprocess.PIPE,
@@ -100,7 +106,7 @@ def main(specs):
     available_modules = scan_modules()
 
     for spec in specs:
-        build_script(version, available_modules, spec)
+        build_script(version, available_modules, spec, strip=strip)
 
 
 
@@ -108,8 +114,11 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description='Build SE script from parts')
+    parser.add_argument('-w', action='store_true',
+                        help='strip leading whitespace',
+                        dest='strip')
     parser.add_argument('specs', nargs='+',
                         help='script spec files')
     args = parser.parse_args();
 
-    main(args.specs)
+    main(args.specs, strip=args.strip)
