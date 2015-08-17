@@ -299,7 +299,6 @@ public class ZACommons
 }
 
 // This should have a longer scope than ZACommons, hence a separate class
-// Aside from Init, this class should be considered private
 public class ZAStorage
 {
     private const char KEY_DELIM = '\\';
@@ -344,10 +343,11 @@ public class ZAStorage
 
     private void ValidityCheck(string value)
     {
+        // Yeah... not gonna bother with escape sequences and such.
         if (value.IndexOf(KEY_DELIM) >= 0 ||
             value.IndexOf(PAIR_DELIM) >= 0)
         {
-            throw new Exception(string.Format("String '{0}' cannot be used by DumbSerializer!", value));
+            throw new Exception(string.Format("String '{0}' cannot be used by ZAStorage!", value));
         }
     }
 }
