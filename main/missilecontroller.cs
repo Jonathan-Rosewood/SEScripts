@@ -16,7 +16,7 @@ void Main(string argument)
     {
         FirstRun = false;
 
-        shipOrientation.SetShipReference(commons, MissileLaunch.SYSTEMS_GROUP,
+        shipOrientation.SetShipReference(commons, MissileLaunch.SYSTEMS_GROUP + MISSILE_GROUP_SUFFIX,
                                          block => block is IMyGyro);
 
         missileLaunch.Init(commons, eventDriver, missileGuidance, missilePayload.Init,
