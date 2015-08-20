@@ -40,7 +40,10 @@ public class SmartShell
         }
         else
         {
-            Target = (Vector3D)target;
+            // Project target vector on our forward vector
+            var targetVector = (Vector3D)target - shipControl.ReferencePoint;
+            // and use that as that target
+            Target = shipControl.ReferencePoint + shipControl.ReferenceForward * Vector3D.Dot(targetVector, shipControl.ReferenceForward);
         }
         eventDriver.Schedule(1.0, Demass);
     }
