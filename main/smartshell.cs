@@ -17,7 +17,6 @@ void Main(string argument)
     }
 
     eventDriver.Tick(commons);
-    commons.Echo("Time: " + eventDriver.TimeSinceStart);
 }
 
 public class SmartShell
@@ -33,7 +32,16 @@ public class SmartShell
     {
         var shipControl = (ShipControlCommons)commons;
         InitialPosition = shipControl.ReferencePoint;
-        AcquireTarget(commons);
+        var target = AcquireTarget(commons);
+        if (target == null)
+        {
+            // Use default range
+            Target = shipControl.ReferencePoint + shipControl.ReferenceForward * DefaultRange;
+        }
+        else
+        {
+            Target = (Vector3D)target;
+        }
         eventDriver.Schedule(1.0, Demass);
     }
 
@@ -70,51 +78,49 @@ public class SmartShell
         if (distance < Decoy2Distance * Decoy2Distance)
         {
             // Release decoy #2
-            Decoy(commons, eventDriver, " #2");
+            LaunchDecoy(commons, eventDriver, " #2");
             return; // We're done
         }
         else if (!Decoy1Released && distance < Decoy1Distance * Decoy1Distance)
         {
             // Release decoy #1
-            Decoy(commons, eventDriver, " #1");
+            LaunchDecoy(commons, eventDriver, " #1");
             Decoy1Released = true;
         }
 
         eventDriver.Schedule(TicksPerRun, DecoyLoop);
     }
 
-    private void AcquireTarget(ZACommons commons)
+    // Acquire target from CM Target text panel. If anything's wrong,
+    // return null.
+    private Vector3D? AcquireTarget(ZACommons commons)
     {
         // Find the sole text panel
         var panelGroup = commons.GetBlockGroupWithName("CM Target");
-        if (panelGroup == null)
-        {
-            throw new Exception("Missing group: CM Target");
-        }
+        if (panelGroup == null) return null;
 
         var panels = ZACommons.GetBlocksOfType<IMyTextPanel>(panelGroup.Blocks);
-        if (panels.Count == 0)
-        {
-            throw new Exception("Expecting at least 1 text panel");
-        }
+        if (panels.Count == 0) return null;
         var panel = panels[0] as IMyTextPanel; // Just use the first one
         var targetString = panel.GetPublicText();
 
         // Parse target info
         var parts = targetString.Split(';');
-        if (parts.Length != 3)
-        {
-            throw new Exception("Expecting exactly 3 parts to target info");
-        }
-        Target = new Vector3D();
+        if (parts.Length != 3) return null;
+
+        var target = new Vector3D();
         for (int i = 0; i < 3; i++)
         {
-            Target.SetDim(i, double.Parse(parts[i]));
+            double coord;
+            if (!double.TryParse(parts[i], out coord)) return null;
+            target.SetDim(i, coord);
         }
+
+        return target;
     }
 
-    private void Decoy(ZACommons commons, EventDriver eventDriver,
-                       string suffix)
+    private void LaunchDecoy(ZACommons commons, EventDriver eventDriver,
+                             string suffix)
     {
         var group = commons.GetBlockGroupWithName("SS Decoy Set" + suffix);
         // Activate decoys
@@ -126,11 +132,14 @@ public class SmartShell
                         block.SetValue<bool>("OnOff", true);
                     }
                 });
-        // Deactivate merge block
-        ZACommons.ForEachBlockOfType<IMyShipMergeBlock>(group.Blocks,
-                                                        merge =>
-                {
-                    merge.SetValue<bool>("OnOff", false);
-                });
+        eventDriver.Schedule(DecoyReleaseDelay, (c, e) => {
+                var g = c.GetBlockGroupWithName("SS Decoy Set" + suffix);
+                // Deactivate merge block
+                ZACommons.ForEachBlockOfType<IMyShipMergeBlock>(g.Blocks,
+                                                                merge =>
+                        {
+                            merge.SetValue<bool>("OnOff", false);
+                        });
+            });
     }
 }
