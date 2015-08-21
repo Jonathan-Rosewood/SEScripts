@@ -67,12 +67,29 @@ public class MissileLaunch
 
         var thrustControl = shipControl.ThrustControl;
         thrustControl.Reset();
-        thrustControl.SetOverrideNewtons(Base6Directions.Direction.Forward, BURN_FORCE);
+        // Initiate main burn here, otherwise do it later
+        if (!BURN_DOWNWARD) thrustControl.SetOverrideNewtons(Base6Directions.Direction.Forward, BURN_FORCE);
         if (BURN_DOWNWARD) thrustControl.SetOverride(Base6Directions.Direction.Down);
 
         var gyroControl = shipControl.GyroControl;
         gyroControl.Reset();
         gyroControl.EnableOverride(true);
+
+        if (!BURN_DOWNWARD)
+        {
+            eventDriver.Schedule(BURN_TIME, Arm);
+        }
+        else
+        {
+            eventDriver.Schedule(1.0, MainBurn);
+        }
+    }
+
+    public void MainBurn(ZACommons commons, EventDriver eventDriver)
+    {
+        var shipControl = (ShipControlCommons)commons;
+        var thrustControl = shipControl.ThrustControl;
+        thrustControl.SetOverrideNewtons(Base6Directions.Direction.Forward, BURN_FORCE);
 
         eventDriver.Schedule(BURN_TIME, Arm);
     }
