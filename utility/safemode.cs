@@ -1,11 +1,23 @@
 public class SafeMode
 {
+    public interface EmergencyStopHandler
+    {
+        void EmergencyStop(ZACommons commons);
+    }
+
+    private readonly EmergencyStopHandler emergencyStopHandler;
+
     private bool? IsControlled = null;
 
     private bool PreviouslyDocked = false;
     private readonly TimeSpan AbandonmentTimeout = TimeSpan.Parse(ABANDONMENT_TIMEOUT);
     private TimeSpan LastControlled = TimeSpan.FromSeconds(0); // Hmm, TimeSpan.Zero doesn't work?
     private bool Abandoned = false;
+
+    public SafeMode(EmergencyStopHandler emergencyStopHandler = null)
+    {
+        this.emergencyStopHandler = emergencyStopHandler;
+    }
 
     private bool IsShipControlled(IEnumerable<IMyShipController> controllers)
     {
@@ -64,8 +76,12 @@ public class SafeMode
                     }
                 }
 
-                // Only trigger timer block if dampeners were actually engaged
-                if (dampenersChanged) ZACommons.StartTimerBlockWithName(commons.Blocks, EMERGENCY_STOP_NAME);
+                // Only do something if dampeners were actually engaged
+                if (dampenersChanged)
+                {
+                    if (emergencyStopHandler != null) emergencyStopHandler.EmergencyStop(commons);
+                    ZACommons.StartTimerBlockWithName(commons.Blocks, EMERGENCY_STOP_NAME);
+                }
             }
         }
 

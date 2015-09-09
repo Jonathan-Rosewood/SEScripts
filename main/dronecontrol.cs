@@ -1,6 +1,14 @@
+public class MyEmergencyStopHandler : SafeMode.EmergencyStopHandler
+{
+    public void EmergencyStop(ZACommons commons)
+    {
+        SafetyStop.ThrusterCheck(commons);
+    }
+}
+
 public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
 public readonly DockingManager dockingManager = new DockingManager();
-public readonly SafeMode safeMode = new SafeMode();
+public readonly SafeMode safeMode = new SafeMode(new MyEmergencyStopHandler());
 public readonly BatteryMonitor batteryMonitor = new BatteryMonitor();
 public readonly SolarRotorController rotorController = new SolarRotorController();
 public readonly SmartUndock smartUndock = new SmartUndock();
