@@ -11,6 +11,7 @@ public readonly DockingManager dockingManager = new DockingManager();
 public readonly SafeMode safeMode = new SafeMode(new MyEmergencyStopHandler());
 public readonly BatteryMonitor batteryMonitor = new BatteryMonitor();
 public readonly SolarRotorController rotorController = new SolarRotorController();
+private readonly RedundancyManager redundancyManager = new RedundancyManager();
 public readonly SmartUndock smartUndock = new SmartUndock();
 public readonly ZAStorage myStorage = new ZAStorage();
 
@@ -35,6 +36,7 @@ void Main(string argument)
         smartUndock.Init(commons);
 
         eventDriver.Schedule(0.0);
+        redundancyManager.Init(commons, eventDriver);
     }
 
     eventDriver.Tick(commons, mainAction: () => {

@@ -7,6 +7,7 @@ private readonly PowerManager powerManager = new PowerManager();
 private readonly RefineryManager refineryManager = new RefineryManager();
 public readonly ProductionManager productionManager = new ProductionManager();
 private readonly TimerKicker timerKicker = new TimerKicker();
+private readonly RedundancyManager redundancyManager = new RedundancyManager();
 
 private bool FirstRun = true;
 
@@ -19,6 +20,7 @@ void Main(string argument)
         FirstRun = false;
         eventDriver.Schedule(0.0, Run);
         if (TIMER_KICKER_ENABLE) timerKicker.Init(commons, eventDriver);
+        if (REDUNDANCY_MANAGER_ENABLE) redundancyManager.Init(commons, eventDriver);
     }
 
     eventDriver.Tick(commons, preAction: () => {

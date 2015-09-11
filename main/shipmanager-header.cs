@@ -9,5 +9,6 @@ const bool POWER_MANAGER_ENABLE = true;
 const bool REFINERY_MANAGER_ENABLE = true;
 const bool PRODUCTION_MANAGER_ENABLE = false;
 const bool TIMER_KICKER_ENABLE = true;
+const bool REDUNDANCY_MANAGER_ENABLE = true;
 
 // Options
