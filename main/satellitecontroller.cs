@@ -43,6 +43,7 @@ public readonly SolarGyroController solarGyroController = new SolarGyroControlle
                                                                                   GyroControl.Pitch,
                                                                                   GyroControl.Roll
 );
+private readonly RedundancyManager redundancyManager = new RedundancyManager();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
@@ -57,6 +58,8 @@ void Main(string argument)
         FirstRun = false;
 
         shipOrientation.SetShipReference<IMyShipController>(commons.Blocks);
+
+        redundancyManager.Init(commons, eventDriver);
 
         eventDriver.Schedule(0.0);
     }
