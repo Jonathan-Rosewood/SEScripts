@@ -192,7 +192,7 @@ public class ZACommons
 
     public static bool IsBatteryRecharging(IMyBatteryBlock battery)
     {
-        return !battery.ProductionEnabled;
+        return false; // BROKEN !battery.ProductionEnabled;
     }
 
     public static void SetBatteryRecharge(IMyBatteryBlock battery, bool recharge)

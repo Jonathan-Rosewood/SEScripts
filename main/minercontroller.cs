@@ -1,7 +1,6 @@
 public readonly EventDriver eventDriver = new EventDriver(timerGroup: MINER_CLOCK_GROUP);
 public readonly DockingManager dockingManager = new DockingManager();
 public readonly SafeMode safeMode = new SafeMode();
-public readonly BatteryMonitor batteryMonitor = new BatteryMonitor();
 public readonly SmartUndock smartUndock = new SmartUndock();
 public readonly MinerController minerController = new MinerController();
 private readonly ZAStorage myStorage = new ZAStorage();
@@ -34,7 +33,6 @@ void Main(string argument)
 
             dockingManager.Run(commons, isConnected);
             safeMode.Run(commons, isConnected);
-            batteryMonitor.Run(commons, isConnected);
 
             eventDriver.Schedule(1.0);
         }, preAction: () => {

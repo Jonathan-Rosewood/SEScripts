@@ -3,7 +3,6 @@ private readonly DoorAutoCloser doorAutoCloser = new DoorAutoCloser();
 private readonly SimpleAirlock simpleAirlock = new SimpleAirlock();
 public readonly ComplexAirlock complexAirlock = new ComplexAirlock();
 private readonly OxygenManager oxygenManager = new OxygenManager();
-private readonly PowerManager powerManager = new PowerManager();
 private readonly RefineryManager refineryManager = new RefineryManager();
 public readonly ProductionManager productionManager = new ProductionManager();
 private readonly TimerKicker timerKicker = new TimerKicker();
@@ -41,7 +40,6 @@ public void Run(ZACommons commons, EventDriver eventDriver)
 
     // Systems management
     if (OXYGEN_MANAGER_ENABLE) oxygenManager.Run(commons);
-    if (POWER_MANAGER_ENABLE) powerManager.Run(commons);
     if (REFINERY_MANAGER_ENABLE) refineryManager.Run(commons);
     if (PRODUCTION_MANAGER_ENABLE) productionManager.Run(commons);
 

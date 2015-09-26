@@ -9,8 +9,6 @@ public class MyEmergencyStopHandler : SafeMode.EmergencyStopHandler
 public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
 public readonly DockingManager dockingManager = new DockingManager();
 public readonly SafeMode safeMode = new SafeMode(new MyEmergencyStopHandler());
-public readonly BatteryMonitor batteryMonitor = new BatteryMonitor();
-public readonly SolarRotorController rotorController = new SolarRotorController();
 private readonly RedundancyManager redundancyManager = new RedundancyManager();
 public readonly SmartUndock smartUndock = new SmartUndock();
 public readonly ZAStorage myStorage = new ZAStorage();
@@ -45,8 +43,6 @@ void Main(string argument)
 
             dockingManager.Run(commons, isConnected);
             safeMode.Run(commons, isConnected);
-            batteryMonitor.Run(commons, isConnected);
-            if (MAX_POWER_ENABLED) rotorController.Run(commons);
 
             eventDriver.Schedule(1.0);
         }, preAction: () => {

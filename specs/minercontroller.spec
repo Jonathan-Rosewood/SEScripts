@@ -1,5 +1,5 @@
 [script]
-modules = minercontroller, dockingmanager, safemode, batterymonitor,
+modules = minercontroller, dockingmanager, safemode,
     smartundock, gyrocontrol, thrustcontrol, shiporientation, shipcontrol,
     translateauto, velocimeter, pid, eventdriver, commons
 out = out/Miner Controller/Script.cs
