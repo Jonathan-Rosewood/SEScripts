@@ -8,17 +8,17 @@ public class OxygenManager
 
     private int PreviousState = OXYGEN_LEVEL_UNKNOWN;
 
-    private float GetAverageOxygenTankLevel(List<IMyOxygenTank> blocks)
+    private float GetAverageOxygenTankLevel(List<IMyTerminalBlock> blocks)
     {
         float total = 0.0f;
         int count = 0;
 
         for (var e = blocks.GetEnumerator(); e.MoveNext();)
         {
-            var block = e.Current;
-            if (block is IMyOxygenTank)
+            var tank = e.Current as IMyOxygenTank;
+            if (tank != null)
             {
-                total += ((IMyOxygenTank)block).GetOxygenLevel();
+                total += tank.GetOxygenLevel();
                 count++;
             }
         }
@@ -26,7 +26,7 @@ public class OxygenManager
         return count != 0 ? total / count : 0.0f;
     }
 
-    private int GetOxygenState(List<IMyOxygenTank> tanks)
+    private int GetOxygenState(List<IMyTerminalBlock> tanks)
     {
         var level = GetAverageOxygenTankLevel(tanks);
         if (level >= MAX_OXYGEN_TANK_LEVEL)

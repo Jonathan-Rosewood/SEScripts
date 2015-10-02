@@ -45,7 +45,7 @@ public class DockingManager
             var gears = ZACommons.GetBlocksOfType<IMyLandingGear>(commons.Blocks);
             for (var e = gears.GetEnumerator(); e.MoveNext();)
             {
-                var gear = e.Current;
+                var gear = (IMyLandingGear)e.Current;
                 if (gear.IsLocked) gear.GetActionWithName("Unlock").Apply(gear);
             }
         }
@@ -53,8 +53,9 @@ public class DockingManager
         {
             // Enable all connectors
             ZACommons.ForEachBlockOfType<IMyShipConnector>(commons.Blocks,
-                                                           connector =>
+                                                           block =>
                     {
+                        var connector = (IMyShipConnector)block;
                         if (connector.IsFunctional &&
                             connector.DefinitionDisplayNameText == "Connector")
                         {
@@ -67,8 +68,9 @@ public class DockingManager
                     {
                         bool connected = false;
                         ZACommons.ForEachBlockOfType<IMyShipConnector>(c.Blocks,
-                                                                       connector =>
+                                                                       block =>
                                 {
+                                    var connector = (IMyShipConnector)block;
                                     if (connector.IsFunctional &&
                                         connector.DefinitionDisplayNameText == "Connector" &&
                                         connector.IsLocked && !connector.IsConnected)
@@ -84,8 +86,9 @@ public class DockingManager
                             ed.Schedule(1.0, (c2, ed2) =>
                                     {
                                         ZACommons.ForEachBlockOfType<IMyLandingGear>(c2.Blocks,
-                                                                                     gear =>
+                                                                                     block =>
                                                 {
+                                                    var gear = (IMyLandingGear)block;
                                                     if (gear.IsFunctional && gear.IsWorking &&
                                                         gear.Enabled && !gear.IsLocked) gear.GetActionWithName("Lock").Apply(gear);
                                                 });

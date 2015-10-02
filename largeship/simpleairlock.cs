@@ -1,10 +1,11 @@
 public class SimpleAirlock
 {
-    private bool IsAnyDoorOpen(List<IMyDoor> doors)
+    private bool IsAnyDoorOpen(List<IMyTerminalBlock> doors)
     {
         for (var e = doors.GetEnumerator(); e.MoveNext();)
         {
-            if (e.Current.Open) return true;
+            var door = e.Current as IMyDoor;
+            if (door != null && door.Open) return true;
         }
         return false;
     }
@@ -21,7 +22,7 @@ public class SimpleAirlock
             var opened = IsAnyDoorOpen(doors);
             for (var f = doors.GetEnumerator(); f.MoveNext();)
             {
-                var door = f.Current;
+                var door = (IMyDoor)f.Current;
                 if (!door.Open && opened)
                 {
                     // This door is not open and some other door in the group is, lock it down

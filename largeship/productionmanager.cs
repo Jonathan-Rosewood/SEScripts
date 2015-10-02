@@ -150,7 +150,7 @@ public class ProductionManager
         // If anything has already been appropriately named, remove it from our map
         for (var e = assemblers.GetEnumerator(); e.MoveNext();)
         {
-            var assembler = e.Current;
+            var assembler = (IMyAssembler)e.Current;
             ItemStock target;
             if (ItemStock.TryParse(assembler.CustomName, out target))
             {
@@ -203,7 +203,7 @@ public class ProductionManager
         var assemblers = ZACommons.GetBlocksOfType<IMyAssembler>(ship);
         for (var e = assemblers.GetEnumerator(); e.MoveNext();)
         {
-            var assembler = e.Current;
+            var assembler = (IMyAssembler)e.Current;
             ItemStock target;
             if (ItemStock.TryParse(assembler.CustomName, out target))
             {

@@ -33,15 +33,15 @@ public class RefineryManager
             .GetBlocksOfType<IMyRefinery>(commons.Blocks,
                                           block => block.IsFunctional &&
                                           block.IsWorking &&
-                                          block.Enabled &&
-                                          block.UseConveyorSystem);
+                                          ((IMyRefinery)block).Enabled &&
+                                          ((IMyRefinery)block).UseConveyorSystem);
 
         var isProducing = false;
         var isIdle = false;
         var wrappers = new List<RefineryWrapper>();
         for (var e = refineries.GetEnumerator(); e.MoveNext();)
         {
-            var refinery = e.Current;
+            var refinery = (IMyRefinery)e.Current;
             wrappers.Add(new RefineryWrapper(refinery));
             if (refinery.IsProducing)
             {

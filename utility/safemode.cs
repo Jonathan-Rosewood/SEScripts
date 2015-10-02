@@ -19,11 +19,12 @@ public class SafeMode
         this.emergencyStopHandler = emergencyStopHandler;
     }
 
-    private bool IsShipControlled(IEnumerable<IMyShipController> controllers)
+    private bool IsShipControlled(IEnumerable<IMyTerminalBlock> controllers)
     {
         for (var e = controllers.GetEnumerator(); e.MoveNext();)
         {
-            if (e.Current.IsUnderControl)
+            var controller = e.Current as IMyShipController;
+            if (controller != null && controller.IsUnderControl)
             {
                 return true;
             }
@@ -68,7 +69,7 @@ public class SafeMode
                 // Enable dampeners
                 for (var e = controllers.GetEnumerator(); e.MoveNext();)
                 {
-                    var controller = e.Current;
+                    var controller = (IMyShipController)e.Current;
                     if (!controller.DampenersOverride)
                     {
                         controller.GetActionWithName("DampenersOverride").Apply(controller);

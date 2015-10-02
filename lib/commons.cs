@@ -123,14 +123,14 @@ public class ZACommons
 
     // Blocks
 
-    public static List<T> GetBlocksOfType<T>(IEnumerable<IMyTerminalBlock> blocks,
-                                             Func<T, bool> collect = null)
+    public static List<IMyTerminalBlock> GetBlocksOfType<T>(IEnumerable<IMyTerminalBlock> blocks,
+                                                            Func<IMyTerminalBlock, bool> collect = null)
     {
-        List<T> list = new List<T>();
+        var list = new List<IMyTerminalBlock>();
         for (var e = blocks.GetEnumerator(); e.MoveNext();)
         {
             var block = e.Current;
-            if (block is T && (collect == null || collect((T)block))) list.Add((T)block);
+            if (block is T && (collect == null || collect(block))) list.Add(block);
         }
         return list;
     }
@@ -161,14 +161,14 @@ public class ZACommons
         return result;
     }
 
-    public static void ForEachBlockOfType<T>(IEnumerable<IMyTerminalBlock> blocks, Action<T> action)
+    public static void ForEachBlockOfType<T>(IEnumerable<IMyTerminalBlock> blocks, Action<IMyTerminalBlock> action)
     {
         for (var e = blocks.GetEnumerator(); e.MoveNext();)
         {
             var block = e.Current;
             if (block is T)
             {
-                action((T)block);
+                action(block);
             }
         }
     }
@@ -192,7 +192,10 @@ public class ZACommons
 
     public static bool IsBatteryRecharging(IMyBatteryBlock battery)
     {
-        return false; // BROKEN !battery.ProductionEnabled;
+        StringBuilder value = new StringBuilder();
+        battery.GetActionWithName("Recharge").WriteValue(battery, value);
+        return value.ToString() == "On";
+        // BROKEN 01.101 return !battery.ProductionEnabled;
     }
 
     public static void SetBatteryRecharge(IMyBatteryBlock battery, bool recharge)
@@ -204,12 +207,12 @@ public class ZACommons
         }
     }
 
-    public static void SetBatteryRecharge(IEnumerable<IMyBatteryBlock> batteries, bool recharge)
+    public static void SetBatteryRecharge(IEnumerable<IMyTerminalBlock> batteries, bool recharge)
     {
         for (var e = batteries.GetEnumerator(); e.MoveNext();)
         {
-            var battery = e.Current;
-            SetBatteryRecharge(battery, recharge);
+            var battery = e.Current as IMyBatteryBlock;
+            if (battery != null) SetBatteryRecharge(battery, recharge);
         }
     }
 
@@ -251,12 +254,12 @@ public class ZACommons
         return false;
     }
 
-    public static bool IsConnectedAnywhere(IEnumerable<IMyShipConnector> connectors)
+    public static bool IsConnectedAnywhere(IEnumerable<IMyTerminalBlock> connectors)
     {
         for (var e = connectors.GetEnumerator(); e.MoveNext();)
         {
-            var connector = e.Current;
-            if (connector.IsLocked && connector.IsConnected)
+            var connector = e.Current as IMyShipConnector;
+            if (connector != null && connector.IsLocked && connector.IsConnected)
             {
                 return true;
             }
@@ -264,10 +267,12 @@ public class ZACommons
         return false;
     }
 
+    /* BROKEN 01.102
     public static bool IsConnectedAnywhere(IEnumerable<IMyTerminalBlock> blocks)
     {
         return IsConnectedAnywhere(GetBlocksOfType<IMyShipConnector>(blocks));
     }
+    */
 
     // Storage
 

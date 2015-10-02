@@ -154,6 +154,6 @@ public class RotorStepper
             throw new Exception("Expecting exactly 1 rotor in " + RotorGroupName);
         }
 
-        return rotors[0];
+        return (IMyMotorStator)rotors[0];
     }
 }

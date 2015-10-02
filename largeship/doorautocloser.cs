@@ -13,7 +13,7 @@ public class DoorAutoCloser
 
         for (var e = doors.GetEnumerator(); e.MoveNext();)
         {
-            var door = e.Current as IMyDoor;
+            var door = (IMyDoor)e.Current;
 
             if (door.Open)
             {
