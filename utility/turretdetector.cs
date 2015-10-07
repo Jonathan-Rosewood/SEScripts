@@ -45,6 +45,7 @@ public class TurretBasedDetector
                                                               TURRET_DETECTOR_TRIGGER_TIMER_BLOCK_NAME);
                             // And don't trigger again until reset
                             Triggered = true;
+                            break;
                         }
                     }
                     else
