@@ -1,5 +1,5 @@
 [script]
-modules = dronecontrol, dockingmanager, safemode, 
+modules = dronecontrol, dockingmanager, safemode, batterymonitor,
     redundancy, safetystop, smartundock, gyrocontrol,
     thrustcontrol, shiporientation, shipcontrol, translateauto, pid,
     velocimeter, eventdriver, commons

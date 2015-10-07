@@ -1,6 +1,7 @@
 public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
 public readonly DockingManager dockingManager = new DockingManager();
 public readonly SafeMode safeMode = new SafeMode();
+public readonly BatteryMonitor batteryMonitor = new BatteryMonitor();
 public readonly SmartUndock smartUndock = new SmartUndock();
 private readonly ZAStorage myStorage = new ZAStorage();
 
@@ -35,6 +36,7 @@ void Main(string argument)
 
             dockingManager.Run(commons, isConnected);
             safeMode.Run(commons, isConnected);
+            batteryMonitor.Run(commons, isConnected);
 
             eventDriver.Schedule(1.0);
         }, preAction: () => {
