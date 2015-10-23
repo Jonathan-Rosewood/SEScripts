@@ -23,7 +23,7 @@ public class DamageControl
             case "stop":
                 {
                     commons.AllBlocks.ForEach(block => {
-                            block.RequestShowOnHUD(false);
+                            block.SetValue<bool>("ShowOnHUD", false);
                         });
                     if (State != STATE_INACTIVE) State = STATE_INACTIVATING;
                     break;
@@ -60,7 +60,7 @@ public class DamageControl
         commons.AllBlocks.ForEach(block => {
                 var cubeGrid = block.CubeGrid;
                 var damaged = !cubeGrid.GetCubeBlock(block.Position).IsFullIntegrity;
-                block.RequestShowOnHUD(damaged);
+                block.SetValue<bool>("ShowOnHUD", damaged);
             });
     }
 }
