@@ -7,7 +7,8 @@ private bool FirstRun = true;
 
 void Main(string argument)
 {
-    var commons = new ShipControlCommons(this, shipOrientation);
+    var commons = new ShipControlCommons(this, shipOrientation,
+                                         shipGroup: "CruiseControlGroup");
 
     if (FirstRun)
     {
