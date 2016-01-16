@@ -117,7 +117,7 @@ public class CruiseControl
             //commons.Echo("Force: " + force);
 
             var thrustControl = shipControl.ThrustControl;
-            if (Math.Abs(error) < 0.02 * TargetSpeed) // Within 2%
+            if (Math.Abs(error) < CRUISE_CONTROL_DEAD_ZONE * TargetSpeed)
             {
                 // Close enough, just disable both sets of thrusters
                 thrustControl.Enable(Base6Directions.Direction.Forward, false);
