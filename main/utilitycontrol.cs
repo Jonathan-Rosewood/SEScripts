@@ -75,6 +75,21 @@ public void HandleCommand(ZACommons commons, string argument)
 
                 var targetVector = target - reference.GetPosition();
                 rangefinderResult.Append(string.Format("Distance: {0} m", (ulong)(targetVector.Length() + 0.5)));
+
+                // Also output to text panel group, if present
+                var targetGroup = commons.GetBlockGroupWithName(RANGEFINDER_TARGET_GROUP);
+                if (targetGroup != null)
+                {
+                    var targetString = string.Format(RANGEFINDER_TARGET_FORMAT,
+                                                     target.GetDim(0),
+                                                     target.GetDim(1),
+                                                     target.GetDim(2));
+
+                    for (var e = ZACommons.GetBlocksOfType<IMyTextPanel>(targetGroup.Blocks).GetEnumerator(); e.MoveNext();)
+                    {
+                        ((IMyTextPanel)e.Current).WritePublicText(targetString);
+                    }
+                }
             }
             else
             {
