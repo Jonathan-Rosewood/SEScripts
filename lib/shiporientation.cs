@@ -2,6 +2,13 @@ public class ShipOrientation
 {
     public Base6Directions.Direction ShipUp { get; private set; }
     public Base6Directions.Direction ShipForward { get; private set; }
+    public MyBlockOrientation BlockOrientation
+    {
+        get
+        {
+            return new MyBlockOrientation(ShipForward, ShipUp);
+        }
+    }
 
     public ShipOrientation()
     {

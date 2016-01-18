@@ -13,6 +13,11 @@ public class ShipControlCommons : ZACommons
         get { return shipOrientation.ShipForward; }
     }
 
+    public MyBlockOrientation ShipBlockOrientation
+    {
+        get { return shipOrientation.BlockOrientation; }
+    }
+
     public ShipControlCommons(MyGridProgram program,
                               ShipOrientation shipOrientation,
                               string shipGroup = null,
