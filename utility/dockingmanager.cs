@@ -36,18 +36,28 @@ public class DockingManager
         var command = argument.Trim().ToLower();
         if (command == "undock")
         {
-            // Just a cheap way to avoid using a timer block. Turn off all
+            // Just a cheap way to avoid using a timer block. Unlock all
             // connectors and unlock all landing gear.
             // I added this because 'P' sometimes unlocks other ships as well...
-            ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyShipConnector>(commons.Blocks, connector => connector.DefinitionDisplayNameText == "Connector"),
-                                   false); // Avoid Ejectors
-
+            var connectors = ZACommons.GetBlocksOfType<IMyShipConnector>(commons.Blocks, connector => connector.DefinitionDisplayNameText == "Connector");
+            for (var e = connectors.GetEnumerator(); e.MoveNext();)
+            {
+                var connector = (IMyShipConnector)e.Current;
+                if (connector.IsLocked) connector.GetActionWithName("Unlock").Apply(connector);
+            }
             var gears = ZACommons.GetBlocksOfType<IMyLandingGear>(commons.Blocks);
             for (var e = gears.GetEnumerator(); e.MoveNext();)
             {
                 var gear = (IMyLandingGear)e.Current;
                 if (gear.IsLocked) gear.GetActionWithName("Unlock").Apply(gear);
             }
+
+            // 1 second from now, disable all connectors
+            eventDriver.Schedule(1.0, (c, ed) =>
+                    {
+                        ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyShipConnector>(c.Blocks, connector => connector.DefinitionDisplayNameText == "Connector"),
+                                               false); // Avoid Ejectors
+                    });
         }
         else if (command == "dock")
         {

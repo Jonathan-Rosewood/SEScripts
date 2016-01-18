@@ -67,6 +67,11 @@ public class SmartUndock
             SaveUndockTarget(commons);
 
             // Next, physically undock
+            for (var e = connectors.GetEnumerator(); e.MoveNext();)
+            {
+                var connector = (IMyShipConnector)e.Current;
+                if (connector.IsLocked) connector.GetActionWithName("Unlock").Apply(connector);
+            }
             ZACommons.EnableBlocks(connectors, false);
             // Unlock landing gears as well
             var gears = ZACommons.GetBlocksOfType<IMyLandingGear>(commons.Blocks);
@@ -74,6 +79,13 @@ public class SmartUndock
                     {
                         var gear = (IMyLandingGear)block;
                         if (gear.IsLocked) gear.GetActionWithName("Unlock").Apply(gear);
+                    });
+
+            // Disable connectors 1 second from now
+            eventDriver.Schedule(1.0, (c, ed) =>
+                    {
+                        ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyShipConnector>(c.Blocks, connector => connector.DefinitionDisplayNameText == "Connector"),
+                                               false); // Avoid Ejectors
                     });
         }
         else if (argument == "rtb")
