@@ -19,7 +19,13 @@ public class DockingManager
 
             ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyThrust>(commons.Blocks), !(bool)IsConnected);
             ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyGyro>(commons.Blocks), !(bool)IsConnected);
-            ZACommons.SetBatteryRecharge(ZACommons.GetBlocksOfType<IMyBatteryBlock>(commons.Blocks), (bool)IsConnected);
+            var batteries = ZACommons.GetBlocksOfType<IMyBatteryBlock>(commons.Blocks);
+            for (var e = batteries.GetEnumerator(); e.MoveNext();)
+            {
+                var battery = (IMyBatteryBlock)e.Current;
+                battery.SetValue<bool>("Recharge", (bool)IsConnected);
+                battery.SetValue<bool>("Discharge", !(bool)IsConnected);
+            }
 
             if (TOUCH_ANTENNA) ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyRadioAntenna>(commons.Blocks), !(bool)IsConnected);
             if (TOUCH_LANTENNA) ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyLaserAntenna>(commons.Blocks), !(bool)IsConnected);
