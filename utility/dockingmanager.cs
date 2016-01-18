@@ -33,6 +33,11 @@ public class DockingManager
             if (TOUCH_LIGHTS) ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyLightingBlock>(commons.Blocks), !(bool)IsConnected);
             // Disable tools if we just docked
             if (TOUCH_TOOLS && (bool)IsConnected) ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyShipToolBase>(commons.Blocks), false);
+            if (TOUCH_OXYGEN)
+            {
+                ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyOxygenGenerator>(commons.Blocks), !(bool)IsConnected);
+                ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyOxygenFarm>(commons.Blocks), !(bool)IsConnected);
+            }
         }
     }
 
