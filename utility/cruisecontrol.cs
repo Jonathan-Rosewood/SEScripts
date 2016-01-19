@@ -13,6 +13,7 @@ public class CruiseControl
     private bool Active = false;
     private double TargetSpeed;
     private Base6Directions.Direction CruiseDirection;
+    private string CruiseFlags;
     
     public CruiseControl()
     {
@@ -24,72 +25,78 @@ public class CruiseControl
     private void Reset(ZACommons commons)
     {
         var thrustControl = ((ShipControlCommons)commons).ThrustControl;
-        thrustControl.Enable(true);
-        thrustControl.Reset();
+        var collect = ParseCruiseFlags();
+        thrustControl.Enable(true, collect);
+        thrustControl.Reset(collect);
     }
 
     public void HandleCommand(ZACommons commons, EventDriver eventDriver,
                               string argument)
     {
         argument = argument.Trim().ToLower();
-        var parts = argument.Split(new char[] { ' ' }, 3);
+        var parts = argument.Split(new char[] { ' ' }, 4);
         if (parts.Length < 2) return;
         var command = parts[0];
         var speed = parts[1];
-
-        CruiseDirection = Base6Directions.Direction.Forward;
-        if (parts.Length == 3)
-        {
-            switch (parts[2])
-            {
-                case "forward":
-                case "forwards":
-                default:
-                    break;
-
-                case "backward":
-                case "backwards":
-                case "reverse":
-                    {
-                        CruiseDirection = Base6Directions.Direction.Backward;
-                        break;
-                    }
-
-                case "left":
-                    {
-                        CruiseDirection = Base6Directions.Direction.Left;
-                        break;
-                    }
-
-                case "right":
-                    {
-                        CruiseDirection = Base6Directions.Direction.Right;
-                        break;
-                    }
-
-                case "up":
-                    {
-                        CruiseDirection = Base6Directions.Direction.Up;
-                        break;
-                    }
-
-                case "down":
-                    {
-                        CruiseDirection = Base6Directions.Direction.Down;
-                        break;
-                    }
-            }
-        }
 
         if (command == "cruise")
         {
             if (speed == "stop")
             {
+                CruiseFlags = null;
+                if (parts.Length >= 3) CruiseFlags = parts[2];
                 Reset(commons);
                 Active = false;
             }
             else
             {
+                CruiseDirection = Base6Directions.Direction.Forward;
+                if (parts.Length >= 3)
+                {
+                    switch (parts[2])
+                    {
+                        case "forward":
+                        case "forwards":
+                        default:
+                            break;
+
+                        case "backward":
+                        case "backwards":
+                        case "reverse":
+                            {
+                                CruiseDirection = Base6Directions.Direction.Backward;
+                                break;
+                            }
+
+                        case "left":
+                            {
+                                CruiseDirection = Base6Directions.Direction.Left;
+                                break;
+                            }
+
+                        case "right":
+                            {
+                                CruiseDirection = Base6Directions.Direction.Right;
+                                break;
+                            }
+
+                        case "up":
+                            {
+                                CruiseDirection = Base6Directions.Direction.Up;
+                                break;
+                            }
+
+                        case "down":
+                            {
+                                CruiseDirection = Base6Directions.Direction.Down;
+                                break;
+                            }
+                    }
+                }
+
+                CruiseFlags = null;
+                if (parts.Length == 4) CruiseFlags = parts[3];
+
                 double desiredSpeed;
                 if (double.TryParse(speed, out desiredSpeed))
                 {
@@ -106,6 +113,27 @@ public class CruiseControl
                 }
             }
         }
+    }
+
+    private Func<IMyThrust, bool> ParseCruiseFlags()
+    {
+        if (CruiseFlags == null) return null; // Don't do extra work
+
+        var useIon = CruiseFlags.IndexOf('i') >= 0;
+        var useH = CruiseFlags.IndexOf('h') >= 0;
+        var useAtm = CruiseFlags.IndexOf('a') >= 0;
+
+        return thruster =>
+            {
+                // Probably only works in English...
+                // Why no subclasses...
+                var defName = thruster.DefinitionDisplayNameText;
+                var isH = defName.IndexOf("Hydrogen") >= 0;
+                var isAtm = defName.IndexOf("Atmospheric") >= 0;
+                return ((isH && useH) ||
+                        (isAtm && useAtm) ||
+                        (!isH && !isAtm && useIon));
+            };
     }
 
     public void Run(ZACommons commons, EventDriver eventDriver)
@@ -136,24 +164,25 @@ public class CruiseControl
             //commons.Echo("Force: " + force);
 
             var thrustControl = shipControl.ThrustControl;
+            var collect = ParseCruiseFlags();
             if (Math.Abs(error) < CRUISE_CONTROL_DEAD_ZONE * TargetSpeed)
             {
                 // Close enough, just disable both sets of thrusters
-                thrustControl.Enable(CruiseDirection, false);
-                thrustControl.Enable(cruiseDirectionFlipped, false);
+                thrustControl.Enable(CruiseDirection, false, collect);
+                thrustControl.Enable(cruiseDirectionFlipped, false, collect);
             }
             else if (force > 0.0)
             {
                 // Thrust forward
-                thrustControl.Enable(CruiseDirection, true);
-                thrustControl.SetOverride(CruiseDirection, force);
-                thrustControl.Enable(cruiseDirectionFlipped, false);
+                thrustControl.Enable(CruiseDirection, true, collect);
+                thrustControl.SetOverride(CruiseDirection, force, collect);
+                thrustControl.Enable(cruiseDirectionFlipped, false, collect);
             }
             else
             {
-                thrustControl.Enable(CruiseDirection, false);
-                thrustControl.Enable(cruiseDirectionFlipped, true);
-                thrustControl.SetOverride(cruiseDirectionFlipped, -force);
+                thrustControl.Enable(CruiseDirection, false, collect);
+                thrustControl.Enable(cruiseDirectionFlipped, true, collect);
+                thrustControl.SetOverride(cruiseDirectionFlipped, -force, collect);
             }
         }
 

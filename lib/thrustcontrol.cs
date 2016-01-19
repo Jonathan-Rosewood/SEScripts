@@ -4,7 +4,7 @@ public class ThrustControl
 
     private void AddThruster(Base6Directions.Direction direction, IMyThrust thruster)
     {
-        var thrusterList = GetThrusters(direction);
+        var thrusterList = GetThrusters(direction); // collect must be null to modify original list
         thrusterList.Add(thruster);
     }
 
@@ -30,7 +30,8 @@ public class ThrustControl
         }
     }
 
-    public List<IMyThrust> GetThrusters(Base6Directions.Direction direction)
+    public List<IMyThrust> GetThrusters(Base6Directions.Direction direction,
+                                        Func<IMyThrust, bool> collect = null)
     {
         List<IMyThrust> thrusterList;
         if (!thrusters.TryGetValue(direction, out thrusterList))
@@ -38,31 +39,47 @@ public class ThrustControl
             thrusterList = new List<IMyThrust>();
             thrusters.Add(direction, thrusterList);
         }
-        return thrusterList;
+        if (collect == null)
+        {
+            return thrusterList;
+        }
+        else
+        {
+            var result = new List<IMyThrust>();
+            for (var e = thrusterList.GetEnumerator(); e.MoveNext();)
+            {
+                var thruster = (IMyThrust)e.Current;
+                if (collect(thruster)) result.Add(thruster);
+            }
+            return result;
+        }
     }
 
-    public void SetOverride(Base6Directions.Direction direction, bool enable = true)
+    public void SetOverride(Base6Directions.Direction direction, bool enable = true,
+                            Func<IMyThrust, bool> collect = null)
     {
-        var thrusterList = GetThrusters(direction);
+        var thrusterList = GetThrusters(direction, collect);
         thrusterList.ForEach(thruster =>
                              thruster.SetValue<float>("Override", enable ?
                                                       thruster.GetMaximum<float>("Override") :
                                                       0.0f));
     }
 
-    public void SetOverride(Base6Directions.Direction direction, double percent)
+    public void SetOverride(Base6Directions.Direction direction, double percent,
+                            Func<IMyThrust, bool> collect = null)
     {
         percent = Math.Max(percent, 0.0);
         percent = Math.Min(percent, 1.0);
-        var thrusterList = GetThrusters(direction);
+        var thrusterList = GetThrusters(direction, collect);
         thrusterList.ForEach(thruster =>
                              thruster.SetValue<float>("Override",
                                                       (float)(thruster.GetMaximum<float>("Override") * percent)));
     }
 
-    public void SetOverrideNewtons(Base6Directions.Direction direction, double force)
+    public void SetOverrideNewtons(Base6Directions.Direction direction, double force,
+                                   Func<IMyThrust, bool> collect = null)
     {
-        var thrusterList = GetThrusters(direction);
+        var thrusterList = GetThrusters(direction, collect);
         var maxForce = 0.0;
         thrusterList.ForEach(thruster =>
                              maxForce += thruster.GetMaximum<float>("Override"));
@@ -76,27 +93,35 @@ public class ThrustControl
                                                       (float)(fraction * thruster.GetMaximum<float>("Override"))));
     }
 
-    public void Enable(Base6Directions.Direction direction, bool enable)
+    public void Enable(Base6Directions.Direction direction, bool enable,
+                       Func<IMyThrust, bool> collect = null)
     {
-        var thrusterList = GetThrusters(direction);
+        var thrusterList = GetThrusters(direction, collect);
         thrusterList.ForEach(thruster => thruster.SetValue<bool>("OnOff", enable));
     }
 
-    public void Enable(bool enable)
+    public void Enable(bool enable,
+                       Func<IMyThrust, bool> collect = null)
     {
         for (var e = thrusters.Values.GetEnumerator(); e.MoveNext();)
         {
             var thrusterList = e.Current;
-            thrusterList.ForEach(thruster => thruster.SetValue<bool>("OnOff", enable));
+            thrusterList.ForEach(thruster =>
+                    {
+                        if (collect == null || collect(thruster)) thruster.SetValue<bool>("OnOff", enable);
+                    });
         }
     }
 
-    public void Reset()
+    public void Reset(Func<IMyThrust, bool> collect = null)
     {
         for (var e = thrusters.Values.GetEnumerator(); e.MoveNext();)
         {
             var thrusterList = e.Current;
-            thrusterList.ForEach(thruster => thruster.SetValue<float>("Override", 0.0f));
+            thrusterList.ForEach(thruster =>
+                    {
+                        if (collect == null || collect(thruster)) thruster.SetValue<float>("Override", 0.0f);
+                    });
         }
     }
 }
