@@ -13,6 +13,8 @@ public readonly BatteryMonitor batteryMonitor = new BatteryMonitor();
 private readonly RedundancyManager redundancyManager = new RedundancyManager();
 public readonly SmartUndock smartUndock = new SmartUndock();
 public readonly CruiseControl cruiseControl = new CruiseControl();
+private readonly DoorAutoCloser doorAutoCloser = new DoorAutoCloser();
+private readonly SimpleAirlock simpleAirlock = new SimpleAirlock();
 public readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
@@ -46,6 +48,8 @@ void Main(string argument)
             dockingManager.Run(commons, isConnected);
             safeMode.Run(commons, isConnected);
             batteryMonitor.Run(commons, isConnected);
+            doorAutoCloser.Run(commons);
+            simpleAirlock.Run(commons);
 
             eventDriver.Schedule(1.0);
         }, preAction: () => {
