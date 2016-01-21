@@ -2,7 +2,7 @@ public class SafeMode
 {
     public interface EmergencyStopHandler
     {
-        void EmergencyStop(ZACommons commons);
+        void EmergencyStop(ZACommons commons, EventDriver eventDriver);
     }
 
     private readonly EmergencyStopHandler emergencyStopHandler;
@@ -38,7 +38,7 @@ public class SafeMode
         Abandoned = false;
     }
 
-    public void Run(ZACommons commons, bool? isConnected = null)
+    public void Run(ZACommons commons, EventDriver eventDriver, bool? isConnected = null)
     {
         var connected = isConnected != null ? (bool)isConnected :
             ZACommons.IsConnectedAnywhere(commons.Blocks);
@@ -80,7 +80,7 @@ public class SafeMode
                 // Only do something if dampeners were actually engaged
                 if (dampenersChanged)
                 {
-                    if (emergencyStopHandler != null) emergencyStopHandler.EmergencyStop(commons);
+                    if (emergencyStopHandler != null) emergencyStopHandler.EmergencyStop(commons, eventDriver);
                     ZACommons.StartTimerBlockWithName(commons.Blocks, EMERGENCY_STOP_NAME);
                 }
             }

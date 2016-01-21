@@ -1,6 +1,6 @@
 public class MyEmergencyStopHandler : SafeMode.EmergencyStopHandler
 {
-    public void EmergencyStop(ZACommons commons)
+    public void EmergencyStop(ZACommons commons, EventDriver eventDriver)
     {
         SafetyStop.ThrusterCheck(commons);
     }
@@ -37,7 +37,7 @@ void Main(string argument)
     }
 
     eventDriver.Tick(commons, mainAction: () => {
-            safeMode.Run(commons, false);
+            safeMode.Run(commons, eventDriver, false);
             doorAutoCloser.Run(commons);
             simpleAirlock.Run(commons);
 

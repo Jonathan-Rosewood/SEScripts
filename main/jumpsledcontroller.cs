@@ -31,7 +31,7 @@ void Main(string argument)
             {
                 batteryManager.Run(commons);
                 solarGyroController.Run(commons);
-                safeMode.Run(commons, false);
+                safeMode.Run(commons, eventDriver, false);
 
                 eventDriver.Schedule(1.0);
             });

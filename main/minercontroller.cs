@@ -32,7 +32,7 @@ void Main(string argument)
             var isConnected = ZACommons.IsConnectedAnywhere(commons.Blocks);
 
             dockingManager.Run(commons, isConnected);
-            safeMode.Run(commons, isConnected);
+            safeMode.Run(commons, eventDriver, isConnected);
 
             eventDriver.Schedule(1.0);
         }, preAction: () => {
