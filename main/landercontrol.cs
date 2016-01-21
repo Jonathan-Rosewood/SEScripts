@@ -2,7 +2,11 @@ public class MyEmergencyStopHandler : SafeMode.EmergencyStopHandler
 {
     public void EmergencyStop(ZACommons commons, EventDriver eventDriver)
     {
-        SafetyStop.ThrusterCheck(commons);
+        // Check after 1 second (let timer block's action take effect)
+        eventDriver.Schedule(1.0, (c,ed) =>
+                {
+                    SafetyStop.ThrusterCheck(c, ed);
+                });
     }
 }
 
