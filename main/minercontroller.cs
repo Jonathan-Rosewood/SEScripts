@@ -56,6 +56,9 @@ public class MinerController
     private const double ThrustKi = 0.001;
     private const double ThrustKd = 1.0;
 
+    private const double PerturbTimeScale = 10.0;
+    private const double PerturbAmplitude = 0.05;
+
     private bool Mining = false;
 
     public MinerController()
@@ -73,7 +76,9 @@ public class MinerController
         argument = argument.Trim().ToLower();
         if (argument == "start")
         {
-            shipControl.GyroControl.EnableOverride(true);
+            var gyroControl = shipControl.GyroControl;
+            gyroControl.Reset();
+            gyroControl.EnableOverride(true);
             shipControl.ThrustControl.Reset();
             velocimeter.Reset();
             thrustPID.Reset();
@@ -130,6 +135,11 @@ public class MinerController
             }
         }
 
+        // Perturb yaw/pitch
+        var gyroControl = shipControl.GyroControl;
+        gyroControl.SetAxisVelocity(GyroControl.Yaw, (float)(Math.Cos(PerturbTimeScale * eventDriver.TimeSinceStart.TotalSeconds) * PerturbAmplitude));
+        gyroControl.SetAxisVelocity(GyroControl.Pitch, (float)(Math.Sin(PerturbTimeScale * eventDriver.TimeSinceStart.TotalSeconds) * PerturbAmplitude));
+        
         eventDriver.Schedule(FramesPerRun, Mine);
     }
 }
