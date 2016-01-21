@@ -41,10 +41,10 @@ public class GyroControl
                     AxisDetails[Yaw] = new GyroAxisDetails(Yaw, 1);
                     break;
                 case Base6Directions.Direction.Left:
-                    AxisDetails[Yaw] = new GyroAxisDetails(Pitch, 1);
+                    AxisDetails[Yaw] = new GyroAxisDetails(Pitch, -1);
                     break;
                 case Base6Directions.Direction.Right:
-                    AxisDetails[Yaw] = new GyroAxisDetails(Pitch, -1);
+                    AxisDetails[Yaw] = new GyroAxisDetails(Pitch, 1);
                     break;
                 case Base6Directions.Direction.Forward:
                     AxisDetails[Yaw] = new GyroAxisDetails(Roll, 1);
