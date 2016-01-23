@@ -1,7 +1,5 @@
 public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
-public readonly DockingManager dockingManager = new DockingManager();
-public readonly SafeMode safeMode = new SafeMode();
-public readonly BatteryMonitor batteryMonitor = new BatteryMonitor();
+public readonly DockingManager dockingManager = new DockingManager(new SafeMode(), new BatteryMonitor(), new RedundancyManager());
 public readonly SmartUndock smartUndock = new SmartUndock();
 private readonly ZAStorage myStorage = new ZAStorage();
 
@@ -19,28 +17,22 @@ void Main(string argument)
 
     if (FirstRun)
     {
-        FirstRun = true;
+        FirstRun = false;
 
         myStorage.Decode(Storage);
 
         shipOrientation.SetShipReference(commons, RANGEFINDER_REFERENCE_GROUP);
 
+        dockingManager.Init(commons, eventDriver);
         smartUndock.Init(commons);
-
-        eventDriver.Schedule(0.0);
     }
 
-    eventDriver.Tick(commons, mainAction: () => {
-            // This really seems like it should be determined once per run
-            var isConnected = ZACommons.IsConnectedAnywhere(commons.Blocks);
-
-            safeMode.Run(commons, eventDriver, isConnected);
-            batteryMonitor.Run(commons, isConnected);
-
-            eventDriver.Schedule(1.0);
-        }, preAction: () => {
+    eventDriver.Tick(commons, preAction: () => {
             dockingManager.HandleCommand(commons, eventDriver, argument);
-            smartUndock.HandleCommand(commons, eventDriver, argument);
+            smartUndock.HandleCommand(commons, eventDriver, argument, () =>
+                    {
+                        dockingManager.ManageShip(commons, eventDriver, false);
+                    });
             HandleCommand(commons, argument);
         });
 
@@ -49,15 +41,14 @@ void Main(string argument)
 
 public void HandleCommand(ZACommons commons, string argument)
 {
-    var reference = GetReference(commons);
-
     argument = argument.Trim().ToLower();
     switch (argument)
     {
         case "first":
-            first = new Rangefinder.LineSample(reference);
+            first = new Rangefinder.LineSample(GetReference(commons));
             break;
         case "second":
+            var reference = GetReference(commons);
             second = new Rangefinder.LineSample(reference);
 
             Vector3D closestFirst, closestSecond;

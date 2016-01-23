@@ -1,7 +1,32 @@
-public class RedundancyManager
+public class RedundancyManager : DockingHandler
 {
     private const double RunDelay = 3.0;
     private const char COUNT_DELIMITER = ':';
+
+    private bool IsDocked = true;
+
+    public void Docked(ZACommons commons, EventDriver eventDriver)
+    {
+        IsDocked = true;
+    }
+
+    public void Undocked(ZACommons commons, EventDriver eventDriver)
+    {
+        if (IsDocked)
+        {
+            IsDocked = false;
+            eventDriver.Schedule(RunDelay, DHRun);
+        }
+    }
+
+    public void DHRun(ZACommons commons, EventDriver eventDriver)
+    {
+        if (IsDocked) return;
+
+        Run(commons);
+
+        eventDriver.Schedule(RunDelay, DHRun);
+    }
 
     public void Run(ZACommons commons)
     {

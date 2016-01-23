@@ -37,11 +37,11 @@ void Main(string argument)
         shipOrientation.SetShipReference(commons, "Autopilot Reference");
 
         eventDriver.Schedule(0.0);
+        safeMode.Init(commons, eventDriver);
         redundancyManager.Init(commons, eventDriver);
     }
 
     eventDriver.Tick(commons, mainAction: () => {
-            safeMode.Run(commons, eventDriver, false);
             doorAutoCloser.Run(commons);
             simpleAirlock.Run(commons);
 

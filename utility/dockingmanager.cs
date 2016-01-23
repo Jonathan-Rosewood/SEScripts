@@ -1,5 +1,18 @@
 public class DockingManager
 {
+    private readonly DockingHandler[] DockingHandlers;
+
+    public DockingManager(params DockingHandler[] dockingHandlers)
+    {
+        DockingHandlers = dockingHandlers;
+    }
+
+    public void Init(ZACommons commons, EventDriver eventDriver)
+    {
+        var docked = ZACommons.IsConnectedAnywhere(commons.Blocks);
+        ManageShip(commons, eventDriver, docked);
+    }
+
     public void HandleCommand(ZACommons commons, EventDriver eventDriver,
                               string argument)
     {
@@ -71,12 +84,12 @@ public class DockingManager
                 });
 
         // Do everything else needed after docking
-        ManageShip(commons, true);
+        ManageShip(commons, eventDriver, true);
     }
 
     public void UndockStart(ZACommons commons, EventDriver eventDriver)
     {
-        ManageShip(commons, false);
+        ManageShip(commons, eventDriver, false);
 
         eventDriver.Schedule(1.0, UndockDetach);
     }
@@ -109,8 +122,17 @@ public class DockingManager
                                false);
     }
 
-    public void ManageShip(ZACommons commons, bool docked)
+    public void ManageShip(ZACommons commons, EventDriver eventDriver,
+                           bool docked)
     {
+        if (!docked)
+        {
+            for (var i = 0; i < DockingHandlers.Length; i++)
+            {
+                DockingHandlers[i].Undocked(commons, eventDriver);
+            }
+        }
+
         ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyThrust>(commons.Blocks), !docked);
         ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyGyro>(commons.Blocks), !docked);
         var batteries = ZACommons.GetBlocksOfType<IMyBatteryBlock>(commons.Blocks);
@@ -132,6 +154,14 @@ public class DockingManager
         {
             ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyOxygenGenerator>(commons.Blocks), !docked);
             ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyOxygenFarm>(commons.Blocks), !docked);
+        }
+
+        if (docked)
+        {
+            for (var i = 0; i < DockingHandlers.Length; i++)
+            {
+                DockingHandlers[i].Docked(commons, eventDriver);
+            }
         }
     }
 }

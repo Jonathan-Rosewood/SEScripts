@@ -8,8 +8,7 @@ const bool OXYGEN_MANAGER_ENABLE = true;
 const bool POWER_MANAGER_ENABLE = true;
 const bool REFINERY_MANAGER_ENABLE = true;
 const bool PRODUCTION_MANAGER_ENABLE = false;
-const bool TIMER_KICKER_ENABLE = true;
+const bool TIMER_KICKER_ENABLE = false;
 const bool REDUNDANCY_MANAGER_ENABLE = true;
-const bool DAMAGE_CONTROL_ENABLE = true;
 
 // Options

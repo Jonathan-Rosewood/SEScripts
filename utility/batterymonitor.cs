@@ -1,6 +1,31 @@
-public class BatteryMonitor
+public class BatteryMonitor : DockingHandler
 {
-    public void Run(ZACommons commons, bool? isConnected = null)
+    private bool IsDocked = true;
+
+    public void Docked(ZACommons commons, EventDriver eventDriver)
+    {
+        IsDocked = true;
+    }
+
+    public void Undocked(ZACommons commons, EventDriver eventDriver)
+    {
+        if (IsDocked)
+        {
+            IsDocked = false;
+            eventDriver.Schedule(1.0, Run);
+        }
+    }
+
+    public void Run(ZACommons commons, EventDriver eventDriver)
+    {
+        if (IsDocked) return;
+
+        Run(commons);
+
+        eventDriver.Schedule(1.0, Run);
+    }
+
+    public void Run(ZACommons commons)
     {
         var lowBattery = ZACommons.GetBlockWithName<IMyTimerBlock>(commons.Blocks, LOW_BATTERY_NAME);
         // Don't bother if there's no timer block
@@ -25,11 +50,7 @@ public class BatteryMonitor
 
         var batteryPercent = currentStoredPower / maxStoredPower;
 
-        var connected = isConnected != null ? (bool)isConnected :
-            ZACommons.IsConnectedAnywhere(commons.Blocks);
-
-        if (lowBattery.Enabled && !lowBattery.IsCountingDown && batteryPercent < BATTERY_THRESHOLD &&
-            !connected)
+        if (lowBattery.Enabled && !lowBattery.IsCountingDown && batteryPercent < BATTERY_THRESHOLD)
         {
             lowBattery.GetActionWithName("Start").Apply(lowBattery);
         }

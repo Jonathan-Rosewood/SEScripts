@@ -1,6 +1,5 @@
 public readonly EventDriver eventDriver = new EventDriver(timerGroup: MINER_CLOCK_GROUP);
-public readonly DockingManager dockingManager = new DockingManager();
-public readonly SafeMode safeMode = new SafeMode();
+public readonly DockingManager dockingManager = new DockingManager(new SafeMode());
 public readonly SmartUndock smartUndock = new SmartUndock();
 public readonly MinerController minerController = new MinerController();
 private readonly ZAStorage myStorage = new ZAStorage();
@@ -22,21 +21,16 @@ void Main(string argument)
 
         shipOrientation.SetShipReference(commons, MINER_REFERENCE_GROUP);
 
+        dockingManager.Init(commons, eventDriver);
         smartUndock.Init(commons);
-
-        eventDriver.Schedule(0.0);
     }
 
-    eventDriver.Tick(commons, mainAction: () => {
-            // This really seems like it should be determined once per run
-            var isConnected = ZACommons.IsConnectedAnywhere(commons.Blocks);
-
-            safeMode.Run(commons, eventDriver, isConnected);
-
-            eventDriver.Schedule(1.0);
-        }, preAction: () => {
+    eventDriver.Tick(commons, preAction: () => {
             dockingManager.HandleCommand(commons, eventDriver, argument);
-            smartUndock.HandleCommand(commons, eventDriver, argument);
+            smartUndock.HandleCommand(commons, eventDriver, argument, () =>
+                    {
+                        dockingManager.ManageShip(commons, eventDriver, false);
+                    });
             minerController.HandleCommand(commons, eventDriver, argument);
         });
 

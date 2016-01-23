@@ -1,22 +1,48 @@
-public class SafeMode
+public class SafeMode : DockingHandler
 {
     public interface EmergencyStopHandler
     {
         void EmergencyStop(ZACommons commons, EventDriver eventDriver);
     }
 
+    private const double RunDelay = 1.0;
+
     private readonly EmergencyStopHandler emergencyStopHandler;
 
-    private bool? IsControlled = null;
-
-    private bool PreviouslyDocked = false;
     private readonly TimeSpan AbandonmentTimeout = TimeSpan.Parse(ABANDONMENT_TIMEOUT);
+
+    private bool IsControlled = false;
+    private bool IsDocked = true;
     private TimeSpan LastControlled = TimeSpan.FromSeconds(0); // Hmm, TimeSpan.Zero doesn't work?
     private bool Abandoned = false;
 
     public SafeMode(EmergencyStopHandler emergencyStopHandler = null)
     {
         this.emergencyStopHandler = emergencyStopHandler;
+    }
+
+    public void Docked(ZACommons commons, EventDriver eventDriver)
+    {
+        IsDocked = true;
+    }
+
+    public void Undocked(ZACommons commons, EventDriver eventDriver)
+    {
+        if (IsDocked)
+        {
+            IsControlled = false;
+
+            ResetAbandonment();
+
+            IsDocked = false;
+            eventDriver.Schedule(RunDelay, Run);
+        }
+    }
+
+    public void Init(ZACommons commons, EventDriver eventDriver)
+    {
+        IsDocked = false;
+        eventDriver.Schedule(0.0, Run);
     }
 
     private bool IsShipControlled(IEnumerable<IMyTerminalBlock> controllers)
@@ -38,31 +64,19 @@ public class SafeMode
         Abandoned = false;
     }
 
-    public void Run(ZACommons commons, EventDriver eventDriver, bool? isConnected = null)
+    public void Run(ZACommons commons, EventDriver eventDriver)
     {
-        var connected = isConnected != null ? (bool)isConnected :
-            ZACommons.IsConnectedAnywhere(commons.Blocks);
-        if (connected)
-        {
-            PreviouslyDocked = true;
-            return; // Don't bother if we're docked
-        }
+        if (IsDocked) return; // Don't bother if we're docked
 
         var controllers = ZACommons.GetBlocksOfType<IMyShipController>(commons.Blocks, controller => controller.IsFunctional);
         var currentState = IsShipControlled(controllers);
-
-        if (IsControlled == null)
-        {
-            IsControlled = currentState;
-            return;
-        }
 
         // Flight safety stuff, only check on state change
         if (IsControlled != currentState)
         {
             IsControlled = currentState;
 
-            if (!(bool)IsControlled)
+            if (!IsControlled)
             {
                 var dampenersChanged = false;
 
@@ -86,17 +100,10 @@ public class SafeMode
             }
         }
 
-        // Reset abandonment stuff if we just undocked
-        if (PreviouslyDocked)
-        {
-            PreviouslyDocked = false;
-            ResetAbandonment();
-        }
-
         if (ABANDONMENT_ENABLED)
         {
             // Abandonment check
-            if (!(bool)IsControlled)
+            if (!IsControlled)
             {
                 LastControlled += commons.Program.ElapsedTime;
 
@@ -113,5 +120,7 @@ public class SafeMode
             // commons.Echo("Timeout: " + AbandonmentTimeout);
             // commons.Echo("Last Controlled: " + LastControlled);
         }
+
+        eventDriver.Schedule(RunDelay, Run);
     }
 }

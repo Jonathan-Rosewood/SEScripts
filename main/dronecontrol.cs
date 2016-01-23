@@ -11,10 +11,7 @@ public class MyEmergencyStopHandler : SafeMode.EmergencyStopHandler
 }
 
 public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
-public readonly DockingManager dockingManager = new DockingManager();
-public readonly SafeMode safeMode = new SafeMode(new MyEmergencyStopHandler());
-public readonly BatteryMonitor batteryMonitor = new BatteryMonitor();
-private readonly RedundancyManager redundancyManager = new RedundancyManager();
+public readonly DockingManager dockingManager = new DockingManager(new SafeMode(new MyEmergencyStopHandler()), new BatteryMonitor(), new RedundancyManager());
 public readonly SmartUndock smartUndock = new SmartUndock();
 public readonly ZAStorage myStorage = new ZAStorage();
 
@@ -36,23 +33,16 @@ void Main(string argument)
 
         shipOrientation.SetShipReference(commons, "Autopilot Reference");
 
+        dockingManager.Init(commons, eventDriver);
         smartUndock.Init(commons);
-
-        eventDriver.Schedule(0.0);
-        redundancyManager.Init(commons, eventDriver);
     }
 
-    eventDriver.Tick(commons, mainAction: () => {
-            // This really seems like it should be determined once per run
-            var isConnected = ZACommons.IsConnectedAnywhere(commons.Blocks);
-
-            safeMode.Run(commons, eventDriver, isConnected);
-            batteryMonitor.Run(commons, isConnected);
-
-            eventDriver.Schedule(1.0);
-        }, preAction: () => {
+    eventDriver.Tick(commons, preAction: () => {
             dockingManager.HandleCommand(commons, eventDriver, argument);
-            smartUndock.HandleCommand(commons, eventDriver, argument);
+            smartUndock.HandleCommand(commons, eventDriver, argument, () =>
+                    {
+                        dockingManager.ManageShip(commons, eventDriver, false);
+                    });
         });
 
     if (commons.IsDirty) Storage = myStorage.Encode();

@@ -26,11 +26,13 @@ public class SmartUndock
     }
 
     public void HandleCommand(ZACommons commons, EventDriver eventDriver,
-                              string argument)
+                              string argument, Action preUndock)
     {
         argument = argument.Trim().ToLower();
         if (argument == "smartundock")
         {
+            if (preUndock != null) preUndock();
+
             // First, determine which connector we were connected through
             IMyShipConnector connected = null;
             var connectors = ZACommons.GetBlocksOfType<IMyShipConnector>(commons.Blocks,
