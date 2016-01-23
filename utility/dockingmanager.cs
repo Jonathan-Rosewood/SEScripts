@@ -20,15 +20,11 @@ public class DockingManager
         switch (command)
         {
             case "dock":
-                {
-                    DockStart(commons, eventDriver);
-                    break;
-                }
+                DockStart(commons, eventDriver);
+                break;
             case "undock":
-                {
-                    UndockStart(commons, eventDriver);
-                    break;
-                }
+                UndockStart(commons, eventDriver);
+                break;
         }
     }
 

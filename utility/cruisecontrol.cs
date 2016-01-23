@@ -63,34 +63,24 @@ public class CruiseControl
                         case "backward":
                         case "backwards":
                         case "reverse":
-                            {
-                                CruiseDirection = Base6Directions.Direction.Backward;
-                                break;
-                            }
+                            CruiseDirection = Base6Directions.Direction.Backward;
+                            break;
 
                         case "left":
-                            {
-                                CruiseDirection = Base6Directions.Direction.Left;
-                                break;
-                            }
+                            CruiseDirection = Base6Directions.Direction.Left;
+                            break;
 
                         case "right":
-                            {
-                                CruiseDirection = Base6Directions.Direction.Right;
-                                break;
-                            }
+                            CruiseDirection = Base6Directions.Direction.Right;
+                            break;
 
                         case "up":
-                            {
-                                CruiseDirection = Base6Directions.Direction.Up;
-                                break;
-                            }
+                            CruiseDirection = Base6Directions.Direction.Up;
+                            break;
 
                         case "down":
-                            {
-                                CruiseDirection = Base6Directions.Direction.Down;
-                                break;
-                            }
+                            CruiseDirection = Base6Directions.Direction.Down;
+                            break;
                     }
                 }
 
