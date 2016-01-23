@@ -31,7 +31,6 @@ void Main(string argument)
             // This really seems like it should be determined once per run
             var isConnected = ZACommons.IsConnectedAnywhere(commons.Blocks);
 
-            dockingManager.Run(commons, isConnected);
             safeMode.Run(commons, eventDriver, isConnected);
 
             eventDriver.Schedule(1.0);
