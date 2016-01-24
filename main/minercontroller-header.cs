@@ -1,3 +1,5 @@
+const string SHIP_NAME = "Simon";
+
 // Should be a group with a single remote or some other ship controller block
 const string MINER_REFERENCE_GROUP = "*Simon RC*";
 

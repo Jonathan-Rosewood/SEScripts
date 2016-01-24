@@ -1,8 +1,20 @@
+public class MyEmergencyStopHandler : SafeMode.EmergencyStopHandler
+{
+    public void EmergencyStop(ZACommons commons, EventDriver eventDriver)
+    {
+        // Check after 1 second (let timer block's action take effect)
+        eventDriver.Schedule(1.0, (c,ed) =>
+                {
+                    SafetyStop.ThrusterCheck(c, ed);
+                });
+    }
+}
+
 public readonly EventDriver eventDriver = new EventDriver(timerGroup: MINER_CLOCK_GROUP);
-public readonly DockingManager dockingManager = new DockingManager(new SafeMode());
+public readonly DockingManager dockingManager = new DockingManager(new SafeMode(new MyEmergencyStopHandler()), new BatteryMonitor(), new RedundancyManager());
 public readonly SmartUndock smartUndock = new SmartUndock();
-public readonly MinerController minerController = new MinerController();
 private readonly ZAStorage myStorage = new ZAStorage();
+public readonly MinerController minerController = new MinerController();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
@@ -11,6 +23,7 @@ private bool FirstRun = true;
 void Main(string argument)
 {
     var commons = new ShipControlCommons(this, shipOrientation,
+                                         shipGroup: SHIP_NAME,
                                          storage: myStorage);
 
     if (FirstRun)
