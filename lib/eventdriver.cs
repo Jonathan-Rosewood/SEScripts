@@ -46,6 +46,8 @@ public class EventDriver
     public TimeSpan TimeSinceStart { get; private set; }
 
     // If neither timerName nor timerGroup are given, it's assumed the timer will kick itself
+    // Note that using only timerGroup is unreliable, especially when grids
+    // detach/merge (via connectors, merge blocks, etc.)
     public EventDriver(string timerName = null, string timerGroup = null)
     {
         TimerName = timerName;

@@ -10,7 +10,7 @@ public class MyEmergencyStopHandler : SafeMode.EmergencyStopHandler
     }
 }
 
-public readonly EventDriver eventDriver = new EventDriver(timerGroup: MINER_CLOCK_GROUP);
+public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME, timerGroup: MINER_CLOCK_GROUP);
 public readonly DockingManager dockingManager = new DockingManager(new SafeMode(new MyEmergencyStopHandler()), new BatteryMonitor(), new RedundancyManager());
 public readonly SmartUndock smartUndock = new SmartUndock();
 private readonly ZAStorage myStorage = new ZAStorage();
