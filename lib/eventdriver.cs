@@ -42,18 +42,17 @@ public class EventDriver
     private readonly string TimerName, TimerGroup;
     private ulong Ticks; // Not a reliable measure of time because of variable timer delay.
 
-    public TimeSpan TimeSinceStart
-    {
-        get { return m_timeSinceStart; }
-        private set { m_timeSinceStart = value; }
-    }
-    private TimeSpan m_timeSinceStart = TimeSpan.FromSeconds(0);
+    private DateTime LastTimeRun;
+    public TimeSpan TimeSinceStart { get; private set; }
 
     // If neither timerName nor timerGroup are given, it's assumed the timer will kick itself
     public EventDriver(string timerName = null, string timerGroup = null)
     {
         TimerName = timerName;
         TimerGroup = timerGroup;
+
+        LastTimeRun = DateTime.UtcNow;
+        TimeSinceStart = TimeSpan.FromSeconds(0);
     }
 
     private void KickTimer(ZACommons commons)
@@ -109,7 +108,8 @@ public class EventDriver
                      Action postAction = null)
     {
         Ticks++;
-        TimeSinceStart += commons.Program.ElapsedTime;
+        TimeSinceStart += (commons.Now - LastTimeRun);
+        LastTimeRun = commons.Now;
 
         bool runMain = false;
 

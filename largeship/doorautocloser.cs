@@ -1,7 +1,7 @@
 public class DoorAutoCloser
 {
     // Yeah, not sure if it's a good idea to hold references between invocations...
-    private readonly Dictionary<IMyDoor, TimeSpan> opened = new Dictionary<IMyDoor, TimeSpan>();
+    private readonly Dictionary<IMyDoor, DateTime> opened = new Dictionary<IMyDoor, DateTime>();
 
     public void Run(ZACommons commons)
     {
@@ -11,30 +11,26 @@ public class DoorAutoCloser
                                       block.CustomName.IndexOf("[Excluded]", ZACommons.IGNORE_CASE) < 0 &&
                                       block.DefinitionDisplayNameText != "Airtight Hangar Door");
 
+        var closeTime = commons.Now - MAX_DOOR_OPEN_TIME;
         for (var e = doors.GetEnumerator(); e.MoveNext();)
         {
             var door = (IMyDoor)e.Current;
 
             if (door.Open)
             {
-                TimeSpan openTime;
+                DateTime openTime;
                 if (opened.TryGetValue(door, out openTime))
                 {
-                    openTime += commons.Program.ElapsedTime;
-                    if (openTime >= MAX_DOOR_OPEN_TIME)
+                    if (openTime <= closeTime)
                     {
                         // Time to close it
                         door.GetActionWithName("Open_Off").Apply(door);
                         opened.Remove(door);
                     }
-                    else
-                    {
-                        opened[door] = openTime;
-                    }
                 }
                 else
                 {
-                    opened.Add(door, TimeSpan.FromSeconds(0));
+                    opened.Add(door, commons.Now);
                 }
             }
             else

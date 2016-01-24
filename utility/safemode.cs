@@ -13,12 +13,13 @@ public class SafeMode : DockingHandler
 
     private bool IsControlled = false;
     private bool IsDocked = true;
-    private TimeSpan LastControlled = TimeSpan.FromSeconds(0); // Hmm, TimeSpan.Zero doesn't work?
+    private DateTime LastControlled;
     private bool Abandoned = false;
 
     public SafeMode(EmergencyStopHandler emergencyStopHandler = null)
     {
         this.emergencyStopHandler = emergencyStopHandler;
+        LastControlled = DateTime.UtcNow;
     }
 
     public void Docked(ZACommons commons, EventDriver eventDriver)
@@ -32,7 +33,7 @@ public class SafeMode : DockingHandler
         {
             IsControlled = false;
 
-            ResetAbandonment();
+            ResetAbandonment(commons);
 
             IsDocked = false;
             eventDriver.Schedule(RunDelay, Run);
@@ -58,9 +59,9 @@ public class SafeMode : DockingHandler
         return false;
     }
 
-    private void ResetAbandonment()
+    private void ResetAbandonment(ZACommons commons)
     {
-        LastControlled = TimeSpan.FromSeconds(0);
+        LastControlled = commons.Now;
         Abandoned = false;
     }
 
@@ -105,9 +106,9 @@ public class SafeMode : DockingHandler
             // Abandonment check
             if (!IsControlled)
             {
-                LastControlled += commons.Program.ElapsedTime;
+                var abandonTime = commons.Now - AbandonmentTimeout;
 
-                if (!Abandoned && LastControlled >= AbandonmentTimeout)
+                if (!Abandoned && LastControlled <= abandonTime)
                 {
                     Abandoned = true;
                     ZACommons.StartTimerBlockWithName(commons.Blocks, SAFE_MODE_NAME);
@@ -115,7 +116,7 @@ public class SafeMode : DockingHandler
             }
             else
             {
-                ResetAbandonment();
+                ResetAbandonment(commons);
             }
             // commons.Echo("Timeout: " + AbandonmentTimeout);
             // commons.Echo("Last Controlled: " + LastControlled);
