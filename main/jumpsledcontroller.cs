@@ -1,11 +1,6 @@
 public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
-public readonly BatteryManager batteryManager = new BatteryManager();
-public readonly SolarGyroController solarGyroController = new SolarGyroController(
-                                                                                  // GyroControl.Yaw,
-                                                                                  GyroControl.Pitch,
-                                                                                  GyroControl.Roll
-                                                                                  );
-public readonly SafeMode safeMode = new SafeMode();
+private readonly SafeMode safeMode = new SafeMode();
+private readonly BatteryMonitor batteryMonitor = new BatteryMonitor();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
@@ -21,18 +16,9 @@ void Main(string argument)
 
         shipOrientation.SetShipReference<IMyShipController>(commons.Blocks);
 
-        eventDriver.Schedule(0.0);
+        safeMode.Init(commons, eventDriver);
+        batteryMonitor.Init(commons, eventDriver);
     }
 
-    batteryManager.HandleCommand(commons, argument);
-    solarGyroController.HandleCommand(commons, argument);
-
-    eventDriver.Tick(commons, () =>
-            {
-                batteryManager.Run(commons);
-                solarGyroController.Run(commons);
-                safeMode.Run(commons, eventDriver, false);
-
-                eventDriver.Schedule(1.0);
-            });
+    eventDriver.Tick(commons);
 }

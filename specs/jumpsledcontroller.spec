@@ -1,5 +1,5 @@
 [script]
-modules=jumpsledcontroller, batterymanager, solargyrocontroller, safemode,
+modules=jumpsledcontroller, dockinghandler, safemode, batterymonitor,
     gyrocontrol, thrustcontrol, shiporientation, shipcontrol, eventdriver,
     commons
 out=out/Jump Sled Controller/Script.cs

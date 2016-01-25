@@ -21,6 +21,12 @@ public class BatteryMonitor : DockingHandler
         }
     }
 
+    public void Init(ZACommons commons, EventDriver eventDriver)
+    {
+        IsDocked = false;
+        eventDriver.Schedule(0.0, Run);
+    }
+
     public void Run(ZACommons commons, EventDriver eventDriver)
     {
         if (IsDocked) return;
