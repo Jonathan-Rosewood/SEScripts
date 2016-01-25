@@ -11,11 +11,11 @@ public class MyEmergencyStopHandler : SafeMode.EmergencyStopHandler
 }
 
 public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
-public readonly SafeMode safeMode = new SafeMode(new MyEmergencyStopHandler());
+private readonly SafeMode safeMode = new SafeMode(new MyEmergencyStopHandler());
 private readonly RedundancyManager redundancyManager = new RedundancyManager();
-public readonly CruiseControl cruiseControl = new CruiseControl();
 private readonly DoorAutoCloser doorAutoCloser = new DoorAutoCloser();
 private readonly SimpleAirlock simpleAirlock = new SimpleAirlock();
+public readonly CruiseControl cruiseControl = new CruiseControl();
 public readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
@@ -36,17 +36,13 @@ void Main(string argument)
 
         shipOrientation.SetShipReference(commons, "Autopilot Reference");
 
-        eventDriver.Schedule(0.0);
         safeMode.Init(commons, eventDriver);
         redundancyManager.Init(commons, eventDriver);
+        doorAutoCloser.Init(commons, eventDriver);
+        simpleAirlock.Init(commons, eventDriver);
     }
 
-    eventDriver.Tick(commons, mainAction: () => {
-            doorAutoCloser.Run(commons);
-            simpleAirlock.Run(commons);
-
-            eventDriver.Schedule(1.0);
-        }, preAction: () => {
+    eventDriver.Tick(commons, preAction: () => {
             cruiseControl.HandleCommand(commons, eventDriver, argument);
         });
 

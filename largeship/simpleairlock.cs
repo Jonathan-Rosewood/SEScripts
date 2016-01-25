@@ -1,5 +1,7 @@
 public class SimpleAirlock
 {
+    private const double RunDelay = 1.0;
+
     private bool IsAnyDoorOpen(List<IMyTerminalBlock> doors)
     {
         for (var e = doors.GetEnumerator(); e.MoveNext();)
@@ -10,7 +12,12 @@ public class SimpleAirlock
         return false;
     }
 
-    public void Run(ZACommons commons)
+    public void Init(ZACommons commons, EventDriver eventDriver)
+    {
+        eventDriver.Schedule(0.0, Run);
+    }
+
+    public void Run(ZACommons commons, EventDriver eventDriver)
     {
         var groups = commons.GetBlockGroupsWithPrefix(SIMPLE_AIRLOCK_GROUP_PREFIX);
         for (var e = groups.GetEnumerator(); e.MoveNext();)
@@ -34,5 +41,7 @@ public class SimpleAirlock
                 }
             }
         }
+
+        eventDriver.Schedule(RunDelay, Run);
     }
 }

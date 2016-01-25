@@ -1,9 +1,16 @@
 public class DoorAutoCloser
 {
+    private const double RunDelay = 1.0;
+
     // Yeah, not sure if it's a good idea to hold references between invocations...
     private readonly Dictionary<IMyDoor, DateTime> opened = new Dictionary<IMyDoor, DateTime>();
 
-    public void Run(ZACommons commons)
+    public void Init(ZACommons commons, EventDriver eventDriver)
+    {
+        eventDriver.Schedule(0.0, Run);
+    }
+
+    public void Run(ZACommons commons, EventDriver eventDriver)
     {
         var doors = ZACommons
             .GetBlocksOfType<IMyDoor>(commons.Blocks,
@@ -38,5 +45,7 @@ public class DoorAutoCloser
                 opened.Remove(door);
             }
         }
+
+        eventDriver.Schedule(RunDelay, Run);
     }
 }

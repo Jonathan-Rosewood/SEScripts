@@ -1,5 +1,7 @@
 public class OxygenManager
 {
+    private const double RunDelay = 3.0;
+
     private const int OXYGEN_LEVEL_HIGH = 2;
     private const int OXYGEN_LEVEL_NORMAL = 1;
     private const int OXYGEN_LEVEL_BUFFER = 0;
@@ -47,7 +49,12 @@ public class OxygenManager
         }
     }
 
-    public void Run(ZACommons commons)
+    public void Init(ZACommons commons, EventDriver eventDriver)
+    {
+        eventDriver.Schedule(0.0, Run);
+    }
+
+    public void Run(ZACommons commons, EventDriver eventDriver)
     {
         var tanks = ZACommons.GetBlocksOfType<IMyOxygenTank>(commons.AllBlocks,
                                                              tank => tank.IsFunctional &&
@@ -109,5 +116,7 @@ public class OxygenManager
                 ZACommons.EnableBlocks(farms, (bool)farmOxygen);
             }
         }
+
+        eventDriver.Schedule(RunDelay, Run);
     }
 }

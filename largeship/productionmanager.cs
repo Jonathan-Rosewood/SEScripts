@@ -1,5 +1,7 @@
 public class ProductionManager
 {
+    private const double RunDelay = 1.0;
+
     private const char DelimiterStart = '{';
     private const char DelimiterEnd = '}';
     private const char DelimiterAmount = ':';
@@ -184,7 +186,18 @@ public class ProductionManager
         }
     }
 
-    public void Run(ZACommons commons)
+    public void Init(ZACommons commons, EventDriver eventDriver)
+    {
+        eventDriver.Schedule(0.0, Run);
+    }
+
+    public void Run(ZACommons commons, EventDriver eventDriver)
+    {
+        RunInternal(commons); // TODO Fix up state management and early returns
+        eventDriver.Schedule(RunDelay, Run);
+    }
+
+    private void RunInternal(ZACommons commons)
     {
         if (CurrentState == STATE_INACTIVE) return;
 
@@ -255,16 +268,18 @@ public class ProductionManager
         }
     }
 
-    public void HandleCommand(string argument)
+    public void HandleCommand(ZACommons commons, EventDriver eventDriver,
+                              string argument)
     {
         argument = argument.Trim().ToLower();
-        if (argument == "prodpause")
+        switch (argument)
         {
-            CurrentState = STATE_INACTIVATING;
-        }
-        else if (argument == "prodresume")
-        {
-            CurrentState = STATE_ACTIVE;
+            case "prodpause":
+                CurrentState = STATE_INACTIVATING;
+                break;
+            case "prodresume":
+                CurrentState = STATE_ACTIVE;
+                break;
         }
     }
 }

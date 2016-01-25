@@ -25,9 +25,16 @@ public class RefineryManager
         }
     }
 
+    private const double RunDelay = 1.0;
+
     private readonly RefineryComparer refineryComparer = new RefineryComparer();
 
-    public void Run(ZACommons commons)
+    public void Init(ZACommons commons, EventDriver eventDriver)
+    {
+        eventDriver.Schedule(0.0, Run);
+    }
+
+    public void Run(ZACommons commons, EventDriver eventDriver)
     {
         var refineries = ZACommons
             .GetBlocksOfType<IMyRefinery>(commons.Blocks,
@@ -66,5 +73,7 @@ public class RefineryManager
                 first.Inventory.TransferItemTo(last.Inventory, 0, amount: amount);
             }
         }
+
+        eventDriver.Schedule(RunDelay, Run);
     }
 }

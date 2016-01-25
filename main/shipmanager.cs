@@ -17,7 +17,18 @@ void Main(string argument)
     if (FirstRun)
     {
         FirstRun = false;
-        eventDriver.Schedule(0.0, Run);
+
+        // Door management
+        if (AUTO_CLOSE_DOORS_ENABLE) doorAutoCloser.Init(commons, eventDriver);
+        if (SIMPLE_AIRLOCK_ENABLE) simpleAirlock.Init(commons, eventDriver);
+        if (COMPLEX_AIRLOCK_ENABLE) complexAirlock.Init(commons, eventDriver);
+
+        // Systems management
+        if (OXYGEN_MANAGER_ENABLE) oxygenManager.Init(commons, eventDriver);
+        if (REFINERY_MANAGER_ENABLE) refineryManager.Init(commons, eventDriver);
+        if (PRODUCTION_MANAGER_ENABLE) productionManager.Init(commons, eventDriver);
+
+        // Misc
         if (TIMER_KICKER_ENABLE) timerKicker.Init(commons, eventDriver);
         if (REDUNDANCY_MANAGER_ENABLE) redundancyManager.Init(commons, eventDriver);
     }
@@ -25,21 +36,6 @@ void Main(string argument)
     eventDriver.Tick(commons, preAction: () => {
             // Handle commands
             if (COMPLEX_AIRLOCK_ENABLE) complexAirlock.HandleCommand(commons, eventDriver, argument);
-            if (PRODUCTION_MANAGER_ENABLE) productionManager.HandleCommand(argument);
+            if (PRODUCTION_MANAGER_ENABLE) productionManager.HandleCommand(commons, eventDriver, argument);
         });
-}
-
-public void Run(ZACommons commons, EventDriver eventDriver)
-{
-    // Door management
-    if (AUTO_CLOSE_DOORS_ENABLE) doorAutoCloser.Run(commons);
-    if (SIMPLE_AIRLOCK_ENABLE) simpleAirlock.Run(commons);
-    if (COMPLEX_AIRLOCK_ENABLE) complexAirlock.Run(commons, eventDriver);
-
-    // Systems management
-    if (OXYGEN_MANAGER_ENABLE) oxygenManager.Run(commons);
-    if (REFINERY_MANAGER_ENABLE) refineryManager.Run(commons);
-    if (PRODUCTION_MANAGER_ENABLE) productionManager.Run(commons);
-
-    eventDriver.Schedule(1.0, Run);
 }

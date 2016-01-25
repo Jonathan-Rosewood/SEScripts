@@ -12,6 +12,8 @@ public class ComplexAirlock
         }
     }
 
+    private const double RunDelay = 1.0;
+
     // Enums broken?
     private const int AIRLOCK_STATE_VACUUM = 0;
     private const int AIRLOCK_STATE_PRESSURIZED = 1;
@@ -314,7 +316,7 @@ public class ComplexAirlock
         }
     }
 
-    public void Run(ZACommons commons, EventDriver eventDriver, string argument)
+    private void RunInternal(ZACommons commons, EventDriver eventDriver, string argument)
     {
         Init(commons);
 
@@ -328,14 +330,20 @@ public class ComplexAirlock
         Clear();
     }
 
+    public void Init(ZACommons commons, EventDriver eventDriver)
+    {
+        eventDriver.Schedule(0.0, Run);
+    }
+
     public void Run(ZACommons commons, EventDriver eventDriver)
     {
-        Run(commons, eventDriver, ""); // Why...
+        RunInternal(commons, eventDriver, ""); // Why...
+        eventDriver.Schedule(RunDelay, Run);
     }
 
     public void HandleCommand(ZACommons commons, EventDriver eventDriver, string argument)
     {
-        Run(commons, eventDriver, argument); // Why...
+        RunInternal(commons, eventDriver, argument); // Why...
     }
 
     private List<IMyDoor> ToDoors(IEnumerable<IMyTerminalBlock> blocks)
