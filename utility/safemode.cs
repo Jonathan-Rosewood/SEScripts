@@ -11,7 +11,7 @@ public class SafeMode : DockingHandler
 
     private readonly TimeSpan AbandonmentTimeout = TimeSpan.Parse(ABANDONMENT_TIMEOUT);
 
-    private bool IsControlled = false;
+    private bool? IsControlled = null;
     private bool IsDocked = true;
     private DateTime LastControlled;
     private bool Abandoned = false;
@@ -31,7 +31,7 @@ public class SafeMode : DockingHandler
     {
         if (IsDocked)
         {
-            IsControlled = false;
+            IsControlled = null;
 
             ResetAbandonment(commons);
 
@@ -73,11 +73,11 @@ public class SafeMode : DockingHandler
         var currentState = IsShipControlled(controllers);
 
         // Flight safety stuff, only check on state change
-        if (IsControlled != currentState)
+        if (IsControlled == null || (bool)IsControlled != currentState)
         {
             IsControlled = currentState;
 
-            if (!IsControlled)
+            if (!(bool)IsControlled)
             {
                 var dampenersChanged = false;
 
@@ -104,7 +104,7 @@ public class SafeMode : DockingHandler
         if (ABANDONMENT_ENABLED)
         {
             // Abandonment check
-            if (!IsControlled)
+            if (!(bool)IsControlled)
             {
                 var abandonTime = commons.Now - AbandonmentTimeout;
 
