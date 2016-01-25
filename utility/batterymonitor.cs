@@ -1,6 +1,9 @@
 public class BatteryMonitor : DockingHandler
 {
+    private const double RunDelay = 5.0;
+
     private bool IsDocked = true;
+    private bool Triggered = false;
 
     public void Docked(ZACommons commons, EventDriver eventDriver)
     {
@@ -11,8 +14,10 @@ public class BatteryMonitor : DockingHandler
     {
         if (IsDocked)
         {
+            Triggered = false;
+
             IsDocked = false;
-            eventDriver.Schedule(1.0, Run);
+            eventDriver.Schedule(RunDelay, Run);
         }
     }
 
@@ -22,7 +27,7 @@ public class BatteryMonitor : DockingHandler
 
         Run(commons);
 
-        eventDriver.Schedule(1.0, Run);
+        eventDriver.Schedule(RunDelay, Run);
     }
 
     public void Run(ZACommons commons)
@@ -40,6 +45,8 @@ public class BatteryMonitor : DockingHandler
         var maxStoredPower = 0.0f;
 
         // Hmm, doesn't check battery recharge state...
+        // With the "full-auto mode" (if it worked as advertised),
+        // it probably doesn't make sense to check input/output state anyway
         for (var e = batteries.GetEnumerator(); e.MoveNext();)
         {
             var battery = e.Current as IMyBatteryBlock;
@@ -50,13 +57,14 @@ public class BatteryMonitor : DockingHandler
 
         var batteryPercent = currentStoredPower / maxStoredPower;
 
-        if (lowBattery.Enabled && !lowBattery.IsCountingDown && batteryPercent < BATTERY_THRESHOLD)
+        if (!Triggered && batteryPercent < BATTERY_THRESHOLD)
         {
+            Triggered = true;
             lowBattery.GetActionWithName("Start").Apply(lowBattery);
         }
-        else if (!lowBattery.Enabled && batteryPercent >= BATTERY_THRESHOLD)
+        else if (Triggered && batteryPercent >= BATTERY_THRESHOLD)
         {
-            lowBattery.GetActionWithName("OnOff_On").Apply(lowBattery);
+            Triggered = false;
         }
     }
 }
