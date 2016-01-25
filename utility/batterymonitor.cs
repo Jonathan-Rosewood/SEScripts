@@ -1,9 +1,21 @@
 public class BatteryMonitor : DockingHandler
 {
+    public interface LowBatteryHandler
+    {
+        void LowBattery(ZACommons commons, EventDriver eventDriver);
+    }
+
     private const double RunDelay = 5.0;
+
+    private readonly LowBatteryHandler lowBatteryHandler;
 
     private bool IsDocked = true;
     private bool Triggered = false;
+
+    public BatteryMonitor(LowBatteryHandler lowBatteryHandler = null)
+    {
+        this.lowBatteryHandler = lowBatteryHandler;
+    }
 
     public void Docked(ZACommons commons, EventDriver eventDriver)
     {
@@ -31,16 +43,16 @@ public class BatteryMonitor : DockingHandler
     {
         if (IsDocked) return;
 
-        Run(commons);
+        RunInternal(commons, eventDriver);
 
         eventDriver.Schedule(RunDelay, Run);
     }
 
-    public void Run(ZACommons commons)
+    private void RunInternal(ZACommons commons, EventDriver eventDriver)
     {
         var lowBattery = ZACommons.GetBlockWithName<IMyTimerBlock>(commons.Blocks, LOW_BATTERY_NAME);
-        // Don't bother if there's no timer block
-        if (lowBattery == null) return;
+        // Don't bother if there's no timer block or handler
+        if (lowBatteryHandler == null && lowBattery == null) return;
 
         var batteries = ZACommons.GetBlocksOfType<IMyBatteryBlock>(commons.Blocks, battery => battery.IsFunctional && ((IMyBatteryBlock)battery).Enabled);
 
@@ -66,7 +78,8 @@ public class BatteryMonitor : DockingHandler
         if (!Triggered && batteryPercent < BATTERY_THRESHOLD)
         {
             Triggered = true;
-            lowBattery.GetActionWithName("Start").Apply(lowBattery);
+            if (lowBatteryHandler != null) lowBatteryHandler.LowBattery(commons, eventDriver);
+            if (lowBattery != null) lowBattery.GetActionWithName("Start").Apply(lowBattery);
         }
         else if (Triggered && batteryPercent >= BATTERY_THRESHOLD)
         {
