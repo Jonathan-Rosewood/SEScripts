@@ -30,7 +30,7 @@ The bulk of my reusable modules, usually dealing with a specific system or featu
  
    Also, the recent autopilot API changes to the remote control block kind of makes the custom autopilot moot. Though I did experiment with the RC-based autopilot, I opted to stick with the custom autopilot since most of my ships are drones (you cannot engage autopilot while controlling the drone).
 
- * solargyrocontroller &mdash; Now-defunct module for keeping your solar panels always pointed at the sun. There's no reliable way of reading a solar panel's maximum potential power output anyway. (Sorry, I don't believe in parsing DetailInfo.)
+ * solargyrocontroller &mdash; Now-defunct module for keeping your solar panels always pointed at the sun by rotating the whole ship. There's no reliable way of reading a solar panel's maximum potential power output anymore. (Sorry, I don't believe in parsing DetailInfo.)
  
  * solarrotorcontroller &mdash; Now-defunct module for keeping solar panels mounted on a rotor pointed at the sun.
  
