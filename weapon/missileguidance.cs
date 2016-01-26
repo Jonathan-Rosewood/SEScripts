@@ -1,8 +1,5 @@
 public class MissileGuidance
 {
-    public static Vector3D Zero3D = new Vector3D();
-    public static Vector3D Forward3D = new Vector3D(0.0, 0.0, 1.0);
-
     private const uint FramesPerRun = 1;
     private const double RunsPerSecond = 60.0 / FramesPerRun;
 
@@ -112,26 +109,42 @@ public class MissileGuidance
             distance = targetVector.Normalize();
         }
 
-        // Transform relative to our forward vector
-        targetVector = Vector3D.Transform(targetVector, MatrixD.CreateLookAt(Zero3D, -shipControl.ReferenceForward, shipControl.ReferenceUp));
+        // Determine projection of targetVector onto our reference unit vectors
+        var dotZ = targetVector.Dot(shipControl.ReferenceForward);
+        var dotX = targetVector.Dot(shipControl.ReferenceLeft);
+        var dotY = targetVector.Dot(shipControl.ReferenceUp);
 
-        var yawVector = new Vector3D(targetVector.GetDim(0), 0, targetVector.GetDim(2));
-        var pitchVector = new Vector3D(0, targetVector.GetDim(1), targetVector.GetDim(2));
-        yawVector.Normalize();
-        pitchVector.Normalize();
+        var projZ = dotZ * shipControl.ReferenceForward;
+        var projX = dotX * shipControl.ReferenceLeft;
+        var projY = dotY * shipControl.ReferenceUp;
 
-        var yawError = Math.Acos(Vector3D.Dot(yawVector, Forward3D)) * Math.Sign(targetVector.GetDim(0));
-        var pitchError = -Math.Acos(Vector3D.Dot(pitchVector, Forward3D)) * Math.Sign(targetVector.GetDim(1));
+        // Determine yaw/pitch error by calculating angle between our forward
+        // vector and targetVector
+        var yawError = Math.Atan(projX.Length() / projZ.Length());
+        var pitchError = Math.Atan(projY.Length() / projZ.Length());
+
+        // Set sign according to sign of original dot product
+        yawError *= Math.Sign(dotX);
+        pitchError *= Math.Sign(-dotY); // NB flipped
 
         var gyroYaw = yawPID.Compute(yawError);
         var gyroPitch = pitchPID.Compute(pitchError);
 
+        // Constraining doesn't seem necessary...
+
+        /*
+        if (Math.Abs(gyroYaw) > GyroMaxRadiansPerSecond) gyroYaw = GyroMaxRadiansPerSecond * Math.Sign(gyroYaw);
+        if (Math.Abs(gyroPitch) > GyroMaxRadiansPerSecond) gyroPitch = GyroMaxRadiansPerSecond * Math.Sign(gyroPitch);
+        */
+
+        /*
         if (Math.Abs(gyroYaw) + Math.Abs(gyroPitch) > GyroMaxRadiansPerSecond)
         {
             var adjust = GyroMaxRadiansPerSecond / (Math.Abs(gyroYaw) + Math.Abs(gyroPitch));
             gyroYaw *= adjust;
             gyroPitch *= adjust;
         }
+        */
 
         var gyroControl = shipControl.GyroControl;
         gyroControl.SetAxisVelocity(GyroControl.Yaw, (float)gyroYaw);
