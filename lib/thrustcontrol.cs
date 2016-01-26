@@ -76,23 +76,6 @@ public class ThrustControl
                                                       (float)(thruster.GetMaximum<float>("Override") * percent)));
     }
 
-    public void SetOverrideNewtons(Base6Directions.Direction direction, double force,
-                                   Func<IMyThrust, bool> collect = null)
-    {
-        var thrusterList = GetThrusters(direction, collect);
-        var maxForce = 0.0;
-        thrusterList.ForEach(thruster =>
-                             maxForce += thruster.GetMaximum<float>("Override"));
-        // Constrain
-        force = Math.Max(force, 0.0);
-        force = Math.Min(force, maxForce);
-        // Each thruster outputs its own share
-        var fraction = force / maxForce;
-        thrusterList.ForEach(thruster =>
-                             thruster.SetValue<float>("Override",
-                                                      (float)(fraction * thruster.GetMaximum<float>("Override"))));
-    }
-
     public void Enable(Base6Directions.Direction direction, bool enable,
                        Func<IMyThrust, bool> collect = null)
     {
