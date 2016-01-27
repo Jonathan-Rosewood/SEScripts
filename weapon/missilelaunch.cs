@@ -4,18 +4,12 @@ public class MissileLaunch
     public const string SYSTEMS_GROUP = "CM Systems";
     private const string RELEASE_GROUP = "CM Release";
 
-    private const double BURN_TIME = 3.0; // In seconds
-
-    private MissileGuidance missileGuidance;
-    private Action<ZACommons, EventDriver>[] postLaunch;
+    private Action<ZACommons, EventDriver> PostLaunch;
 
     public void Init(ZACommons commons, EventDriver eventDriver,
-                     MissileGuidance missileGuidance,
-                     params Action<ZACommons, EventDriver>[] postLaunch)
+                     Action<ZACommons, EventDriver> postLaunch = null)
     {
-        // Guidance is special because it needs more arguments
-        this.missileGuidance = missileGuidance;
-        this.postLaunch = postLaunch;
+        PostLaunch = postLaunch;
         eventDriver.Schedule(0.0, Prime);
     }
 
@@ -81,7 +75,7 @@ public class MissileLaunch
         }
         else
         {
-            eventDriver.Schedule(1.0, MainBurn);
+            eventDriver.Schedule(BURN_DOWNWARD_TIME, MainBurn);
         }
     }
 
@@ -89,6 +83,7 @@ public class MissileLaunch
     {
         var shipControl = (ShipControlCommons)commons;
         var thrustControl = shipControl.ThrustControl;
+        thrustControl.SetOverride(Base6Directions.Direction.Down, false);
         thrustControl.SetOverride(Base6Directions.Direction.Forward, BURN_FRACTION);
 
         eventDriver.Schedule(BURN_TIME, Arm);
@@ -96,21 +91,15 @@ public class MissileLaunch
 
     public void Arm(ZACommons commons, EventDriver eventDriver)
     {
-        if (BURN_DOWNWARD)
-        {
-            var thrustControl = ((ShipControlCommons)commons).ThrustControl;
-            thrustControl.SetOverride(Base6Directions.Direction.Down, false);
-        }
+        // Reset and let guidance control thrust
+        var thrustControl = ((ShipControlCommons)commons).ThrustControl;
+        thrustControl.Reset();
 
-        // Just find all warheads on board and turn off safeties
+        // Find all warheads on board and turn off safeties
         var warheads = ZACommons.GetBlocksOfType<IMyWarhead>(commons.Blocks);
         warheads.ForEach(warhead => warhead.SetValue<bool>("Safety", false));
 
-        // We're done, let MissileGuidance take over
-        missileGuidance.Init(commons, eventDriver);
-        for (int i = 0; i < postLaunch.Length; i++)
-        {
-            postLaunch[i](commons, eventDriver);
-        }
+        // We're done, let other systems take over
+        if (PostLaunch != null) PostLaunch(commons, eventDriver);
     }
 }
