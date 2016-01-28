@@ -1,4 +1,4 @@
-private readonly EventDriver eventDriver = new EventDriver(timerName: "Clock" + MISSILE_GROUP_SUFFIX, timerGroup: "CM Launch" + MISSILE_GROUP_SUFFIX);
+private readonly EventDriver eventDriver = new EventDriver();
 public readonly LOSGuidance losGuidance = new LOSGuidance();
 public readonly GuidanceKill guidanceKill = new GuidanceKill();
 private readonly MissileLaunch missileLaunch = new MissileLaunch();
