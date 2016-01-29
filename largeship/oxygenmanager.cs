@@ -1,6 +1,6 @@
 public class OxygenManager
 {
-    private const double RunDelay = 3.0;
+    private const double RunDelay = 1.0;
 
     private const int OXYGEN_LEVEL_HIGH = 2;
     private const int OXYGEN_LEVEL_NORMAL = 1;
