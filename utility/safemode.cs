@@ -2,7 +2,7 @@ public class SafeMode : DockingHandler
 {
     private const double RunDelay = 1.0;
 
-    private readonly SafeModeHandler[] safeModeHandlers;
+    private readonly SafeModeHandler[] SafeModeHandlers;
 
     private readonly TimeSpan AbandonmentTimeout = TimeSpan.Parse(ABANDONMENT_TIMEOUT);
 
@@ -13,7 +13,7 @@ public class SafeMode : DockingHandler
 
     public SafeMode(params SafeModeHandler[] safeModeHandlers)
     {
-        this.safeModeHandlers = safeModeHandlers;
+        SafeModeHandlers = safeModeHandlers;
         LastControlled = DateTime.UtcNow;
     }
 
@@ -90,11 +90,7 @@ public class SafeMode : DockingHandler
                 // Only do something if dampeners were actually engaged
                 if (dampenersChanged)
                 {
-                    for (var i = 0; i < safeModeHandlers.Length; i++)
-                    {
-                        safeModeHandlers[i].SafeMode(commons, eventDriver);
-                    }
-                    ZACommons.StartTimerBlockWithName(commons.Blocks, EMERGENCY_STOP_NAME);
+                    TriggerSafeMode(commons, eventDriver, EMERGENCY_STOP_NAME);
                 }
             }
         }
@@ -109,11 +105,7 @@ public class SafeMode : DockingHandler
                 if (!Abandoned && LastControlled <= abandonTime)
                 {
                     Abandoned = true;
-                    for (var i = 0; i < safeModeHandlers.Length; i++)
-                    {
-                        safeModeHandlers[i].SafeMode(commons, eventDriver);
-                    }
-                    ZACommons.StartTimerBlockWithName(commons.Blocks, SAFE_MODE_NAME);
+                    TriggerSafeMode(commons, eventDriver);
                 }
             }
             else
@@ -125,5 +117,25 @@ public class SafeMode : DockingHandler
         }
 
         eventDriver.Schedule(RunDelay, Run);
+    }
+
+    public void HandleCommand(ZACommons commons, EventDriver eventDriver,
+                              string argument)
+    {
+        var command = argument.Trim().ToLower();
+        if (command == "safemode")
+        {
+            TriggerSafeMode(commons, eventDriver);
+        }
+    }
+
+    private void TriggerSafeMode(ZACommons commons, EventDriver eventDriver,
+                                 string timerBlockName = SAFE_MODE_NAME)
+    {
+        for (var i = 0; i < SafeModeHandlers.Length; i++)
+        {
+            SafeModeHandlers[i].SafeMode(commons, eventDriver);
+        }
+        ZACommons.StartTimerBlockWithName(commons.Blocks, timerBlockName);
     }
 }

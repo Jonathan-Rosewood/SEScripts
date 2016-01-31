@@ -11,7 +11,8 @@ public class MySafeModeHandler : SafeModeHandler
 }
 
 public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME, timerGroup: MINER_CLOCK_GROUP);
-public readonly DockingManager dockingManager = new DockingManager(new SafeMode(new MySafeModeHandler()), new BatteryMonitor(), new RedundancyManager());
+public readonly DockingManager dockingManager = new DockingManager();
+public readonly SafeMode safeMode = new SafeMode(new MySafeModeHandler());
 public readonly SmartUndock smartUndock = new SmartUndock();
 private readonly ZAStorage myStorage = new ZAStorage();
 public readonly MinerController minerController = new MinerController();
@@ -34,12 +35,15 @@ void Main(string argument)
 
         shipOrientation.SetShipReference(commons, MINER_REFERENCE_GROUP);
 
-        dockingManager.Init(commons, eventDriver);
+        dockingManager.Init(commons, eventDriver, safeMode,
+                            new BatteryMonitor(),
+                            new RedundancyManager());
         smartUndock.Init(commons);
     }
 
     eventDriver.Tick(commons, preAction: () => {
             dockingManager.HandleCommand(commons, eventDriver, argument);
+            safeMode.HandleCommand(commons, eventDriver, argument);
             smartUndock.HandleCommand(commons, eventDriver, argument, () =>
                     {
                         dockingManager.ManageShip(commons, eventDriver, false);

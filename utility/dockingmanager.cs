@@ -1,14 +1,11 @@
 public class DockingManager
 {
-    private readonly DockingHandler[] DockingHandlers;
+    private DockingHandler[] DockingHandlers;
 
-    public DockingManager(params DockingHandler[] dockingHandlers)
+    public void Init(ZACommons commons, EventDriver eventDriver,
+                     params DockingHandler[] dockingHandlers)
     {
         DockingHandlers = dockingHandlers;
-    }
-
-    public void Init(ZACommons commons, EventDriver eventDriver)
-    {
         var docked = ZACommons.IsConnectedAnywhere(commons.Blocks);
         ManageShip(commons, eventDriver, docked);
     }
