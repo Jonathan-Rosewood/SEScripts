@@ -119,6 +119,12 @@ public class LOSGuidance
         var yawError = Math.Atan(projX.Length() / projZ.Length());
         var pitchError = Math.Atan(projY.Length() / projZ.Length());
 
+        if (dotZ < 0.0)
+        {
+            // Actually behind us
+            yawError += Math.Sign(yawError) * Math.PI;
+        }
+
         // Set sign according to sign of original dot product
         yawError *= Math.Sign(dotX);
         pitchError *= Math.Sign(-dotY); // NB flipped
