@@ -1,4 +1,4 @@
-public class EmergencyStop
+public class ReverseThrust
 {
     private const uint FramesPerRun = 1;
     private const double RunsPerSecond = 60.0 / FramesPerRun;
@@ -18,13 +18,11 @@ public class EmergencyStop
 
     private Base6Directions.Direction LocalForward, LocalUp, LocalLeft;
 
-    public EmergencyStop()
+    public void Init(ZACommons commons, EventDriver eventDriver,
+                     Base6Directions.Direction thrusterDirection = Base6Directions.Direction.Forward)
     {
-        ThrusterDirection = Base6Directions.Direction.Forward;
-    }
+        ThrusterDirection = thrusterDirection;
 
-    public void Init(ZACommons commons, EventDriver eventDriver)
-    {
         yawPID.Kp = GyroKp;
         yawPID.Ki = GyroKi;
         yawPID.Kd = GyroKd;
