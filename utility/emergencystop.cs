@@ -1,6 +1,6 @@
-public static class SafetyStop
+public class EmergencyStop : SafeModeHandler
 {
-    public static void ThrusterCheck(ZACommons commons, EventDriver eventDriver)
+    public void SafeMode(ZACommons commons, EventDriver eventDriver)
     {
         var shipControl = (ShipControlCommons)commons;
 
@@ -24,27 +24,59 @@ public static class SafetyStop
                 {
                     var sc = (ShipControlCommons)c;
 
-                    if (HaveWorkingThrusters2(sc, Base6Directions.Direction.Forward) &&
-                        HaveWorkingThrusters2(sc, Base6Directions.Direction.Backward) &&
-                        HaveWorkingThrusters2(sc, Base6Directions.Direction.Left) &&
-                        HaveWorkingThrusters2(sc, Base6Directions.Direction.Right) &&
-                        HaveWorkingThrusters2(sc, Base6Directions.Direction.Up) &&
-                        HaveWorkingThrusters2(sc, Base6Directions.Direction.Down))
+                    var forward = HaveWorkingThrusters2(sc, Base6Directions.Direction.Forward);
+                    var backward = HaveWorkingThrusters2(sc, Base6Directions.Direction.Backward);
+                    var up = HaveWorkingThrusters2(sc, Base6Directions.Direction.Up);
+                    var left = HaveWorkingThrusters2(sc, Base6Directions.Direction.Left);
+                    var right = HaveWorkingThrusters2(sc, Base6Directions.Direction.Right);
+                    var down = HaveWorkingThrusters2(sc, Base6Directions.Direction.Down);
+
+                    if (forward && backward && up &&
+                        left && right && down)
                     {
-                        // All looks well
+                        // All is well
                         return;
                     }
 
-                    // Otherwise, induce a spin on two axes and hope for the best
-                    var gyroControl = sc.GyroControl;
-                    gyroControl.Reset();
-                    gyroControl.EnableOverride(true);
-                    gyroControl.SetAxisVelocityRPM(GyroControl.Yaw, 30.0f);
-                    gyroControl.SetAxisVelocityRPM(GyroControl.Pitch, 23.0f);
+                    // Otherwise, pick a working direction and pass off to
+                    // ReverseThrust
+                    Base6Directions.Direction direction;
+                    if (forward)
+                    {
+                        direction = Base6Directions.Direction.Forward;
+                    }
+                    else if (backward)
+                    {
+                        direction = Base6Directions.Direction.Backward;
+                    }
+                    else if (up)
+                    {
+                        direction = Base6Directions.Direction.Up;
+                    }
+                    else if (left)
+                    {
+                        direction = Base6Directions.Direction.Left;
+                    }
+                    else if (right)
+                    {
+                        direction = Base6Directions.Direction.Right;
+                    }
+                    else if (down)
+                    {
+                        direction = Base6Directions.Direction.Down;
+                    }
+                    else
+                    {
+                        // Ha ha. No working thrusters at all.
+                        return;
+                    }
+
+                    var reverseThrust = new ReverseThrust();
+                    reverseThrust.Init(c, ed, direction);
                 });
     }
 
-    private static bool HaveWorkingThrusters(ShipControlCommons shipControl,
+    private bool HaveWorkingThrusters(ShipControlCommons shipControl,
                                              Base6Directions.Direction direction)
     {
         // First pass: Look for a working, non-overridden thruster
@@ -102,7 +134,7 @@ public static class SafetyStop
     }
 
     // Last-ditch check before inducing spin
-    private static bool HaveWorkingThrusters2(ShipControlCommons shipControl,
+    private bool HaveWorkingThrusters2(ShipControlCommons shipControl,
                                               Base6Directions.Direction direction)
     {
         var found = false;

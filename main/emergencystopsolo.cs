@@ -1,5 +1,5 @@
 public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
-public readonly ReverseThrust reverseThrust = new ReverseThrust();
+public readonly EmergencyStop emergencyStop = new EmergencyStop();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
@@ -28,10 +28,6 @@ public void HandleCommand(ZACommons commons, EventDriver eventDriver,
     argument = argument.Trim().ToLower();
     if (argument == "stop")
     {
-        reverseThrust.Init(commons, eventDriver, REVERSE_THRUST_DIRECTION);
-    }
-    else if (argument == "reset")
-    {
-        reverseThrust.Reset(commons);
+        emergencyStop.SafeMode(commons, eventDriver);
     }
 }

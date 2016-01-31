@@ -12,11 +12,13 @@ public class ReverseThrust
     private readonly Velocimeter velocimeter = new Velocimeter(30);
     private int SampleCount;
 
-    public Base6Directions.Direction ThrusterDirection { get; set; }
+    private Base6Directions.Direction ThrusterDirection;
     private bool Enabled;
     private Vector3D TargetVector;
 
     private Base6Directions.Direction LocalForward, LocalUp, LocalLeft;
+
+    private double MaxGyroError;
 
     public void Init(ZACommons commons, EventDriver eventDriver,
                      Base6Directions.Direction thrusterDirection = Base6Directions.Direction.Forward)
@@ -49,6 +51,8 @@ public class ReverseThrust
         Enabled = true;
 
         shipControl.ThrustControl.Enable(false);
+
+        MaxGyroError = shipControl.Reference.CubeGrid.GridSize == 0.5f ? 0.0000001 : 0.0001;
 
         eventDriver.Schedule(0, DetermineVelocity);
     }
@@ -129,7 +133,7 @@ public class ReverseThrust
         gyroControl.SetAxisVelocity(GyroControl.Yaw, (float)gyroYaw);
         gyroControl.SetAxisVelocity(GyroControl.Pitch, (float)gyroPitch);
 
-        if ((pitchError * pitchError + yawError * yawError) < 0.0000001)
+        if ((pitchError * pitchError + yawError * yawError) < MaxGyroError)
         {
             gyroControl.Reset();
             shipControl.ThrustControl.Enable(true);

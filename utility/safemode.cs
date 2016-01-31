@@ -1,13 +1,8 @@
 public class SafeMode : DockingHandler
 {
-    public interface EmergencyStopHandler
-    {
-        void EmergencyStop(ZACommons commons, EventDriver eventDriver);
-    }
-
     private const double RunDelay = 1.0;
 
-    private readonly EmergencyStopHandler emergencyStopHandler;
+    private readonly SafeModeHandler[] safeModeHandlers;
 
     private readonly TimeSpan AbandonmentTimeout = TimeSpan.Parse(ABANDONMENT_TIMEOUT);
 
@@ -16,9 +11,9 @@ public class SafeMode : DockingHandler
     private DateTime LastControlled;
     private bool Abandoned = false;
 
-    public SafeMode(EmergencyStopHandler emergencyStopHandler = null)
+    public SafeMode(params SafeModeHandler[] safeModeHandlers)
     {
-        this.emergencyStopHandler = emergencyStopHandler;
+        this.safeModeHandlers = safeModeHandlers;
         LastControlled = DateTime.UtcNow;
     }
 
@@ -95,7 +90,10 @@ public class SafeMode : DockingHandler
                 // Only do something if dampeners were actually engaged
                 if (dampenersChanged)
                 {
-                    if (emergencyStopHandler != null) emergencyStopHandler.EmergencyStop(commons, eventDriver);
+                    for (var i = 0; i < safeModeHandlers.Length; i++)
+                    {
+                        safeModeHandlers[i].SafeMode(commons, eventDriver);
+                    }
                     ZACommons.StartTimerBlockWithName(commons.Blocks, EMERGENCY_STOP_NAME);
                 }
             }
@@ -111,6 +109,10 @@ public class SafeMode : DockingHandler
                 if (!Abandoned && LastControlled <= abandonTime)
                 {
                     Abandoned = true;
+                    for (var i = 0; i < safeModeHandlers.Length; i++)
+                    {
+                        safeModeHandlers[i].SafeMode(commons, eventDriver);
+                    }
                     ZACommons.StartTimerBlockWithName(commons.Blocks, SAFE_MODE_NAME);
                 }
             }

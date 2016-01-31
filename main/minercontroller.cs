@@ -1,17 +1,17 @@
-public class MyEmergencyStopHandler : SafeMode.EmergencyStopHandler
+public class MySafeModeHandler : SafeModeHandler
 {
-    public void EmergencyStop(ZACommons commons, EventDriver eventDriver)
+    public void SafeMode(ZACommons commons, EventDriver eventDriver)
     {
         // Check after 1 second (let timer block's action take effect)
         eventDriver.Schedule(1.0, (c,ed) =>
                 {
-                    SafetyStop.ThrusterCheck(c, ed);
+                    new EmergencyStop().SafeMode(c, ed);
                 });
     }
 }
 
 public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME, timerGroup: MINER_CLOCK_GROUP);
-public readonly DockingManager dockingManager = new DockingManager(new SafeMode(new MyEmergencyStopHandler()), new BatteryMonitor(), new RedundancyManager());
+public readonly DockingManager dockingManager = new DockingManager(new SafeMode(new MySafeModeHandler()), new BatteryMonitor(), new RedundancyManager());
 public readonly SmartUndock smartUndock = new SmartUndock();
 private readonly ZAStorage myStorage = new ZAStorage();
 public readonly MinerController minerController = new MinerController();
