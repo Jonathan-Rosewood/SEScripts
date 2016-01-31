@@ -12,8 +12,6 @@ public class ReverseThrust
     private bool Enabled;
     private Vector3D TargetVector;
 
-    private const double MaxGyroError = 0.0000001;
-
     public void Init(ZACommons commons, EventDriver eventDriver,
                      Base6Directions.Direction thrusterDirection = Base6Directions.Direction.Forward)
     {
@@ -83,7 +81,7 @@ public class ReverseThrust
         var gyroControl = seeker.Seek(shipControl, TargetVector,
                                       out yawError, out pitchError);
 
-        if ((pitchError * pitchError + yawError * yawError) < MaxGyroError)
+        if ((pitchError * pitchError + yawError * yawError) < REVERSE_THRUST_MAX_GYRO_ERROR)
         {
             gyroControl.Reset();
             shipControl.ThrustControl.Enable(true);
