@@ -3,8 +3,6 @@ public class MissileGuidance
     private const uint FramesPerRun = 1;
     private const double RunsPerSecond = 60.0 / FramesPerRun;
 
-    private const double GyroMaxRadiansPerSecond = Math.PI; // Really pi*2, but something's odd...
-
     private Vector3D Target;
     private double RandomOffset;
 
@@ -19,11 +17,7 @@ public class MissileGuidance
     private const double DetonationDistance = 30.0;
     private readonly TimeSpan DetonationTime = TimeSpan.FromSeconds(200.0);
 
-    private const double GyroKp = 250.0; // Proportional constant
-    private const double GyroKi = 0.0; // Integral constant
-    private const double GyroKd = 200.0; // Derivative constant
-    private readonly PIDController yawPID = new PIDController(1.0 / RunsPerSecond);
-    private readonly PIDController pitchPID = new PIDController(1.0 / RunsPerSecond);
+    private readonly Seeker seeker = new Seeker(1.0 / RunsPerSecond);
 
     private double ScaleAmplitude(double distance)
     {
@@ -82,13 +76,10 @@ public class MissileGuidance
         Random random = new Random(this.GetHashCode());
         RandomOffset = 1000.0 * random.NextDouble();
 
-        yawPID.Kp = GyroKp;
-        yawPID.Ki = GyroKi;
-        yawPID.Kd = GyroKd;
-
-        pitchPID.Kp = GyroKp;
-        pitchPID.Ki = GyroKi;
-        pitchPID.Kd = GyroKd;
+        var shipControl = (ShipControlCommons)commons;
+        seeker.Init(shipControl,
+                    localUp: shipControl.ShipUp,
+                    localForward: shipControl.ShipForward);
 
         eventDriver.Schedule(0, Run);
     }
@@ -109,52 +100,9 @@ public class MissileGuidance
             distance = targetVector.Normalize();
         }
 
-        // Determine projection of targetVector onto our reference unit vectors
-        var dotZ = targetVector.Dot(shipControl.ReferenceForward);
-        var dotX = targetVector.Dot(shipControl.ReferenceLeft);
-        var dotY = targetVector.Dot(shipControl.ReferenceUp);
-
-        var projZ = dotZ * shipControl.ReferenceForward;
-        var projX = dotX * shipControl.ReferenceLeft;
-        var projY = dotY * shipControl.ReferenceUp;
-
-        // Determine yaw/pitch error by calculating angle between our forward
-        // vector and targetVector
-        var yawError = Math.Atan(projX.Length() / projZ.Length());
-        var pitchError = Math.Atan(projY.Length() / projZ.Length());
-
-        if (dotZ < 0.0)
-        {
-            // Actually behind us
-            yawError += Math.Sign(yawError) * Math.PI;
-        }
-
-        // Set sign according to sign of original dot product
-        yawError *= Math.Sign(dotX);
-        pitchError *= Math.Sign(-dotY); // NB flipped
-
-        var gyroYaw = yawPID.Compute(yawError);
-        var gyroPitch = pitchPID.Compute(pitchError);
-
-        // Constraining doesn't seem necessary...
-
-        /*
-        if (Math.Abs(gyroYaw) > GyroMaxRadiansPerSecond) gyroYaw = GyroMaxRadiansPerSecond * Math.Sign(gyroYaw);
-        if (Math.Abs(gyroPitch) > GyroMaxRadiansPerSecond) gyroPitch = GyroMaxRadiansPerSecond * Math.Sign(gyroPitch);
-        */
-
-        /*
-        if (Math.Abs(gyroYaw) + Math.Abs(gyroPitch) > GyroMaxRadiansPerSecond)
-        {
-            var adjust = GyroMaxRadiansPerSecond / (Math.Abs(gyroYaw) + Math.Abs(gyroPitch));
-            gyroYaw *= adjust;
-            gyroPitch *= adjust;
-        }
-        */
-
-        var gyroControl = shipControl.GyroControl;
-        gyroControl.SetAxisVelocity(GyroControl.Yaw, (float)gyroYaw);
-        gyroControl.SetAxisVelocity(GyroControl.Pitch, (float)gyroPitch);
+        double yawError, pitchError;
+        seeker.Seek(shipControl, targetVector,
+                    out yawError, out pitchError);
 
         if (distance < FinalApproachDistance)
         {

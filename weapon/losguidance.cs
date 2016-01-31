@@ -3,11 +3,7 @@ public class LOSGuidance
     private const uint FramesPerRun = 1;
     private const double RunsPerSecond = 60.0 / FramesPerRun;
 
-    private const double GyroKp = 250.0; // Proportional constant
-    private const double GyroKi = 0.0; // Integral constant
-    private const double GyroKd = 200.0; // Derivative constant
-    private readonly PIDController yawPID = new PIDController(1.0 / RunsPerSecond);
-    private readonly PIDController pitchPID = new PIDController(1.0 / RunsPerSecond);
+    private readonly Seeker seeker = new Seeker(1.0 / RunsPerSecond);
 
     private readonly Velocimeter velocimeter = new Velocimeter(30);
     private const double ThrustKp = 1.0;
@@ -57,13 +53,11 @@ public class LOSGuidance
 
     public void Init(ZACommons commons, EventDriver eventDriver)
     {
-        yawPID.Kp = GyroKp;
-        yawPID.Ki = GyroKi;
-        yawPID.Kd = GyroKd;
+        var shipControl = (ShipControlCommons)commons;
 
-        pitchPID.Kp = GyroKp;
-        pitchPID.Ki = GyroKi;
-        pitchPID.Kd = GyroKd;
+        seeker.Init(shipControl,
+                    localUp: shipControl.ShipUp,
+                    localForward: shipControl.ShipForward);
 
         thrustPID.Kp = ThrustKp;
         thrustPID.Ki = ThrustKi;
@@ -105,36 +99,9 @@ public class LOSGuidance
         // Offset by difference between launcher and missile positions
         targetVector += LauncherReferencePoint - shipControl.ReferencePoint;
 
-        // Determine projection of targetVector onto our reference unit vectors
-        var dotZ = targetVector.Dot(shipControl.ReferenceForward);
-        var dotX = targetVector.Dot(shipControl.ReferenceLeft);
-        var dotY = targetVector.Dot(shipControl.ReferenceUp);
-
-        var projZ = dotZ * shipControl.ReferenceForward;
-        var projX = dotX * shipControl.ReferenceLeft;
-        var projY = dotY * shipControl.ReferenceUp;
-
-        // Determine yaw/pitch error by calculating angle between our forward
-        // vector and targetVector
-        var yawError = Math.Atan(projX.Length() / projZ.Length());
-        var pitchError = Math.Atan(projY.Length() / projZ.Length());
-
-        if (dotZ < 0.0)
-        {
-            // Actually behind us
-            yawError += Math.Sign(yawError) * Math.PI;
-        }
-
-        // Set sign according to sign of original dot product
-        yawError *= Math.Sign(dotX);
-        pitchError *= Math.Sign(-dotY); // NB flipped
-
-        var gyroYaw = yawPID.Compute(yawError);
-        var gyroPitch = pitchPID.Compute(pitchError);
-
-        var gyroControl = shipControl.GyroControl;
-        gyroControl.SetAxisVelocity(GyroControl.Yaw, (float)gyroYaw);
-        gyroControl.SetAxisVelocity(GyroControl.Pitch, (float)gyroPitch);
+        double yawError, pitchError;
+        seeker.Seek(shipControl, targetVector,
+                    out yawError, out pitchError);
 
         if (!FullBurn)
         {
