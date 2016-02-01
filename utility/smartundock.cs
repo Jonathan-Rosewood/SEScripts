@@ -2,7 +2,8 @@ public class SmartUndock
 {
     private const string UndockTargetKey = "SmartUndock_UndockTarget";
 
-    private readonly TranslateAutopilot autopilot = new TranslateAutopilot();
+    private readonly TranslateAutopilot undockAutopilot = new TranslateAutopilot();
+    private readonly YawPitchAutopilot rtbAutopilot = new YawPitchAutopilot();
 
     private Vector3D? UndockTarget = null;
 
@@ -26,7 +27,7 @@ public class SmartUndock
     }
 
     public void HandleCommand(ZACommons commons, EventDriver eventDriver,
-                              string argument, Action preUndock)
+                              string argument, Action preUndock = null)
     {
         argument = argument.Trim().ToLower();
         if (argument == "smartundock")
@@ -62,9 +63,9 @@ public class SmartUndock
                 UndockTarget = reference.GetPosition() + SMART_UNDOCK_DISTANCE * backwardVector;
 
                 // Schedule the autopilot
-                autopilot.Init(commons, eventDriver, (Vector3D)UndockTarget,
-                               SMART_UNDOCK_UNDOCK_SPEED,
-                               delay: 2.0);
+                undockAutopilot.Init(commons, eventDriver, (Vector3D)UndockTarget,
+                                     SMART_UNDOCK_UNDOCK_SPEED,
+                                     delay: 2.0);
             }
             SaveUndockTarget(commons);
 
@@ -98,12 +99,13 @@ public class SmartUndock
             var shipControl = (ShipControlCommons)commons;
 
             // Schedule the autopilot
-            autopilot.Init(commons, eventDriver, (Vector3D)UndockTarget,
-                           SMART_UNDOCK_RTB_SPEED);
+            rtbAutopilot.Init(commons, eventDriver, (Vector3D)UndockTarget,
+                              SMART_UNDOCK_RTB_SPEED);
         }
         else if (argument == "smartreset")
         {
-            autopilot.Reset(commons);
+            undockAutopilot.Reset(commons);
+            rtbAutopilot.Reset(commons);
         }
     }
 
