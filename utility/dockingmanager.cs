@@ -1,6 +1,10 @@
 public class DockingManager
 {
+    private const double RunDelay = 10.0;
+
     private DockingHandler[] DockingHandlers;
+
+    private bool IsDocked;
 
     public void Init(ZACommons commons, EventDriver eventDriver,
                      params DockingHandler[] dockingHandlers)
@@ -155,6 +159,28 @@ public class DockingManager
             {
                 DockingHandlers[i].Docked(commons, eventDriver);
             }
+        }
+
+        IsDocked = docked;
+        if (IsDocked)
+        {
+            eventDriver.Schedule(RunDelay, Sleep);
+        }
+    }
+
+    public void Sleep(ZACommons commons, EventDriver eventDriver)
+    {
+        if (!IsDocked) return;
+
+        // Just check if we're still connected
+        if (!ZACommons.IsConnectedAnywhere(commons.Blocks))
+        {
+            // Time to panic and/or wake up
+            ManageShip(commons, eventDriver, false);
+        }
+        else
+        {
+            eventDriver.Schedule(RunDelay, Sleep);
         }
     }
 }
