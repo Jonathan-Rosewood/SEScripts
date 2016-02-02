@@ -14,7 +14,7 @@ public class ProductionManager
         public ItemStock(string subtypeName, float amount)
         {
             SubtypeName = subtypeName;
-            Amount = amount;
+            Amount = amount * PRODUCTION_MANAGER_SETUP_AMOUNT_MULTIPLIER;
         }
 
         public string ToString()
@@ -76,25 +76,26 @@ public class ProductionManager
 
     private ItemStock[] defaultItemStocks = new ItemStock[]
         {
-            new ItemStock("BulletproofGlass", 3000),
-            new ItemStock("Computer", 5000),
-            new ItemStock("Construction", 40000),
-            new ItemStock("Detector", 100),
-            new ItemStock("Display", 350),
-            new ItemStock("Explosives", 100),
-            new ItemStock("Girder", 2000),
-            new ItemStock("GravityGenerator", 50),
-            new ItemStock("InteriorPlate", 25000),
-            new ItemStock("LargeTube", 3000),
+            new ItemStock("BulletproofGlass", 12000),
+            new ItemStock("Computer", 6500),
+            new ItemStock("Construction", 50000),
+            new ItemStock("Detector", 400),
+            new ItemStock("Display", 500),
+            new ItemStock("Explosives", 500),
+            new ItemStock("Girder", 3500),
+            new ItemStock("GravityGenerator", 250),
+            new ItemStock("InteriorPlate", 55000),
+            new ItemStock("LargeTube", 6000),
             new ItemStock("Medical", 120),
-            new ItemStock("MetalGrid", 8000),
-            new ItemStock("Motor", 3000),
-            new ItemStock("PowerCell", 1500),
-            new ItemStock("RadioCommunication", 200),
+            new ItemStock("MetalGrid", 15500),
+            new ItemStock("Motor", 16000),
+            new ItemStock("PowerCell", 2800),
+            new ItemStock("RadioCommunication", 250),
             new ItemStock("Reactor", 10000),
-            new ItemStock("SmallTube", 16000),
-            new ItemStock("SolarCell", 1500),
-            new ItemStock("SteelPlate", 200000),
+            new ItemStock("SmallTube", 26000),
+            new ItemStock("SolarCell", 2800),
+            new ItemStock("SteelPlate", 300000),
+            new ItemStock("Superconductor", 3000),
             new ItemStock("Thrust", 16000),
         };
 
