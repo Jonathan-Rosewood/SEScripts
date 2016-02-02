@@ -132,8 +132,7 @@ public class CruiseControl
         
         if (!Active) return;
 
-        var reference = commons.Me;
-        velocimeter.TakeSample(reference.GetPosition(), eventDriver.TimeSinceStart);
+        velocimeter.TakeSample(shipControl.ReferencePoint, eventDriver.TimeSinceStart);
 
         // Determine velocity
         var velocity = velocimeter.GetAverageVelocity();
@@ -141,8 +140,8 @@ public class CruiseControl
         {
             var cruiseDirectionFlipped = Base6Directions.GetFlippedDirection(CruiseDirection);
             // Determine forward vector
-            var forward3I = reference.Position + Base6Directions.GetIntVector(shipControl.ShipBlockOrientation.TransformDirection(CruiseDirection));
-            var forward = Vector3D.Normalize(reference.CubeGrid.GridIntegerToWorld(forward3I) - reference.GetPosition());
+            var forward3I = shipControl.Reference.Position + Base6Directions.GetIntVector(shipControl.ShipBlockOrientation.TransformDirection(CruiseDirection));
+            var forward = Vector3D.Normalize(shipControl.Reference.CubeGrid.GridIntegerToWorld(forward3I) - shipControl.ReferencePoint);
             
             var speed = Vector3D.Dot((Vector3D)velocity, forward);
             var error = TargetSpeed - speed;
