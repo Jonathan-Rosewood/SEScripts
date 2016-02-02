@@ -141,7 +141,7 @@ public class CruiseControl
         {
             var cruiseDirectionFlipped = Base6Directions.GetFlippedDirection(CruiseDirection);
             // Determine forward vector
-            var forward3I = reference.Position + Base6Directions.GetIntVector(shipControl.ShipBlockOrientation.TransformDirectionInverse(CruiseDirection));
+            var forward3I = reference.Position + Base6Directions.GetIntVector(shipControl.ShipBlockOrientation.TransformDirection(CruiseDirection));
             var forward = Vector3D.Normalize(reference.CubeGrid.GridIntegerToWorld(forward3I) - reference.GetPosition());
             
             var speed = Vector3D.Dot((Vector3D)velocity, forward);
