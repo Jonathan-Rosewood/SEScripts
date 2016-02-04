@@ -18,15 +18,17 @@ The bulk of my reusable modules, usually dealing with a specific system or featu
  
  * redundancy &mdash; Simple redundancy manager, ensures that a certain number of blocks in a block group are always enabled. Most useful for backup antennas and maybe backup gravity generators.
  
+ * reversethrust &mdash; Assumes ship is not accelerating and dampeners are on. Disables all thrusters, measures current velocity, orients the specified facing toward the current velocity vector, then re-enables thrusters (which should bring the ship to a halt).
+
  * rotorrangefinder &mdash; Rotor-based rangefinder (parallax rangefinder)
  
  * rotorstepper &mdash; Uses a PID controller to allow for the precise stepping of rotors.
 
+ * safemodehandler &mdash; The `SafeModeHandler` interface, used by the safemode module.
+
  * safemode &mdash; Re-engages dampeners if the ship is ever uncontrolled (will also trigger a timer block and/or call some code in that situation). Also starts a timer block if the ship is ever unattended for some amount of time.
  
- * safetystop &mdash; Lazy way of ensuring a ship can stop. Looks for any directions lacking functional thrusters, and if missing, will induce a spin on two axes. Otherwise, does nothing (assumes dampeners are engaged, e.g. by safemode).
- 
- * smartundock &mdash; Smartly undocks a ship by thrusting it away from its connector. Memorizes the point some distance (e.g. 50 meters) from its mothership's connector. Provides a return-to-base command that will fly it (dumbly) back to that undock point. With the dampener changes, the simple autopilot I wrote up is no longer really effective or safe. But it still works fine for low speeds.
+ * smartundock &mdash; Smartly undocks a ship by thrusting it away from its connector. Memorizes the point some distance (e.g. 50 meters) from its mothership's connector. Provides a return-to-base command that will fly it (dumbly) back to that undock point.
  
    Also, the recent autopilot API changes to the remote control block kind of makes the custom autopilot moot. Though I did experiment with the RC-based autopilot, I opted to stick with the custom autopilot since most of my ships are drones (you cannot engage autopilot while controlling the drone).
 
@@ -38,4 +40,5 @@ The bulk of my reusable modules, usually dealing with a specific system or featu
  
  * turretdetector &mdash; Proof-of-concept for detecting the presence of things that turrets can aim & fire at, e.g. meteors.
  
- * yawpitchauto &mdash; Another autopilot that gets you from point A to point B. Points you toward point B and thrusts you forward. Doesn't really work, I suck at math.
+ * yawpitchauto &mdash; Another autopilot that gets you from point A to point B. Points you toward point B and thrusts you forward at a defined speed.
+

@@ -30,6 +30,8 @@ This directory contains modules that are used in pretty much all/most scripts (e
   
   * velocimeter &mdash; Simple library to take rolling position samples and average them into a velocity vector.
 
+  * seeker &mdash; Module that manipulates gyros (yaw & pitch) to keep the ship pointed at a specific relative vector.
+
 ## Conventions ##
 
 Modules are integrated into the main loop in one of two ways. They can implement both ways, but only one is used for any given script.
