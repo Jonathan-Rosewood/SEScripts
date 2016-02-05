@@ -1,6 +1,6 @@
 public class RefineryManager
 {
-    public struct RefineryWrapper
+    public struct RefineryWrapper : IComparable<RefineryWrapper>
     {
         public IMyRefinery Refinery;
         public IMyInventory Inventory;
@@ -15,19 +15,14 @@ public class RefineryManager
             Item = items.Count > 0 ? items[0] : null;
             Amount = Item != null ? (float)Item.Amount : 0.0f;
         }
-    }
 
-    public class RefineryComparer : IComparer<RefineryWrapper>
-    {
-        public int Compare(RefineryWrapper a, RefineryWrapper b)
+        public int CompareTo(RefineryWrapper other)
         {
-            return b.Amount.CompareTo(a.Amount);
+            return other.Amount.CompareTo(Amount);
         }
     }
 
     private const double RunDelay = 1.0;
-
-    private readonly RefineryComparer refineryComparer = new RefineryComparer();
 
     public void Init(ZACommons commons, EventDriver eventDriver)
     {
@@ -45,11 +40,11 @@ public class RefineryManager
 
         var isProducing = false;
         var isIdle = false;
-        var wrappers = new List<RefineryWrapper>();
+        var wrappers = new LinkedList<RefineryWrapper>();
         for (var e = refineries.GetEnumerator(); e.MoveNext();)
         {
             var refinery = (IMyRefinery)e.Current;
-            wrappers.Add(new RefineryWrapper(refinery));
+            InsertSorted(wrappers, new RefineryWrapper(refinery));
             if (refinery.IsProducing)
             {
                 isProducing = true;
@@ -62,9 +57,8 @@ public class RefineryManager
 
         if (isProducing && isIdle)
         {
-            wrappers.Sort(refineryComparer);
-            var first = wrappers[0];
-            var last = wrappers[wrappers.Count - 1];
+            var first = wrappers.First.Value;
+            var last = wrappers.Last.Value;
             if (last.Amount == 0.0f)
             {
                 // Take half from the first
@@ -75,5 +69,25 @@ public class RefineryManager
         }
 
         eventDriver.Schedule(RunDelay, Run);
+    }
+
+    // Because Keen broke List.Sort() and Array.Sort() some time ago...
+    private void InsertSorted(LinkedList<RefineryWrapper> wrappers,
+                              RefineryWrapper wrapper)
+    {
+        // Just do insertion sort
+        for (var current = wrappers.First;
+             current != null;
+             current = current.Next)
+        {
+            if (wrapper.CompareTo(current.Value) < 0)
+            {
+                // Insert before this one
+                wrappers.AddBefore(current, wrapper);
+                return;
+            }
+        }
+        // Just add at the end
+        wrappers.AddLast(wrapper);
     }
 }
