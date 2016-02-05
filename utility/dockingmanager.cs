@@ -139,7 +139,6 @@ public class DockingManager
             battery.SetValue<bool>("Recharge", docked);
             battery.SetValue<bool>("Discharge", !docked);
         }
-        ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyReactor>(commons.Blocks), !docked);
 
         if (TOUCH_ANTENNA) ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyRadioAntenna>(commons.Blocks), !docked);
         if (TOUCH_LANTENNA) ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyLaserAntenna>(commons.Blocks), !docked);
