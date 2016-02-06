@@ -1,4 +1,4 @@
-// Safe Mode (previously Flighty Safety Dampeners)
+// SafeMode
 const string EMERGENCY_STOP_NAME = "Safe Mode"; // Name of optional timer block
 //const string EMERGENCY_STOP_NAME = "Emergency Stop"; // Old name
 const string SAFE_MODE_NAME = "Safe Mode"; // Name of optional timer block

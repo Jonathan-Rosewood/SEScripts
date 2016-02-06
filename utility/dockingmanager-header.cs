@@ -1,4 +1,4 @@
-// DockingManager (previously MB Docking)
+// DockingManager
 const bool TOUCH_ANTENNA = true;
 const bool TOUCH_LANTENNA = false;
 const bool TOUCH_BEACON = false;
