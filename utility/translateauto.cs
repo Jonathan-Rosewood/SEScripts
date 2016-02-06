@@ -4,32 +4,16 @@ public class TranslateAutopilot
     private const double RunsPerSecond = 60.0 / FramesPerRun;
 
     private readonly Velocimeter velocimeter = new Velocimeter(30);
-    private readonly PIDController forwardPID = new PIDController(1.0 / RunsPerSecond);
-    private readonly PIDController upPID = new PIDController(1.0 / RunsPerSecond);
-    private readonly PIDController leftPID = new PIDController(1.0 / RunsPerSecond);
-
-    private const double ThrustKp = 1.0;
-    private const double ThrustKi = 0.001;
-    private const double ThrustKd = 1.0;
+    private readonly Cruiser forwardCruiser = new Cruiser(1.0 / RunsPerSecond,
+                                                          AUTOPILOT_THRUST_DEAD_ZONE);
+    private readonly Cruiser upCruiser = new Cruiser(1.0 / RunsPerSecond,
+                                                     AUTOPILOT_THRUST_DEAD_ZONE);
+    private readonly Cruiser leftCruiser = new Cruiser(1.0 / RunsPerSecond,
+                                                       AUTOPILOT_THRUST_DEAD_ZONE);
 
     private Vector3D AutopilotTarget;
     private double AutopilotSpeed;
     private bool AutopilotEngaged;
-
-    public TranslateAutopilot()
-    {
-        forwardPID.Kp = ThrustKp;
-        forwardPID.Ki = ThrustKi;
-        forwardPID.Kd = ThrustKd;
-
-        upPID.Kp = ThrustKp;
-        upPID.Ki = ThrustKi;
-        upPID.Kd = ThrustKd;
-
-        leftPID.Kp = ThrustKp;
-        leftPID.Ki = ThrustKi;
-        leftPID.Kd = ThrustKd;
-    }
 
     public void Init(ZACommons commons, EventDriver eventDriver,
                      Vector3D target, double speed,
@@ -49,9 +33,12 @@ public class TranslateAutopilot
         var shipControl = (ShipControlCommons)commons;
         shipControl.Reset(gyroOverride: true, thrusterEnable: null);
         velocimeter.Reset();
-        forwardPID.Reset();
-        upPID.Reset();
-        leftPID.Reset();
+        forwardCruiser.Init(shipControl,
+                            localForward: shipControl.ShipForward);
+        upCruiser.Init(shipControl,
+                       localForward: shipControl.ShipUp);
+        leftCruiser.Init(shipControl,
+                         localForward: Base6Directions.GetLeft(shipControl.ShipUp, shipControl.ShipForward));
         eventDriver.Schedule(0, Run);
     }
 
@@ -77,14 +64,10 @@ public class TranslateAutopilot
         var velocity = velocimeter.GetAverageVelocity();
         if (velocity != null)
         {
-            var forwardSpeed = Vector3D.Dot((Vector3D)velocity, shipControl.ReferenceForward);
-            var upSpeed = Vector3D.Dot((Vector3D)velocity, shipControl.ReferenceUp);
-            var leftSpeed = Vector3D.Dot((Vector3D)velocity, shipControl.ReferenceLeft);
-
             // Naive approach: independent control of each axis
-            Thrust(shipControl, Base6Directions.Direction.Forward, forwardError, forwardSpeed, forwardPID);
-            Thrust(shipControl, Base6Directions.Direction.Up, upError, upSpeed, upPID);
-            Thrust(shipControl, Base6Directions.Direction.Left, leftError, leftSpeed, leftPID);
+            Thrust(shipControl, forwardError, (Vector3D)velocity, forwardCruiser);
+            Thrust(shipControl, upError, (Vector3D)velocity, upCruiser);
+            Thrust(shipControl, leftError, (Vector3D)velocity, leftCruiser);
         }
 
         if (distance < AUTOPILOT_DISENGAGE_DISTANCE)
@@ -97,46 +80,31 @@ public class TranslateAutopilot
         }
     }
 
-    private void Thrust(ShipControlCommons commons, Base6Directions.Direction direction,
-                        double distance, double speed, PIDController pid)
+    private void Thrust(ShipControlCommons shipControl, double distance,
+                        Vector3D velocity, Cruiser cruiser)
     {
-        //commons.Echo(string.Format("Distance: {0:F1} m", distance));
-
-        var thrustControl = commons.ThrustControl;
-        var flipped = Base6Directions.GetFlippedDirection(direction);
-
-        var targetSpeed = Math.Min(Math.Abs(distance) / AUTOPILOT_TTT_BUFFER,
-                                   AutopilotSpeed);
-        targetSpeed = Math.Max(targetSpeed, AUTOPILOT_MIN_SPEED); // Avoid Zeno's paradox...
-        targetSpeed *= Math.Sign(distance);
-        //commons.Echo(string.Format("Target Speed: {0:F1} m/s", targetSpeed));
-        //commons.Echo(string.Format("Speed: {0:F1} m/s", speed));
-
-        var error = targetSpeed - speed;
-        var force = pid.Compute(error);
-        
         if (Math.Abs(distance) < 1.0)
         {
-            // Good enough
-            thrustControl.SetOverride(direction, false);
-            thrustControl.SetOverride(flipped, false);
-        }
-        else if (force > 0.0)
-        {
-            thrustControl.SetOverride(direction, force);
-            thrustControl.SetOverride(flipped, false);
+            // Close enough
+            var thrustControl = shipControl.ThrustControl;
+            thrustControl.Enable(cruiser.LocalForward, true);
+            thrustControl.Enable(cruiser.LocalBackward, true);
         }
         else
         {
-            thrustControl.SetOverride(direction, false);
-            thrustControl.SetOverride(flipped, -force);
+            var targetSpeed = Math.Min(Math.Abs(distance) / AUTOPILOT_TTT_BUFFER,
+                                       AutopilotSpeed);
+            targetSpeed = Math.Max(targetSpeed, AUTOPILOT_MIN_SPEED); // Avoid Zeno's paradox...
+            targetSpeed *= Math.Sign(distance);
+
+            cruiser.Cruise(shipControl, targetSpeed, velocity);
         }
     }
 
     public void Reset(ZACommons commons)
     {
         var shipControl = (ShipControlCommons)commons;
-        shipControl.Reset(gyroOverride: false, thrusterEnable: null);
+        shipControl.Reset(gyroOverride: false);
         AutopilotEngaged = false;
     }
 }

@@ -4,24 +4,12 @@ public class YawPitchAutopilot
     private const double RunsPerSecond = 60.0 / FramesPerRun;
 
     private readonly Seeker seeker = new Seeker(1.0 / RunsPerSecond);
-
-    private readonly Velocimeter velocimeter = new Velocimeter(30);
-    private readonly PIDController thrustPID = new PIDController(1.0 / RunsPerSecond);
-
-    private const double ThrustKp = 1.0;
-    private const double ThrustKi = 0.001;
-    private const double ThrustKd = 1.0;
+    private readonly Cruiser cruiser = new Cruiser(1.0 / RunsPerSecond,
+                                                   AUTOPILOT_THRUST_DEAD_ZONE);
 
     private Vector3D AutopilotTarget;
     private double AutopilotSpeed;
     private bool AutopilotEngaged;
-
-    public YawPitchAutopilot()
-    {
-        thrustPID.Kp = ThrustKp;
-        thrustPID.Ki = ThrustKi;
-        thrustPID.Kd = ThrustKd;
-    }
 
     public void Init(ZACommons commons, EventDriver eventDriver,
                      Vector3D target, double speed,
@@ -46,8 +34,8 @@ public class YawPitchAutopilot
                     localUp: shipControl.ShipUp,
                     localForward: shipControl.ShipForward);
 
-        velocimeter.Reset();
-        thrustPID.Reset();
+        cruiser.Init(shipControl,
+                     localForward: shipControl.ShipForward);
 
         eventDriver.Schedule(0, Run);
     }
@@ -69,43 +57,11 @@ public class YawPitchAutopilot
         var gyroControl = seeker.Seek(shipControl, targetVector,
                                       out yawError, out pitchError);
 
-        // Velocity control
-        velocimeter.TakeSample(shipControl.ReferencePoint, eventDriver.TimeSinceStart);
+        var targetSpeed = Math.Min(distance / AUTOPILOT_TTT_BUFFER,
+                                   AutopilotSpeed);
+        targetSpeed = Math.Max(targetSpeed, AUTOPILOT_MIN_SPEED); // Avoid Zeno's paradox...
 
-        // Determine velocity
-        var velocity = velocimeter.GetAverageVelocity();
-        if (velocity != null)
-        {
-            var speed = ((Vector3D)velocity).Length();
-
-            var targetSpeed = Math.Min(distance / AUTOPILOT_TTT_BUFFER,
-                                       AutopilotSpeed);
-            targetSpeed = Math.Max(targetSpeed, AUTOPILOT_MIN_SPEED); // Avoid Zeno's paradox...
-
-            var error = targetSpeed - speed;
-            var force = thrustPID.Compute(error);
-
-            var thrustControl = shipControl.ThrustControl;
-            if (Math.Abs(error) < 0.02 * targetSpeed)
-            {
-                // Close enough, just disable both sets of thrusters
-                thrustControl.Enable(Base6Directions.Direction.Forward, false);
-                thrustControl.Enable(Base6Directions.Direction.Backward, false);
-            }
-            else if (force > 0.0)
-            {
-                // Thrust forward
-                thrustControl.Enable(Base6Directions.Direction.Forward, true);
-                thrustControl.SetOverride(Base6Directions.Direction.Forward, force);
-                thrustControl.Enable(Base6Directions.Direction.Backward, false);
-            }
-            else
-            {
-                thrustControl.Enable(Base6Directions.Direction.Forward, false);
-                thrustControl.Enable(Base6Directions.Direction.Backward, true);
-                thrustControl.SetOverride(Base6Directions.Direction.Backward, -force);
-            }
-        }
+        cruiser.Cruise(shipControl, eventDriver, targetSpeed);
 
         if (distance < AUTOPILOT_DISENGAGE_DISTANCE)
         {

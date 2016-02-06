@@ -1,5 +1,5 @@
 [script]
 modules = smartundocksolo, smartundock, translateauto, yawpitchauto, seeker,
-    gyrocontrol, thrustcontrol, shiporientation, shipcontrol, velocimeter, pid,
-    eventdriver, commons
+    cruiser, gyrocontrol, thrustcontrol, shiporientation, shipcontrol,
+    velocimeter, pid, eventdriver, commons
 out = out/Smart Undock/Script.cs

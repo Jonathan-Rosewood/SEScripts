@@ -4,12 +4,7 @@ public class LOSMiner
     private const double RunsPerSecond = 60.0 / FramesPerRun;
 
     private readonly Seeker seeker = new Seeker(1.0 / RunsPerSecond);
-
-    private readonly Velocimeter velocimeter = new Velocimeter(30);
-    private const double ThrustKp = 1.0;
-    private const double ThrustKi = 0.001;
-    private const double ThrustKd = 1.0;
-    private readonly PIDController thrustPID = new PIDController(1.0 / RunsPerSecond);
+    private readonly Cruiser cruiser = new Cruiser(1.0 / RunsPerSecond, 0.0);
 
     private const double LOS_OFFSET = 200.0; // Meters forward
 
@@ -18,13 +13,6 @@ public class LOSMiner
 
     private bool Mining = false;
     private bool Reversing = false;
-
-    public LOSMiner()
-    {
-        thrustPID.Kp = ThrustKp;
-        thrustPID.Ki = ThrustKi;
-        thrustPID.Kd = ThrustKd;
-    }
 
     public void HandleCommand(ZACommons commons, EventDriver eventDriver,
                               string argument)
@@ -43,8 +31,8 @@ public class LOSMiner
                     seeker.Init(shipControl,
                                 localUp: shipControl.ShipUp,
                                 localForward: shipControl.ShipForward);
-                    velocimeter.Reset();
-                    thrustPID.Reset();
+                    cruiser.Init(shipControl,
+                                 localForward: shipControl.ShipForward);
 
                     Reversing = false;
                     if (!Mining)
@@ -60,11 +48,12 @@ public class LOSMiner
                     SetTarget(shipControl);
                     shipControl.Reset(gyroOverride: true);
 
+                    var shipBackward = Base6Directions.GetFlippedDirection(shipControl.ShipForward);
                     seeker.Init(shipControl,
                                 localUp: shipControl.ShipUp,
-                                localForward: Base6Directions.GetFlippedDirection(shipControl.ShipForward));
-                    velocimeter.Reset();
-                    thrustPID.Reset();
+                                localForward: shipBackward);
+                    cruiser.Init(shipControl,
+                                 localForward: shipBackward);
 
                     Mining = false;
                     if (!Reversing)
@@ -99,7 +88,7 @@ public class LOSMiner
         seeker.Seek(shipControl, targetVector,
                     out yawError, out pitchError);
 
-        Thrust(commons, eventDriver, shipControl.ReferenceForward);
+        cruiser.Cruise(shipControl, eventDriver, TARGET_MINING_SPEED);
 
         eventDriver.Schedule(FramesPerRun, Mine);
     }
@@ -117,8 +106,7 @@ public class LOSMiner
         seeker.Seek(shipControl, targetVector,
                     out yawError, out pitchError);
 
-        Thrust(commons, eventDriver, -shipControl.ReferenceForward,
-               Base6Directions.Direction.Backward);
+        cruiser.Cruise(shipControl, eventDriver, TARGET_MINING_SPEED);
 
         eventDriver.Schedule(FramesPerRun, Reverse);
     }
@@ -170,40 +158,5 @@ public class LOSMiner
         original += StartUp * MINING_PERTURB_AMPLITUDE * Math.Cos(MINING_PERTURB_SCALE * timeSinceStart.TotalSeconds);
         original += StartLeft * MINING_PERTURB_AMPLITUDE * Math.Sin(MINING_PERTURB_SCALE * timeSinceStart.TotalSeconds);
         return original;
-    }
-
-    private void Thrust(ZACommons commons, EventDriver eventDriver,
-                        Vector3D referenceForward,
-                        Base6Directions.Direction forward = Base6Directions.Direction.Forward)
-    {
-        var shipControl = (ShipControlCommons)commons;
-
-        velocimeter.TakeSample(shipControl.ReferencePoint, eventDriver.TimeSinceStart);
-
-        // Determine velocity
-        var velocity = velocimeter.GetAverageVelocity();
-        if (velocity != null)
-        {
-            // Take dot product with forward unit vector
-            var speed = Vector3D.Dot((Vector3D)velocity, referenceForward);
-            var error = TARGET_MINING_SPEED - speed;
-
-            var force = thrustPID.Compute(error);
-
-            var thrustControl = shipControl.ThrustControl;
-            var backward = Base6Directions.GetFlippedDirection(forward);
-            if (force > 0.0)
-            {
-                thrustControl.Enable(forward, true);
-                thrustControl.SetOverride(forward, force);
-                thrustControl.Enable(backward, false);
-            }
-            else
-            {
-                thrustControl.Enable(forward, false);
-                thrustControl.Enable(backward, true);
-                thrustControl.SetOverride(backward, -force);
-            }
-        }
     }
 }
