@@ -67,7 +67,7 @@ public class MinerController
     private const double ThrustKd = 1.0;
 
     private const double PerturbTimeScale = 10.0;
-    private const double PerturbAmplitude = 0.05;
+    private const double PerturbAmplitude = 0.1;
 
     private bool Mining = false;
 
@@ -89,7 +89,9 @@ public class MinerController
             var gyroControl = shipControl.GyroControl;
             gyroControl.Reset();
             gyroControl.EnableOverride(true);
-            shipControl.ThrustControl.Reset();
+            var thrustControl = shipControl.ThrustControl;
+            thrustControl.Reset();
+            thrustControl.Enable(true);
             velocimeter.Reset();
             thrustPID.Reset();
 
@@ -103,7 +105,9 @@ public class MinerController
         {
             Mining = false;
             shipControl.GyroControl.EnableOverride(false);
-            shipControl.ThrustControl.Reset();
+            var thrustControl = shipControl.ThrustControl;
+            thrustControl.Reset();
+            thrustControl.Enable(true);
         }
     }
 
@@ -113,16 +117,14 @@ public class MinerController
 
         var shipControl = (ShipControlCommons)commons;
 
-        var reference = commons.Me;
-        velocimeter.TakeSample(reference.GetPosition(), eventDriver.TimeSinceStart);
+        velocimeter.TakeSample(shipControl.ReferencePoint, eventDriver.TimeSinceStart);
 
         // Determine velocity
         var velocity = velocimeter.GetAverageVelocity();
         if (velocity != null)
         {
-            // Only absolute velocity (for now)
-            // TODO take dot product with forward vector
-            var speed = ((Vector3D)velocity).Length();
+            // Take dot product with forward unit vector
+            var speed = Vector3D.Dot((Vector3D)velocity, shipControl.ReferenceForward);
             var error = TARGET_MINING_SPEED - speed;
 
             var force = thrustPID.Compute(error);
@@ -135,12 +137,14 @@ public class MinerController
             if (force > 0.0)
             {
                 // Thrust forward
+                thrustControl.Enable(Base6Directions.Direction.Forward, true);
                 thrustControl.SetOverride(Base6Directions.Direction.Forward, force);
-                thrustControl.SetOverride(Base6Directions.Direction.Backward, false);
+                thrustControl.Enable(Base6Directions.Direction.Backward, false);
             }
             else
             {
-                thrustControl.SetOverride(Base6Directions.Direction.Forward, false);
+                thrustControl.Enable(Base6Directions.Direction.Forward, false);
+                thrustControl.Enable(Base6Directions.Direction.Backward, true);
                 thrustControl.SetOverride(Base6Directions.Direction.Backward, -force);
             }
         }
