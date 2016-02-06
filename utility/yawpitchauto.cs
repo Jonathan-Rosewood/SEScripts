@@ -39,11 +39,8 @@ public class YawPitchAutopilot
     public void Start(ZACommons commons, EventDriver eventDriver)
     {
         var shipControl = (ShipControlCommons)commons;
-        var gyroControl = shipControl.GyroControl;
 
-        gyroControl.Reset();
-        gyroControl.EnableOverride(true);
-        shipControl.ThrustControl.Reset();
+        shipControl.Reset(gyroOverride: true, thrusterEnable: null);
 
         seeker.Init(shipControl,
                     localUp: shipControl.ShipUp,
@@ -123,10 +120,7 @@ public class YawPitchAutopilot
     public void Reset(ZACommons commons)
     {
         var shipControl = (ShipControlCommons)commons;
-        shipControl.GyroControl.EnableOverride(false);
-        var thrustControl = shipControl.ThrustControl;
-        thrustControl.Reset();
-        thrustControl.Enable(true);
+        shipControl.Reset(gyroOverride: false);
         AutopilotEngaged = false;
     }
 }

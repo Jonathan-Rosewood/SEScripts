@@ -59,22 +59,18 @@ public class MissileLaunch
         // Boost away from launcher, initialize flight control
         var shipControl = (ShipControlCommons)commons;
 
-        var thrustControl = shipControl.ThrustControl;
-        thrustControl.Reset();
+        shipControl.Reset(gyroOverride: true, thrusterEnable: null);
+
         // Initiate main burn here, otherwise do it later
-        if (!BURN_DOWNWARD) thrustControl.SetOverride(Base6Directions.Direction.Forward, BURN_FRACTION);
-        if (BURN_DOWNWARD) thrustControl.SetOverride(Base6Directions.Direction.Down);
-
-        var gyroControl = shipControl.GyroControl;
-        gyroControl.Reset();
-        gyroControl.EnableOverride(true);
-
+        var thrustControl = shipControl.ThrustControl;
         if (!BURN_DOWNWARD)
         {
+            thrustControl.SetOverride(Base6Directions.Direction.Forward, BURN_FRACTION);
             eventDriver.Schedule(BURN_TIME, Arm);
         }
         else
         {
+            thrustControl.SetOverride(Base6Directions.Direction.Down);
             eventDriver.Schedule(BURN_DOWNWARD_TIME, MainBurn);
         }
     }

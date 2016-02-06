@@ -36,9 +36,9 @@ public class LOSMiner
                 {
                     var shipControl = (ShipControlCommons)commons;
                     SetTarget(shipControl);
-                    var gyroControl = ResetAndOverride(shipControl, true);
+                    shipControl.Reset(gyroOverride: true);
 
-                    if (MINING_ROLL_RPM > 0.0f) gyroControl.SetAxisVelocityRPM(GyroControl.Roll, MINING_ROLL_RPM);
+                    if (MINING_ROLL_RPM > 0.0f) shipControl.GyroControl.SetAxisVelocityRPM(GyroControl.Roll, MINING_ROLL_RPM);
 
                     seeker.Init(shipControl,
                                 localUp: shipControl.ShipUp,
@@ -58,7 +58,7 @@ public class LOSMiner
                 {
                     var shipControl = (ShipControlCommons)commons;
                     SetTarget(shipControl);
-                    ResetAndOverride(shipControl, true);
+                    shipControl.Reset(gyroOverride: true);
 
                     seeker.Init(shipControl,
                                 localUp: shipControl.ShipUp,
@@ -80,7 +80,7 @@ public class LOSMiner
                     Reversing = false;
 
                     var shipControl = (ShipControlCommons)commons;
-                    ResetAndOverride(shipControl, false);
+                    shipControl.Reset(gyroOverride: false);
                 }
                 break;
         }
@@ -133,18 +133,6 @@ public class LOSMiner
             StartUp = shipControl.ReferenceUp;
             StartLeft = shipControl.ReferenceLeft;
         }
-    }
-
-    private GyroControl ResetAndOverride(ShipControlCommons shipControl,
-                                         bool gyroOverride)
-    {
-        var gyroControl = shipControl.GyroControl;
-        gyroControl.Reset();
-        gyroControl.EnableOverride(gyroOverride);
-        var thrustControl = shipControl.ThrustControl;
-        thrustControl.Reset();
-        thrustControl.Enable(true);
-        return gyroControl;
     }
 
     private Vector3D GetTarget(ShipControlCommons shipControl,

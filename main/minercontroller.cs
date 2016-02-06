@@ -86,12 +86,7 @@ public class MinerController
         argument = argument.Trim().ToLower();
         if (argument == "start")
         {
-            var gyroControl = shipControl.GyroControl;
-            gyroControl.Reset();
-            gyroControl.EnableOverride(true);
-            var thrustControl = shipControl.ThrustControl;
-            thrustControl.Reset();
-            thrustControl.Enable(true);
+            shipControl.Reset(gyroOverride: true);
             velocimeter.Reset();
             thrustPID.Reset();
 
@@ -104,10 +99,7 @@ public class MinerController
         else if (argument == "stop")
         {
             Mining = false;
-            shipControl.GyroControl.EnableOverride(false);
-            var thrustControl = shipControl.ThrustControl;
-            thrustControl.Reset();
-            thrustControl.Enable(true);
+            shipControl.Reset(gyroOverride: false);
         }
     }
 

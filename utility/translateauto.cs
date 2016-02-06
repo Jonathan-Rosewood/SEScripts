@@ -47,10 +47,7 @@ public class TranslateAutopilot
     public void Start(ZACommons commons, EventDriver eventDriver)
     {
         var shipControl = (ShipControlCommons)commons;
-        var gyroControl = shipControl.GyroControl;
-        gyroControl.Reset();
-        gyroControl.EnableOverride(true); // So the user knows it's engaged
-        shipControl.ThrustControl.Reset();
+        shipControl.Reset(gyroOverride: true, thrusterEnable: null);
         velocimeter.Reset();
         forwardPID.Reset();
         upPID.Reset();
@@ -139,8 +136,7 @@ public class TranslateAutopilot
     public void Reset(ZACommons commons)
     {
         var shipControl = (ShipControlCommons)commons;
-        shipControl.GyroControl.EnableOverride(false);
-        shipControl.ThrustControl.Reset();
+        shipControl.Reset(gyroOverride: false, thrusterEnable: null);
         AutopilotEngaged = false;
     }
 }

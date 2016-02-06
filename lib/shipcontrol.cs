@@ -66,6 +66,17 @@ public class ShipControlCommons : ZACommons
     }
     private ThrustControl m_thrustControl = null;
 
+    // Utility
+
+    public void Reset(bool gyroOverride = false,
+                      bool? thrusterEnable = true)
+    {
+        GyroControl.Reset();
+        GyroControl.EnableOverride(gyroOverride);
+        ThrustControl.Reset();
+        if (thrusterEnable != null) ThrustControl.Enable((bool)thrusterEnable);
+    }
+
     // Reference vectors (i.e. orientation in world coordinates)
 
     public IMyCubeBlock Reference { get; private set; }
