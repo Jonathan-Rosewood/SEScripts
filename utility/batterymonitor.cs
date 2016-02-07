@@ -2,7 +2,8 @@ public class BatteryMonitor : DockingHandler
 {
     public interface LowBatteryHandler
     {
-        void LowBattery(ZACommons commons, EventDriver eventDriver);
+        void LowBattery(ZACommons commons, EventDriver eventDriver,
+                        bool started);
     }
 
     private const double RunDelay = 5.0;
@@ -78,12 +79,13 @@ public class BatteryMonitor : DockingHandler
         if (!Triggered && batteryPercent < BATTERY_THRESHOLD)
         {
             Triggered = true;
-            if (lowBatteryHandler != null) lowBatteryHandler.LowBattery(commons, eventDriver);
+            if (lowBatteryHandler != null) lowBatteryHandler.LowBattery(commons, eventDriver, true);
             if (lowBattery != null) lowBattery.GetActionWithName("Start").Apply(lowBattery);
         }
         else if (Triggered && batteryPercent >= BATTERY_THRESHOLD)
         {
             Triggered = false;
+            if (lowBatteryHandler != null) lowBatteryHandler.LowBattery(commons, eventDriver, false);
         }
     }
 }

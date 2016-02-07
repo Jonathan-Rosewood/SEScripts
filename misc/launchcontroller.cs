@@ -5,6 +5,8 @@ public class LaunchController
     private const string RELEASE_GROUP = "Relay Release";
     public const string REMOTE_GROUP = "Relay RC";
 
+    private Action<ZACommons, EventDriver> PostLaunch = null;
+
     private bool IsInLauncher(ZACommons commons)
     {
         var launcherRelease = commons.GetBlockGroupWithName("Launcher Release");
@@ -23,11 +25,14 @@ public class LaunchController
         {
             throw new Exception("Expecting exactly 1 remote control");
         }
-        return remotes[0];
+        return (IMyRemoteControl)remotes[0];
     }
 
-    public void Init(ZACommons commons, EventDriver eventDriver)
+    public void Init(ZACommons commons, EventDriver eventDriver,
+                     Action<ZACommons, EventDriver> postLaunch = null)
     {
+        PostLaunch = postLaunch;
+
         var remote = GetRemoteControl(commons);
         // Determine current state
         if (IsInLauncher(commons))
@@ -40,7 +45,7 @@ public class LaunchController
         }
         else
         {
-            eventDriver.Schedule(0.0); // Schedule main loop
+            if (PostLaunch != null) PostLaunch(commons, eventDriver);
         }
     }
 
@@ -113,8 +118,8 @@ public class LaunchController
         }
         else
         {
-            // All done, schedule main loop
-            eventDriver.Schedule(0.0);
+            // All done.
+            if (PostLaunch != null) PostLaunch(commons, eventDriver);
         }
     }
 }
