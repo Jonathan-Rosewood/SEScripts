@@ -21,6 +21,13 @@ public class LOSGuidance
     private bool FullBurn = false;
     private DateTime FullBurnTriggerLast;
 
+    public LOSGuidance()
+    {
+        thrustPID.Kp = ThrustKp;
+        thrustPID.Ki = ThrustKi;
+        thrustPID.Kd = ThrustKd;
+    }
+
     public void SetLauncherReference(IMyCubeBlock launcherReference,
                                      Base6Directions.Direction direction = Base6Directions.Direction.Forward)
     {
@@ -58,10 +65,6 @@ public class LOSGuidance
         seeker.Init(shipControl,
                     localUp: shipControl.ShipUp,
                     localForward: shipControl.ShipForward);
-
-        thrustPID.Kp = ThrustKp;
-        thrustPID.Ki = ThrustKi;
-        thrustPID.Kd = ThrustKd;
 
         FullBurnTriggerLast = commons.Now;
 

@@ -3,41 +3,38 @@ public class MissileGuidance
     private const uint FramesPerRun = 1;
     private const double RunsPerSecond = 60.0 / FramesPerRun;
 
-    private Vector3D Target;
-    private double RandomOffset;
+    private readonly Seeker seeker = new Seeker(1.0 / RunsPerSecond);
+
+    private readonly Velocimeter velocimeter = new Velocimeter(30);
+    private const double ThrustKp = 1.0;
+    private const double ThrustKi = 0.001;
+    private const double ThrustKd = 1.0;
+    private readonly PIDController thrustPID = new PIDController(1.0 / RunsPerSecond);
 
     private const bool PerturbTarget = true;
     private const double PerturbAmplitude = 5000.0;
-    private const double PerturbPitchScale = 1.0;
-    private const double PerturbYawScale = 1.0;
-    private const double PerturbScale = 3.0;
+    private const double PerturbAmplitudeScale = 10.0;
+    private const double PerturbTimeScale = 5.0;
     private const double PerturbOffset = 200.0;
+
+    private const double ManeuveringSpeed = 80.0; // In meters per second
+    private const float ManeuveringRoll = 10.0f; // In RPM
+
     private const double FinalApproachDistance = 200.0;
     private const float FinalApproachRoll = MathHelper.Pi;
+
     private const double DetonationDistance = 30.0;
     private readonly TimeSpan DetonationTime = TimeSpan.FromSeconds(200.0);
 
-    private readonly Seeker seeker = new Seeker(1.0 / RunsPerSecond);
+    private Vector3D Target;
+    private double RandomOffset;
+    private bool FinalApproach = false;
 
-    private double ScaleAmplitude(double distance)
+    public MissileGuidance()
     {
-        distance -= PerturbOffset;
-        distance = Math.Max(distance, 0.0);
-        distance = Math.Min(distance, PerturbAmplitude);
-        // Try linear for now
-        return PerturbAmplitude * distance / PerturbAmplitude;
-    }
-
-    private double Perturb(ShipControlCommons shipControl, TimeSpan timeSinceStart, out Vector3D targetVector)
-    {
-        targetVector = Target - shipControl.ReferencePoint;
-        var distance = targetVector.Normalize(); // Original distance
-        var amp = ScaleAmplitude(distance);
-        var newTarget = Target;
-        newTarget += shipControl.ReferenceUp * amp * Math.Cos(PerturbScale * timeSinceStart.TotalSeconds + RandomOffset) * PerturbPitchScale;
-        newTarget += shipControl.ReferenceLeft * amp * Math.Sin(PerturbScale * timeSinceStart.TotalSeconds + RandomOffset) * PerturbYawScale;
-        targetVector = Vector3D.Normalize(newTarget - shipControl.ReferencePoint);
-        return distance;
+        thrustPID.Kp = ThrustKp;
+        thrustPID.Ki = ThrustKi;
+        thrustPID.Kd = ThrustKd;
     }
 
     public void AcquireTarget(ZACommons commons)
@@ -81,6 +78,8 @@ public class MissileGuidance
                     localUp: shipControl.ShipUp,
                     localForward: shipControl.ShipForward);
 
+        shipControl.GyroControl.SetAxisVelocityRPM(GyroControl.Roll, ManeuveringRoll);
+
         eventDriver.Schedule(0, Run);
     }
 
@@ -104,17 +103,74 @@ public class MissileGuidance
         seeker.Seek(shipControl, targetVector,
                     out yawError, out pitchError);
 
-        if (distance < FinalApproachDistance)
+        if (!FinalApproach)
         {
-            gyroControl.SetAxisVelocity(GyroControl.Roll, FinalApproachRoll);
-        }
-        if (distance < DetonationDistance || eventDriver.TimeSinceStart >= DetonationTime)
-        {
-            // Sensor should have triggered already, just detonate/self-destruct
-            var warheads = ZACommons.GetBlocksOfType<IMyWarhead>(commons.Blocks);
-            warheads.ForEach(warhead => warhead.GetActionWithName("Detonate").Apply(warhead));
+            if (distance < FinalApproachDistance)
+            {
+                FinalApproach = true;
+                shipControl.GyroControl.SetAxisVelocity(GyroControl.Roll, FinalApproachRoll);
+                shipControl.ThrustControl.SetOverride(Base6Directions.Direction.Forward);
+            }
+            else
+            {
+                Maneuver(shipControl, eventDriver);
+            }
         }
 
+//        if (distance < DetonationDistance || eventDriver.TimeSinceStart >= DetonationTime)
+//        {
+//            // Sensor should have triggered already, just detonate/self-destruct
+//            var warheads = ZACommons.GetBlocksOfType<IMyWarhead>(commons.Blocks);
+//            warheads.ForEach(warhead => warhead.GetActionWithName("Detonate").Apply(warhead));
+//        }
+
         eventDriver.Schedule(FramesPerRun, Run);
+    }
+
+    private double Perturb(ShipControlCommons shipControl, TimeSpan timeSinceStart, out Vector3D targetVector)
+    {
+        targetVector = Target - shipControl.ReferencePoint;
+        var distance = targetVector.Normalize(); // Original distance
+        var amp = ScaleAmplitude(distance);
+        var newTarget = Target;
+        newTarget += shipControl.ReferenceUp * amp * Math.Cos(PerturbTimeScale * timeSinceStart.TotalSeconds + RandomOffset);
+        newTarget += shipControl.ReferenceLeft * amp * Math.Sin(PerturbTimeScale * timeSinceStart.TotalSeconds + RandomOffset);
+        targetVector = Vector3D.Normalize(newTarget - shipControl.ReferencePoint);
+        return distance;
+    }
+
+    private double ScaleAmplitude(double distance)
+    {
+        distance -= PerturbOffset;
+        // Try linear for now
+        distance = Math.Max(distance, 0.0);
+        distance = Math.Min(distance, PerturbAmplitude * PerturbAmplitudeScale);
+        return distance / PerturbAmplitudeScale;
+    }
+
+    private void Maneuver(ShipControlCommons shipControl, EventDriver eventDriver)
+    {
+        velocimeter.TakeSample(shipControl.ReferencePoint, eventDriver.TimeSinceStart);
+
+        // Determine velocity
+        var velocity = velocimeter.GetAverageVelocity();
+        if (velocity != null)
+        {
+            // Only absolute velocity
+            var speed = ((Vector3D)velocity).Length();
+            var error = ManeuveringSpeed - speed;
+
+            var force = thrustPID.Compute(error);
+
+            var thrustControl = shipControl.ThrustControl;
+            if (force > 0.0)
+            {
+                thrustControl.SetOverride(Base6Directions.Direction.Forward, force);
+            }
+            else
+            {
+                thrustControl.SetOverride(Base6Directions.Direction.Forward, false);
+            }
+        }
     }
 }

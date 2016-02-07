@@ -1,8 +1,7 @@
-private readonly EventDriver eventDriver = new EventDriver(timerGroup: "CM Launch" + MISSILE_GROUP_SUFFIX);
-private readonly MissileGuidance missileGuidance = new MissileGuidance();
-private readonly RandomDecoy randomDecoy = new RandomDecoy();
+private readonly EventDriver eventDriver = new EventDriver();
+public readonly MissileGuidance missileGuidance = new MissileGuidance();
+public readonly GuidanceKill guidanceKill = new GuidanceKill();
 private readonly MissileLaunch missileLaunch = new MissileLaunch();
-private readonly MissilePayload missilePayload = new MissilePayload();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
@@ -19,10 +18,12 @@ void Main(string argument)
         shipOrientation.SetShipReference(commons, MissileLaunch.SYSTEMS_GROUP + MISSILE_GROUP_SUFFIX,
                                          block => block is IMyGyro);
 
-        missileLaunch.Init(commons, eventDriver, missileGuidance, missilePayload.Init,
-                           randomDecoy.Init);
-        // Guidance, payload, decoy will be initialized by launch,
-        // but we'll acquire the target here so it fails early if missing
+        missileLaunch.Init(commons, eventDriver, (c,ed) =>
+                {
+                    missileGuidance.Init(c, ed);
+                    guidanceKill.Init(c, ed);
+                });
+        // Acquire the target here so it fails early if missing
         missileGuidance.AcquireTarget(commons);
     }
 
