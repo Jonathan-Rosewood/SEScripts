@@ -18,7 +18,21 @@ void Main(string argument)
 
         safeMode.Init(commons, eventDriver);
         redundancyManager.Init(commons, eventDriver);
+
+        eventDriver.Schedule(0.0, Run);
     }
 
     eventDriver.Tick(commons);
+}
+
+public void Run(ZACommons commons, EventDriver eventDriver)
+{
+    // Disable all reactors (except our own) on all connected grids
+    // If we're fully solar-powered, we don't want to waste uranium on
+    // docked ships.
+    var reactors = ZACommons.GetBlocksOfType<IMyReactor>(commons.AllBlocks,
+                                                         block => block.CubeGrid != commons.Me.CubeGrid);
+    reactors.ForEach(block => block.SetValue<bool>("OnOff", false));
+
+    eventDriver.Schedule(5.0, Run);
 }
