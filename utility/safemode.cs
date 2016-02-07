@@ -116,6 +116,13 @@ public class SafeMode : DockingHandler
             // commons.Echo("Last Controlled: " + LastControlled);
         }
 
+        // No functional controllers => same as abandoned
+        if (!Abandoned && controllers.Count == 0)
+        {
+            Abandoned = true;
+            TriggerSafeMode(commons, eventDriver);
+        }
+
         eventDriver.Schedule(RunDelay, Run);
     }
 
