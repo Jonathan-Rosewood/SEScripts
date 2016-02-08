@@ -1,5 +1,7 @@
 public class BackupMedicalLaunch
 {
+    private Action<ZACommons, EventDriver> PostLaunch = null;
+
     private IMyRemoteControl GetRemoteControl(ZACommons commons)
     {
         var remotes = ZACommons.GetBlocksOfType<IMyRemoteControl>(commons.Blocks);
@@ -10,8 +12,11 @@ public class BackupMedicalLaunch
         return (IMyRemoteControl)remotes[0];
     }
 
-    public void Init(ZACommons commons, EventDriver eventDriver)
+    public void Init(ZACommons commons, EventDriver eventDriver,
+                     Action<ZACommons, EventDriver> postLaunch = null)
     {
+        PostLaunch = postLaunch;
+
         var remote = GetRemoteControl(commons);
         // Determine current state
         if (remote.GetValue<bool>("AutoPilot"))
@@ -20,7 +25,7 @@ public class BackupMedicalLaunch
         }
         else
         {
-            eventDriver.Schedule(0.0); // Schedule main loop
+            if (PostLaunch != null) PostLaunch(commons, eventDriver);
         }
     }
 
@@ -34,8 +39,8 @@ public class BackupMedicalLaunch
         }
         else
         {
-            // All done, schedule main loop
-            eventDriver.Schedule(0.0);
+            // All done.
+            if (PostLaunch != null) PostLaunch(commons, eventDriver);
         }
     }
 }

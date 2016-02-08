@@ -1,12 +1,17 @@
-public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
-public readonly BatteryManager batteryManager = new BatteryManager();
-public readonly SolarGyroController solarGyroController = new SolarGyroController(
-                                                                                  // GyroControl.Yaw,
-                                                                                  GyroControl.Pitch,
-                                                                                  GyroControl.Roll
-);
-public readonly DoorAutoCloser doorAutoCloser = new DoorAutoCloser();
-public readonly BackupMedicalLaunch backupMedicalLaunch = new BackupMedicalLaunch();
+public class BackupMedicalLowBatteryHandler : BatteryMonitor.LowBatteryHandler
+{
+    public void LowBattery(ZACommons commons, EventDriver eventDriver,
+                           bool started)
+    {
+        // Enable/disable reactor according to state
+        ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyReactor>(commons.Blocks), started);
+    }
+}
+
+private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
+private readonly BackupMedicalLaunch backupMedicalLaunch = new BackupMedicalLaunch();
+private readonly DoorAutoCloser doorAutoCloser = new DoorAutoCloser();
+private readonly BatteryMonitor batteryMonitor = new BatteryMonitor(new BackupMedicalLowBatteryHandler());
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
@@ -22,18 +27,12 @@ void Main(string argument)
 
         shipOrientation.SetShipReference<IMyRemoteControl>(commons.Blocks);
 
-        backupMedicalLaunch.Init(commons, eventDriver);
+        backupMedicalLaunch.Init(commons, eventDriver, (c,ed) =>
+                {
+                    doorAutoCloser.Init(c, ed);
+                    batteryMonitor.Init(c, ed);
+                });
     }
 
-    batteryManager.HandleCommand(commons, argument);
-    solarGyroController.HandleCommand(commons, argument);
-
-    eventDriver.Tick(commons, () =>
-            {
-                batteryManager.Run(commons);
-                solarGyroController.Run(commons);
-                doorAutoCloser.Run(commons);
-
-                eventDriver.Schedule(1.0);
-            });
+    eventDriver.Tick(commons);
 }
