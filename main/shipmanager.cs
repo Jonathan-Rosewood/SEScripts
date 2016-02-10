@@ -8,6 +8,7 @@ public readonly ProductionManager productionManager = new ProductionManager();
 private readonly TimerKicker timerKicker = new TimerKicker();
 private readonly RedundancyManager redundancyManager = new RedundancyManager();
 private readonly DockingAction dockingAction = new DockingAction();
+private readonly DamageControl damageControl = new DamageControl();
 
 private bool FirstRun = true;
 
@@ -39,5 +40,6 @@ void Main(string argument)
             // Handle commands
             if (COMPLEX_AIRLOCK_ENABLE) complexAirlock.HandleCommand(commons, eventDriver, argument);
             if (PRODUCTION_MANAGER_ENABLE) productionManager.HandleCommand(commons, eventDriver, argument);
+            if (DAMAGE_CONTROL_ENABLE) damageControl.HandleCommand(commons, eventDriver, argument);
         });
 }

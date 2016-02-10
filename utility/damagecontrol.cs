@@ -2,11 +2,7 @@ public class DamageControl
 {
     private const double RunDelay = 3.0;
 
-    private const int STATE_INACTIVE = 0;
-    private const int STATE_ACTIVE = 1;
-    private const int STATE_INACTIVATING = -1;
-
-    private int State = STATE_INACTIVE;
+    private bool Active = false;
 
     public void HandleCommand(ZACommons commons, EventDriver eventDriver,
                               string argument)
@@ -15,42 +11,34 @@ public class DamageControl
 
         var parts = argument.Split(new char[] { ' ' }, 2);
         if (parts.Length != 2 || parts[0] != "damecon") return;
-        argument = parts[1];
+        var command = parts[1];
 
-        switch (argument)
+        switch (command)
         {
             case "reset":
             case "stop":
-                {
-                    commons.AllBlocks.ForEach(block => {
-                            block.SetValue<bool>("ShowOnHUD", false);
-                        });
-                    if (State != STATE_INACTIVE) State = STATE_INACTIVATING;
-                    break;
-                }
+                commons.AllBlocks.ForEach(block => {
+                        if (block.GetProperty("ShowOnHUD") != null) block.SetValue<bool>("ShowOnHUD", false);
+                    });
+                Active = false;
+                break;
             case "show":
-                {
-                    Show(commons);
-                    break;
-                }
+                Show(commons);
+                break;
             case "start":
+                Show(commons);
+                if (!Active)
                 {
-                    Show(commons);
-                    if (State == STATE_INACTIVE) eventDriver.Schedule(RunDelay, Run);
-                    State = STATE_ACTIVE;
-                    break;
+                    Active = true;
+                    eventDriver.Schedule(RunDelay, Run);
                 }
+                break;
         }
     }
 
     public void Run(ZACommons commons, EventDriver eventDriver)
     {
-        if (State != STATE_ACTIVE)
-        {
-            State = STATE_INACTIVE;
-            return;
-        }
-
+        if (!Active) return;
         Show(commons);
         eventDriver.Schedule(RunDelay, Run);
     }
@@ -58,9 +46,12 @@ public class DamageControl
     private void Show(ZACommons commons)
     {
         commons.AllBlocks.ForEach(block => {
-                var cubeGrid = block.CubeGrid;
-                var damaged = !cubeGrid.GetCubeBlock(block.Position).IsFullIntegrity;
-                block.SetValue<bool>("ShowOnHUD", damaged);
+                if (block.GetProperty("ShowOnHUD") != null)
+                {
+                    var cubeGrid = block.CubeGrid;
+                    var damaged = !cubeGrid.GetCubeBlock(block.Position).IsFullIntegrity;
+                    block.SetValue<bool>("ShowOnHUD", damaged);
+                }
             });
     }
 }
