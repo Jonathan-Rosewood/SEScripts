@@ -6,8 +6,7 @@ public class Seeker
     private const double LargeGyroKp = 50.0; // Proportional constant
     private const double LargeGyroKi = 0.0; // Integral constant
     private const double LargeGyroKd = 40.0; // Derivative constant
-    private readonly PIDController yawPID;
-    private readonly PIDController pitchPID;
+    private readonly PIDController yawPID, pitchPID, rollPID;
 
     private Base6Directions.Direction LocalForward, LocalUp, LocalLeft;
 
@@ -15,6 +14,7 @@ public class Seeker
     {
         yawPID = new PIDController(dt);
         pitchPID = new PIDController(dt);
+        rollPID = new PIDController(dt);
     }
 
     public void Init(ShipControlCommons shipControl,
@@ -35,13 +35,39 @@ public class Seeker
         pitchPID.Ki = small ? SmallGyroKi : LargeGyroKi;
         pitchPID.Kd = small ? SmallGyroKd : LargeGyroKd;
 
+        rollPID.Kp = small ? SmallGyroKp : LargeGyroKp;
+        rollPID.Ki = small ? SmallGyroKi : LargeGyroKi;
+        rollPID.Kd = small ? SmallGyroKd : LargeGyroKd;
+
         yawPID.Reset();
         pitchPID.Reset();
+        rollPID.Reset();
     }
 
+    // Yaw/pitch only
     public GyroControl Seek(ShipControlCommons shipControl,
                             Vector3D targetVector,
                             out double yawError, out double pitchError)
+    {
+        double rollError;
+        return _Seek(shipControl, targetVector, null,
+                     out yawError, out pitchError, out rollError);
+    }
+
+    // Yaw/pitch/roll
+    public GyroControl Seek(ShipControlCommons shipControl,
+                            Vector3D targetVector, Vector3D targetUp,
+                            out double yawError, out double pitchError,
+                            out double rollError)
+    {
+        return _Seek(shipControl, targetVector, targetUp,
+                     out yawError, out pitchError, out rollError);
+    }
+
+    private GyroControl _Seek(ShipControlCommons shipControl,
+                              Vector3D targetVector, Vector3D? targetUp,
+                              out double yawError, out double pitchError,
+                              out double rollError)
     {
         Vector3D referenceForward;
         Vector3D referenceLeft;
@@ -91,6 +117,28 @@ public class Seeker
 
         gyroControl.SetAxisVelocity(GyroControl.Yaw, (float)gyroYaw);
         gyroControl.SetAxisVelocity(GyroControl.Pitch, (float)gyroPitch);
+
+        if (targetUp != null)
+        {
+            // Also adjust roll
+            dotX = ((Vector3D)targetUp).Dot(referenceLeft);
+            dotY = ((Vector3D)targetUp).Dot(referenceUp);
+
+            projX = dotX * referenceLeft;
+            projY = dotY * referenceUp;
+
+            x = projX.Length() * Math.Sign(-dotX);
+            y = projY.Length() * Math.Sign(dotY);
+            rollError = Math.Atan2(x, y);
+
+            var gyroRoll = rollPID.Compute(rollError);
+
+            gyroControl.SetAxisVelocity(GyroControl.Roll, (float)gyroRoll);
+        }
+        else
+        {
+            rollError = default(double);
+        }
 
         return gyroControl;
     }
