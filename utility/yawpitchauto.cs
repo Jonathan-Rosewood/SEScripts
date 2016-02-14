@@ -10,16 +10,19 @@ public class YawPitchAutopilot
     private Vector3D AutopilotTarget;
     private double AutopilotSpeed;
     private bool AutopilotEngaged;
+    private Action<ZACommons, EventDriver> DoneAction = null;
 
     public void Init(ZACommons commons, EventDriver eventDriver,
                      Vector3D target, double speed,
-                     double delay = 1.0)
+                     double delay = 1.0,
+                     Action<ZACommons, EventDriver> doneAction = null)
     {
         if (!AutopilotEngaged)
         {
             AutopilotTarget = target;
             AutopilotSpeed = speed;
             AutopilotEngaged = true;
+            DoneAction = doneAction;
             eventDriver.Schedule(delay, Start);
         }
     }
@@ -66,6 +69,7 @@ public class YawPitchAutopilot
         if (distance < AUTOPILOT_DISENGAGE_DISTANCE)
         {
             Reset(commons);
+            if (DoneAction != null) DoneAction(commons, eventDriver);
         }
         else
         {
