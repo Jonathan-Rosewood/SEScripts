@@ -16,6 +16,7 @@ private readonly RedundancyManager redundancyManager = new RedundancyManager();
 private readonly DoorAutoCloser doorAutoCloser = new DoorAutoCloser();
 private readonly SimpleAirlock simpleAirlock = new SimpleAirlock();
 public readonly CruiseControl cruiseControl = new CruiseControl();
+public readonly DamageControl damageControl = new DamageControl();
 public readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
@@ -45,6 +46,7 @@ void Main(string argument)
     eventDriver.Tick(commons, preAction: () => {
             safeMode.HandleCommand(commons, eventDriver, argument);
             cruiseControl.HandleCommand(commons, eventDriver, argument);
+            damageControl.HandleCommand(commons, eventDriver, argument);
         });
 
     if (commons.IsDirty) Storage = myStorage.Encode();
