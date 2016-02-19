@@ -22,6 +22,13 @@ public class Rangefinder
             this(reference, reference.Position + Base6Directions.GetIntVector(reference.Orientation.TransformDirection(Base6Directions.Direction.Forward)))
         {
         }
+
+        // Explicit direction
+        public LineSample(IMyCubeBlock reference, Vector3D direction)
+        {
+            Point = reference.GetPosition();
+            Direction = Vector3D.Normalize(direction);
+        }
     }
 
     public static bool Compute(LineSample first, LineSample second,
