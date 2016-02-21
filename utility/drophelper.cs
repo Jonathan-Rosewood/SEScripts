@@ -40,7 +40,7 @@ public class DropHelper
                 shipControl.Reset(gyroOverride: false, thrusterEnable: true,
                                   thrusterCondition: ThrusterCondition);
                 cruiser.Init(shipControl,
-                             localForward: shipControl.ShipBlockOrientation.TransformDirection(DROPHELPER_BURN_DIRECTION));
+                             localForward: DROPHELPER_BURN_DIRECTION);
 
                 BurningGliding = true;
                 Braking = false;
@@ -52,10 +52,10 @@ public class DropHelper
                                   thrusterCondition: ThrusterCondition);
                 var down = Base6Directions.GetFlippedDirection(shipControl.ShipUp);
                 seeker.Init(shipControl,
-                            localUp: Base6Directions.GetPerpendicular(down),
-                            localForward: down);
+                            shipUp: Base6Directions.GetPerpendicular(down),
+                            shipForward: down);
                 cruiser.Init(shipControl,
-                             localForward: Base6Directions.GetFlippedDirection(shipControl.ShipUp));
+                             localForward: Base6Directions.Direction.Down);
 
                 BurningGliding = false;
                 Braking = true;
@@ -89,8 +89,8 @@ public class DropHelper
 
             var down = Base6Directions.GetFlippedDirection(shipControl.ShipUp);
             seeker.Init(shipControl,
-                        localUp: Base6Directions.GetPerpendicular(down),
-                        localForward: down);
+                        shipUp: Base6Directions.GetPerpendicular(down),
+                        shipForward: down);
             
             eventDriver.Schedule(FramesPerRun, Glide);
         }

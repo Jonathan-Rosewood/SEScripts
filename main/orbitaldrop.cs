@@ -68,7 +68,7 @@ public class OrbitalDrop
         var shipControl = (ShipControlCommons)commons;
         shipControl.Reset(gyroOverride: false, thrusterEnable: true);
         cruiser.Init(shipControl,
-                     localForward: Base6Directions.GetFlippedDirection(shipControl.ShipUp));
+                     localForward: Base6Directions.Direction.Down);
 
         BrakingRadius = TargetRadius + 5000; // FIXME
 
@@ -93,8 +93,8 @@ public class OrbitalDrop
 
             var down = Base6Directions.GetFlippedDirection(shipControl.ShipUp);
             seeker.Init(shipControl,
-                        localUp: Base6Directions.GetPerpendicular(down),
-                        localForward: down);
+                        shipUp: Base6Directions.GetPerpendicular(down),
+                        shipForward: down);
             
             eventDriver.Schedule(FramesPerRun, Glide);
         }
@@ -123,7 +123,7 @@ public class OrbitalDrop
             if (distance < BrakingRadius)
             {
                 cruiser.Init(shipControl,
-                             localForward: Base6Directions.GetFlippedDirection(shipControl.ShipUp));
+                             localForward: Base6Directions.Direction.Down);
 
                 eventDriver.Schedule(FramesPerRun, Approach);
             }

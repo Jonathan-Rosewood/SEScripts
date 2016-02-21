@@ -29,10 +29,10 @@ public class LOSMiner
                     if (MINING_ROLL_RPM > 0.0f) shipControl.GyroControl.SetAxisVelocityRPM(GyroControl.Roll, MINING_ROLL_RPM);
 
                     seeker.Init(shipControl,
-                                localUp: shipControl.ShipUp,
-                                localForward: shipControl.ShipForward);
+                                shipUp: shipControl.ShipUp,
+                                shipForward: shipControl.ShipForward);
                     cruiser.Init(shipControl,
-                                 localForward: shipControl.ShipForward);
+                                 localForward: Base6Directions.Direction.Forward);
 
                     Reversing = false;
                     if (!Mining)
@@ -50,10 +50,10 @@ public class LOSMiner
 
                     var shipBackward = Base6Directions.GetFlippedDirection(shipControl.ShipForward);
                     seeker.Init(shipControl,
-                                localUp: shipControl.ShipUp,
-                                localForward: shipBackward);
+                                shipUp: shipControl.ShipUp,
+                                shipForward: shipBackward);
                     cruiser.Init(shipControl,
-                                 localForward: shipBackward);
+                                 localForward: Base6Directions.Direction.Backward);
 
                     Mining = false;
                     if (!Reversing)

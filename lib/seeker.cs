@@ -8,7 +8,7 @@ public class Seeker
     private const double LargeGyroKd = 40.0; // Derivative constant
     private readonly PIDController yawPID, pitchPID, rollPID;
 
-    private Base6Directions.Direction LocalForward, LocalUp, LocalLeft;
+    private Base6Directions.Direction ShipForward, ShipUp, ShipLeft;
 
     public Seeker(double dt)
     {
@@ -18,12 +18,12 @@ public class Seeker
     }
 
     public void Init(ShipControlCommons shipControl,
-                     Base6Directions.Direction localUp = Base6Directions.Direction.Up,
-                     Base6Directions.Direction localForward = Base6Directions.Direction.Forward)
+                     Base6Directions.Direction shipUp = Base6Directions.Direction.Up,
+                     Base6Directions.Direction shipForward = Base6Directions.Direction.Forward)
     {
-        LocalForward = localForward;
-        LocalUp = localUp;
-        LocalLeft = Base6Directions.GetLeft(LocalUp, LocalForward);
+        ShipForward = shipForward;
+        ShipUp = shipUp;
+        ShipLeft = Base6Directions.GetLeft(ShipUp, ShipForward);
 
         var small = shipControl.Reference.CubeGrid.GridSize == 0.5f;
 
@@ -75,7 +75,7 @@ public class Seeker
         GyroControl gyroControl;
 
         // See if local orientation is the same as the ship
-        if (shipControl.ShipUp == LocalUp && shipControl.ShipForward == LocalForward)
+        if (shipControl.ShipUp == ShipUp && shipControl.ShipForward == ShipForward)
         {
             // Use same reference vectors and GyroControl
             referenceForward = shipControl.ReferenceForward;
@@ -85,14 +85,14 @@ public class Seeker
         }
         else
         {
-            referenceForward = GetReferenceVector(shipControl, LocalForward);
-            referenceLeft = GetReferenceVector(shipControl, LocalLeft);
-            referenceUp = GetReferenceVector(shipControl, LocalUp);
+            referenceForward = GetReferenceVector(shipControl, ShipForward);
+            referenceLeft = GetReferenceVector(shipControl, ShipLeft);
+            referenceUp = GetReferenceVector(shipControl, ShipUp);
             // Need our own GyroControl instance in this case
             gyroControl = new GyroControl();
             gyroControl.Init(shipControl.Blocks,
-                             shipUp: LocalUp,
-                             shipForward: LocalForward);
+                             shipUp: ShipUp,
+                             shipForward: ShipForward);
         }
 
         // Determine projection of targetVector onto our reference unit vectors

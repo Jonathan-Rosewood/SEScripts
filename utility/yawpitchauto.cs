@@ -34,11 +34,11 @@ public class YawPitchAutopilot
         shipControl.Reset(gyroOverride: true, thrusterEnable: null);
 
         seeker.Init(shipControl,
-                    localUp: shipControl.ShipUp,
-                    localForward: shipControl.ShipForward);
+                    shipUp: shipControl.ShipUp,
+                    shipForward: shipControl.ShipForward);
 
         cruiser.Init(shipControl,
-                     localForward: shipControl.ShipForward);
+                     localForward: Base6Directions.Direction.Forward);
 
         eventDriver.Schedule(0, Run);
     }

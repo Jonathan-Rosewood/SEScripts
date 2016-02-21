@@ -22,8 +22,8 @@ public class ReverseThrust
         var forward = shipControl.ShipBlockOrientation.TransformDirection(ThrusterDirection);
         // Don't really care about "up," just pick a perpindicular direction
         seeker.Init(shipControl,
-                    localUp: Base6Directions.GetPerpendicular(forward),
-                    localForward: forward);
+                    shipUp: Base6Directions.GetPerpendicular(forward),
+                    shipForward: forward);
 
         var gyroControl = shipControl.GyroControl;
         gyroControl.Reset();

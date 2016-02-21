@@ -133,8 +133,8 @@ public class SmartUndock
     {
         var shipControl = (ShipControlCommons)commons;
         seeker.Init(shipControl,
-                    localUp: shipControl.ShipUp,
-                    localForward: shipControl.ShipForward);
+                    shipUp: shipControl.ShipUp,
+                    shipForward: shipControl.ShipForward);
 
         shipControl.Reset(gyroOverride: true, thrusterEnable: null);
 
