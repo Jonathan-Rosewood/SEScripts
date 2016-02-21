@@ -69,12 +69,13 @@ public class ShipControlCommons : ZACommons
     // Utility
 
     public void Reset(bool gyroOverride = false,
-                      bool? thrusterEnable = true)
+                      bool? thrusterEnable = true,
+                      Func<IMyThrust, bool> thrusterCondition = null)
     {
         GyroControl.Reset();
         GyroControl.EnableOverride(gyroOverride);
-        ThrustControl.Reset();
-        if (thrusterEnable != null) ThrustControl.Enable((bool)thrusterEnable);
+        ThrustControl.Reset(thrusterCondition);
+        if (thrusterEnable != null) ThrustControl.Enable((bool)thrusterEnable, thrusterCondition);
     }
 
     // Reference vectors (i.e. orientation in world coordinates)

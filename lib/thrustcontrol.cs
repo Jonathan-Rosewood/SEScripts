@@ -31,7 +31,8 @@ public class ThrustControl
     }
 
     public List<IMyThrust> GetThrusters(Base6Directions.Direction direction,
-                                        Func<IMyThrust, bool> collect = null)
+                                        Func<IMyThrust, bool> collect = null,
+                                        bool disable = false)
     {
         List<IMyThrust> thrusterList;
         if (!thrusters.TryGetValue(direction, out thrusterList))
@@ -49,7 +50,14 @@ public class ThrustControl
             for (var e = thrusterList.GetEnumerator(); e.MoveNext();)
             {
                 var thruster = (IMyThrust)e.Current;
-                if (collect(thruster)) result.Add(thruster);
+                if (collect(thruster))
+                {
+                    result.Add(thruster);
+                }
+                else if (disable)
+                {
+                    thruster.SetValue<bool>("OnOff", false);
+                }
             }
             return result;
         }
@@ -58,7 +66,7 @@ public class ThrustControl
     public void SetOverride(Base6Directions.Direction direction, bool enable = true,
                             Func<IMyThrust, bool> collect = null)
     {
-        var thrusterList = GetThrusters(direction, collect);
+        var thrusterList = GetThrusters(direction, collect, true);
         thrusterList.ForEach(thruster =>
                              thruster.SetValue<float>("Override", enable ?
                                                       thruster.GetMaximum<float>("Override") :
@@ -70,7 +78,7 @@ public class ThrustControl
     {
         percent = Math.Max(percent, 0.0);
         percent = Math.Min(percent, 1.0);
-        var thrusterList = GetThrusters(direction, collect);
+        var thrusterList = GetThrusters(direction, collect, true);
         thrusterList.ForEach(thruster =>
                              thruster.SetValue<float>("Override",
                                                       (float)(thruster.GetMaximum<float>("Override") * percent)));
@@ -79,7 +87,7 @@ public class ThrustControl
     public void Enable(Base6Directions.Direction direction, bool enable,
                        Func<IMyThrust, bool> collect = null)
     {
-        var thrusterList = GetThrusters(direction, collect);
+        var thrusterList = GetThrusters(direction, collect, true);
         thrusterList.ForEach(thruster => thruster.SetValue<bool>("OnOff", enable));
     }
 
