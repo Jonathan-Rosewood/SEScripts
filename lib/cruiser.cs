@@ -48,7 +48,7 @@ public class Cruiser
                        Func<IMyThrust, bool> condition = null)
     {
         // Determine forward unit vector
-        var forward3I = shipControl.Reference.Position + Base6Directions.GetIntVector(LocalForward);
+        var forward3I = shipControl.Reference.Position + Base6Directions.GetIntVector(shipControl.ShipBlockOrientation.TransformDirection(LocalForward));
         var referenceForward = Vector3D.Normalize(shipControl.Reference.CubeGrid.GridIntegerToWorld(forward3I) - shipControl.ReferencePoint);
 
         // Take dot product with forward unit vector
