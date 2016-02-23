@@ -12,5 +12,6 @@ const bool TIMER_KICKER_ENABLE = true;
 const bool REDUNDANCY_MANAGER_ENABLE = true;
 const bool DOCKING_ACTION_ENABLE = true;
 const bool DAMAGE_CONTROL_ENABLE = true;
+const bool REACTOR_MANAGER_ENABLE = true;
 
 // Options

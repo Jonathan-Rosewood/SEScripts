@@ -18,6 +18,7 @@ private readonly SimpleAirlock simpleAirlock = new SimpleAirlock();
 private readonly CruiseControl cruiseControl = new CruiseControl();
 private readonly DropHelper dropHelper = new DropHelper();
 private readonly DamageControl damageControl = new DamageControl();
+private readonly ReactorManager reactorManager = new ReactorManager();
 private readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
@@ -42,6 +43,7 @@ void Main(string argument)
         redundancyManager.Init(commons, eventDriver);
         doorAutoCloser.Init(commons, eventDriver);
         simpleAirlock.Init(commons, eventDriver);
+        reactorManager.Init(commons, eventDriver);
     }
 
     eventDriver.Tick(commons, preAction: () => {

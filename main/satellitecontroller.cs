@@ -39,10 +39,11 @@ public class SatelliteLowBatteryHandler : BatteryMonitor.LowBatteryHandler
     }
 }
 
-public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
+private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
 private readonly SafeMode safeMode = new SafeMode();
 private readonly BatteryMonitor batteryMonitor = new BatteryMonitor(new SatelliteLowBatteryHandler());
 private readonly RedundancyManager redundancyManager = new RedundancyManager();
+private readonly ReactorManager reactorManager = new ReactorManager();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
@@ -61,21 +62,8 @@ void Main(string argument)
         safeMode.Init(commons, eventDriver);
         batteryMonitor.Init(commons, eventDriver);
         redundancyManager.Init(commons, eventDriver);
-
-        eventDriver.Schedule(0.0, Run);
+        reactorManager.Init(commons, eventDriver);
     }
 
     eventDriver.Tick(commons);
-}
-
-public void Run(ZACommons commons, EventDriver eventDriver)
-{
-    // Disable all reactors (except our own) on all connected grids
-    // If we're fully solar-powered, we don't want to waste uranium on
-    // docked ships.
-    var reactors = ZACommons.GetBlocksOfType<IMyReactor>(commons.AllBlocks,
-                                                         block => block.CubeGrid != commons.Me.CubeGrid);
-    reactors.ForEach(block => block.SetValue<bool>("OnOff", false));
-
-    eventDriver.Schedule(5.0, Run);
 }
