@@ -6,8 +6,11 @@ public class ReactorManager
 {
     private const double RunDelay = 5.0;
 
+    private bool? State = null;
+
     public void Init(ZACommons commons, EventDriver eventDriver)
     {
+        State = null;
         eventDriver.Schedule(0.0, Run);
     }
 
@@ -15,12 +18,20 @@ public class ReactorManager
     {
         var myReactors = ZACommons.GetBlocksOfType<IMyReactor>(commons.Blocks,
                                                                block => block.IsWorking);
-        if (myReactors.Count == 0)
+        var currentState = myReactors.Count > 0;
+
+        // Only on state change
+        if (State == null || currentState != (bool)State)
         {
-            // Disable reactors on all connected grids
-            var reactors = ZACommons.GetBlocksOfType<IMyReactor>(commons.AllBlocks,
-                                                                 block => block.CubeGrid != commons.Me.CubeGrid);
-            reactors.ForEach(block => block.SetValue<bool>("OnOff", false));
+            State = currentState;
+
+            if (!(bool)State)
+            {
+                // Disable reactors on all connected grids
+                var reactors = ZACommons.GetBlocksOfType<IMyReactor>(commons.AllBlocks,
+                                                                     block => block.CubeGrid != commons.Me.CubeGrid);
+                reactors.ForEach(block => block.SetValue<bool>("OnOff", false));
+            }
         }
 
         eventDriver.Schedule(RunDelay, Run);

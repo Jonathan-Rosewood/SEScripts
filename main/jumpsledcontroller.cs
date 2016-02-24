@@ -1,6 +1,7 @@
-public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
+private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
 private readonly SafeMode safeMode = new SafeMode();
 private readonly BatteryMonitor batteryMonitor = new BatteryMonitor();
+private readonly ReactorManager reactorManager = new ReactorManager();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
@@ -18,6 +19,7 @@ void Main(string argument)
 
         safeMode.Init(commons, eventDriver);
         batteryMonitor.Init(commons, eventDriver);
+        reactorManager.Init(commons, eventDriver);
     }
 
     eventDriver.Tick(commons);
