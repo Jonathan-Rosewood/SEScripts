@@ -20,6 +20,7 @@ private readonly DropHelper dropHelper = new DropHelper();
 private readonly DamageControl damageControl = new DamageControl();
 private readonly ReactorManager reactorManager = new ReactorManager();
 private readonly TimerKicker timerKicker = new TimerKicker();
+private readonly BatteryMonitor batteryMonitor = new BatteryMonitor();
 private readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
@@ -46,6 +47,7 @@ void Main(string argument)
         simpleAirlock.Init(commons, eventDriver);
         reactorManager.Init(commons, eventDriver);
         timerKicker.Init(commons, eventDriver);
+        batteryMonitor.Init(commons, eventDriver);
     }
 
     eventDriver.Tick(commons, preAction: () => {
