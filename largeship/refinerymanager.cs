@@ -3,14 +3,14 @@ public class RefineryManager
     public struct RefineryWrapper : IComparable<RefineryWrapper>
     {
         public IMyRefinery Refinery;
-        public IMyInventory Inventory;
-        public IMyInventoryItem Item;
+        public VRage.ModAPI.IMyInventory Inventory;
+        public VRage.ModAPI.IMyInventoryItem Item;
         public float Amount;
 
         public RefineryWrapper(IMyRefinery refinery)
         {
             Refinery = refinery;
-            Inventory = ((Sandbox.ModAPI.Interfaces.IMyInventoryOwner)refinery).GetInventory(0);
+            Inventory = refinery.GetInventory(0);
             var items = Inventory.GetItems();
             Item = items.Count > 0 ? items[0] : null;
             Amount = Item != null ? (float)Item.Amount : 0.0f;

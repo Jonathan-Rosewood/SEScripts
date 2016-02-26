@@ -111,10 +111,10 @@ public class ProductionManager
 
         for (var e = blocks.GetEnumerator(); e.MoveNext();)
         {
-            var owner = e.Current as IMyInventoryOwner;
+            var owner = e.Current;
             if (owner != null)
             {
-                for (int i = 0; i < owner.InventoryCount; i++)
+                for (int i = 0; i < owner.GetInventoryCount(); i++)
                 {
                     var inventory = owner.GetInventory(i);
                     var items = inventory.GetItems();
