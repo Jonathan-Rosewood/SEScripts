@@ -3,8 +3,8 @@ public class RefineryManager
     public struct RefineryWrapper : IComparable<RefineryWrapper>
     {
         public IMyRefinery Refinery;
-        public VRage.ModAPI.IMyInventory Inventory;
-        public VRage.ModAPI.IMyInventoryItem Item;
+        public VRage.ModAPI.Ingame.IMyInventory Inventory;
+        public VRage.ModAPI.Ingame.IMyInventoryItem Item;
         public float Amount;
 
         public RefineryWrapper(IMyRefinery refinery)
