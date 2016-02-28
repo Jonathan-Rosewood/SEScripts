@@ -83,7 +83,7 @@ public class SolarGyroController
         var solarPanelDetails = new SolarPanelDetails(commons.Blocks);
         var currentMaxPower = solarPanelDetails.MaxPowerOutput;
 
-        var minError = solarPanelDetails.DefinedPowerOutput * 0.005f; // From experimentation
+        var minError = solarPanelDetails.DefinedPowerOutput * SOLAR_GYRO_MIN_ERROR;
         var delta = currentMaxPower - MaxPower;
         MaxPower = currentMaxPower;
 
@@ -107,7 +107,7 @@ public class SolarGyroController
 
         var changeTime = commons.Now - AxisTimeout;
 
-        if (TimeOnAxis < changeTime)
+        if (TimeOnAxis < changeTime && MaxPower < solarPanelDetails.DefinedPowerOutput * (1.0f - SOLAR_GYRO_MIN_ERROR))
         {
             // Time out, try next axis
             AxisIndex++;
