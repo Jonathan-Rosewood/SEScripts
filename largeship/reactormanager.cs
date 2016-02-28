@@ -7,15 +7,29 @@ public class ReactorManager
     private const double RunDelay = 5.0;
 
     private bool? State = null;
+    private int ConnectorCount = 0;
 
     public void Init(ZACommons commons, EventDriver eventDriver)
     {
         State = null;
+        ConnectorCount = 0;
         eventDriver.Schedule(0.0, Run);
     }
 
     public void Run(ZACommons commons, EventDriver eventDriver)
     {
+        var myConnectors = ZACommons.GetBlocksOfType<IMyShipConnector>(commons.Blocks,
+                                                                       block => block.DefinitionDisplayNameText == "Connector" &&
+                                                                       ((IMyShipConnector)block).IsLocked &&
+                                                                       ((IMyShipConnector)block).IsConnected);
+        var currentConnectorCount = myConnectors.Count;
+        if (currentConnectorCount > ConnectorCount)
+        {
+            // New connection, force re-evaluation
+            State = null;
+        }
+        ConnectorCount = currentConnectorCount;
+
         var myReactors = ZACommons.GetBlocksOfType<IMyReactor>(commons.Blocks,
                                                                block => block.IsWorking);
         var currentState = myReactors.Count > 0;
