@@ -20,7 +20,7 @@ void Main(string argument)
 
         shipOrientation.SetShipReference(commons, "SolarGyroReference");
 
-        solarGyroController.Init(commons, eventDriver);
+        if (SOLAR_ALIGNMENT_DEFAULT_ACTIVE) solarGyroController.Init(commons, eventDriver);
     }
 
     eventDriver.Tick(commons, preAction: () =>
