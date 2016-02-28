@@ -21,6 +21,12 @@ private readonly DamageControl damageControl = new DamageControl();
 private readonly ReactorManager reactorManager = new ReactorManager();
 private readonly TimerKicker timerKicker = new TimerKicker();
 private readonly BatteryMonitor batteryMonitor = new BatteryMonitor();
+private readonly SolarGyroController solarGyroController =
+    new SolarGyroController(
+                            //GyroControl.Yaw,
+                            GyroControl.Pitch,
+                            GyroControl.Roll
+                            );
 private readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
@@ -55,6 +61,7 @@ void Main(string argument)
             cruiseControl.HandleCommand(commons, eventDriver, argument);
             dropHelper.HandleCommand(commons, eventDriver, argument);
             damageControl.HandleCommand(commons, eventDriver, argument);
+            solarGyroController.HandleCommand(commons, eventDriver, argument);
         });
 
     if (commons.IsDirty) Storage = myStorage.Encode();
