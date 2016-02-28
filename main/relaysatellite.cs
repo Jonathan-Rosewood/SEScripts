@@ -41,7 +41,13 @@ public class RelaySatelliteLowBatteryHandler : BatteryMonitor.LowBatteryHandler
 
 private readonly EventDriver eventDriver = new EventDriver(timerGroup: RELAY_CLOCK_GROUP);
 private readonly LaunchController launchController = new LaunchController();
-public readonly BatteryMonitor batteryMonitor = new BatteryMonitor(new RelaySatelliteLowBatteryHandler());
+private readonly BatteryMonitor batteryMonitor = new BatteryMonitor(new RelaySatelliteLowBatteryHandler());
+private readonly SolarGyroController solarGyroController =
+    new SolarGyroController(
+                            GyroControl.Yaw,
+                            GyroControl.Pitch
+                            //GyroControl.Roll
+                            );
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
@@ -60,8 +66,12 @@ void Main(string argument)
         launchController.Init(commons, eventDriver, (c,ed) =>
                 {
                     batteryMonitor.Init(c, ed);
+                    solarGyroController.Init(c, ed);
                 });
     }
 
-    eventDriver.Tick(commons);
+    eventDriver.Tick(commons, preAction: () =>
+            {
+                solarGyroController.HandleCommand(commons, eventDriver, argument);
+            });
 }

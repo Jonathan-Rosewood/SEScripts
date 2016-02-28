@@ -1,5 +1,5 @@
-public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
-public readonly SolarGyroController solarGyroController = new SolarGyroController(GyroControl.Roll);
+private readonly EventDriver eventDriver = new EventDriver(timerName: "SolarGyroClock", timerGroup: "SolarGyroClock");
+private readonly SolarGyroController solarGyroController = new SolarGyroController(GyroControl.Roll);
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
@@ -15,15 +15,11 @@ void Main(string argument)
 
         shipOrientation.SetShipReference(commons, "SolarGyroReference");
 
-        eventDriver.Schedule(0.0);
+        solarGyroController.Init(commons, eventDriver);
     }
 
-    solarGyroController.HandleCommand(commons, argument);
-
-    eventDriver.Tick(commons, () =>
+    eventDriver.Tick(commons, preAction: () =>
             {
-                solarGyroController.Run(commons);
-
-                eventDriver.Schedule(1.0);
+                solarGyroController.HandleCommand(commons, eventDriver, argument);
             });
 }

@@ -12,6 +12,12 @@ private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_L
 private readonly BackupMedicalLaunch backupMedicalLaunch = new BackupMedicalLaunch();
 private readonly DoorAutoCloser doorAutoCloser = new DoorAutoCloser();
 private readonly BatteryMonitor batteryMonitor = new BatteryMonitor(new BackupMedicalLowBatteryHandler());
+private readonly SolarGyroController solarGyroController =
+    new SolarGyroController(
+                            //GyroControl.Yaw,
+                            GyroControl.Pitch,
+                            GyroControl.Roll
+                            );
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
@@ -31,8 +37,12 @@ void Main(string argument)
                 {
                     doorAutoCloser.Init(c, ed);
                     batteryMonitor.Init(c, ed);
+                    solarGyroController.Init(c, ed);
                 });
     }
 
-    eventDriver.Tick(commons);
+    eventDriver.Tick(commons, preAction: () =>
+            {
+                solarGyroController.HandleCommand(commons, eventDriver, argument);
+            });
 }

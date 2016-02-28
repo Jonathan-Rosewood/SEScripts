@@ -1,5 +1,7 @@
 public class SolarGyroController
 {
+    private const double RunDelay = 1.0;
+
     public struct SolarPanelDetails
     {
         public float MaxPowerOutput;
@@ -12,12 +14,13 @@ public class SolarGyroController
 
             for (var e = ZACommons.GetBlocksOfType<IMySolarPanel>(blocks).GetEnumerator(); e.MoveNext();)
             {
-                var panel = e.Current;
+                var panel = (IMySolarPanel)e.Current;
 
                 if (panel.IsFunctional && panel.IsWorking)
                 {
-                    MaxPowerOutput += panel.MaxPowerOutput;
-                    DefinedPowerOutput += panel.DefinedPowerOutput;
+                    var output = SolarHack.GetSolarPanelMaxOutput(panel);
+                    MaxPowerOutput += output != null ? (float)output : 0.0f;
+                    DefinedPowerOutput += panel.CubeGrid.GridSize == 2.5f ? 0.120f : 0.030f;
                 }
             }
         }
@@ -26,12 +29,12 @@ public class SolarGyroController
     private readonly int[] AllowedAxes;
     private readonly float[] LastVelocities;
 
-    private readonly TimeSpan AxisTimeout = TimeSpan.FromSeconds(15);
+    private readonly TimeSpan AxisTimeout = TimeSpan.FromSeconds(SOLAR_GYRO_AXIS_TIMEOUT);
 
     private float? MaxPower = null;
     private int AxisIndex = 0;
-    private bool Active = true;
-    private TimeSpan TimeOnAxis;
+    private bool Active = false;
+    private DateTime TimeOnAxis;
 
     public SolarGyroController(params int[] allowedAxes)
     {
@@ -44,7 +47,19 @@ public class SolarGyroController
         }
     }
 
-    public void Run(ShipControlCommons commons)
+    public void Init(ZACommons commons, EventDriver eventDriver)
+    {
+        var shipControl = (ShipControlCommons)commons;
+        var gyroControl = shipControl.GyroControl;
+        gyroControl.Reset();
+        gyroControl.EnableOverride(true);
+
+        Active = true;
+        MaxPower = null; // Use first-run initialization
+        eventDriver.Schedule(0.0, Run);
+    }
+
+    public void Run(ZACommons commons, EventDriver eventDriver)
     {
         if (!Active)
         {
@@ -52,7 +67,8 @@ public class SolarGyroController
             return;
         }
 
-        var gyroControl = commons.GyroControl;
+        var shipControl = (ShipControlCommons)commons;
+        var gyroControl = shipControl.GyroControl;
         var currentAxis = AllowedAxes[AxisIndex];
 
         if (MaxPower == null)
@@ -61,7 +77,7 @@ public class SolarGyroController
             gyroControl.Reset();
             gyroControl.EnableOverride(true);
             gyroControl.SetAxisVelocity(currentAxis, LastVelocities[AxisIndex]);
-            TimeOnAxis = TimeSpan.FromSeconds(0);
+            TimeOnAxis = commons.Now;
         }
 
         var solarPanelDetails = new SolarPanelDetails(commons.Blocks);
@@ -89,9 +105,9 @@ public class SolarGyroController
             gyroControl.EnableOverride(false);
         }
 
-        TimeOnAxis += commons.Program.ElapsedTime;
+        var changeTime = commons.Now - AxisTimeout;
 
-        if (TimeOnAxis > AxisTimeout)
+        if (TimeOnAxis < changeTime)
         {
             // Time out, try next axis
             AxisIndex++;
@@ -100,25 +116,30 @@ public class SolarGyroController
             gyroControl.Reset();
             gyroControl.EnableOverride(true);
             gyroControl.SetAxisVelocity(AllowedAxes[AxisIndex], LastVelocities[AxisIndex]);
-            TimeOnAxis = TimeSpan.FromSeconds(0);
+            TimeOnAxis = commons.Now;
         }
 
         commons.Echo(string.Format("Solar Max Power: {0}", ZACommons.FormatPower(currentMaxPower)));
+        
+        eventDriver.Schedule(RunDelay, Run);
     }
 
-    public void HandleCommand(ShipControlCommons commons, string argument)
+    public void HandleCommand(ZACommons commons, EventDriver eventDriver,
+                              string argument)
     {
         // Handle commands
         argument = argument.Trim().ToLower();
         if (argument == "pause")
         {
             Active = false;
-            commons.GyroControl.EnableOverride(false);
+            var shipControl = (ShipControlCommons)commons;
+            var gyroControl = shipControl.GyroControl;
+            gyroControl.Reset();
+            gyroControl.EnableOverride(false);
         }
         else if (argument == "resume")
         {
-            Active = true;
-            MaxPower = null; // Use first-run initialization
+            if (!Active) Init(commons, eventDriver);
         }
     }
 }

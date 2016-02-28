@@ -2,6 +2,12 @@ private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_L
 private readonly SafeMode safeMode = new SafeMode();
 private readonly BatteryMonitor batteryMonitor = new BatteryMonitor();
 private readonly ReactorManager reactorManager = new ReactorManager();
+private readonly SolarGyroController solarGyroController =
+    new SolarGyroController(
+                            //GyroControl.Yaw,
+                            GyroControl.Pitch,
+                            GyroControl.Roll
+                            );
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
@@ -20,7 +26,11 @@ void Main(string argument)
         safeMode.Init(commons, eventDriver);
         batteryMonitor.Init(commons, eventDriver);
         reactorManager.Init(commons, eventDriver);
+        solarGyroController.Init(commons, eventDriver);
     }
 
-    eventDriver.Tick(commons);
+    eventDriver.Tick(commons, preAction: () =>
+            {
+                solarGyroController.HandleCommand(commons, eventDriver, argument);
+            });
 }
