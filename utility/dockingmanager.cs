@@ -152,6 +152,7 @@ public class DockingManager
             ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyOxygenGenerator>(commons.Blocks), !docked);
             ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyOxygenFarm>(commons.Blocks), !docked);
         }
+        if (TOUCH_SENSORS) ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMySensorBlock>(commons.Blocks), !docked);
 
         if (docked)
         {
