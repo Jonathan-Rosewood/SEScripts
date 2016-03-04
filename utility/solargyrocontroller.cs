@@ -1,6 +1,7 @@
 public class SolarGyroController
 {
     private const double RunDelay = 1.0;
+    private const string ActiveKey = "SolarGyroController_Active";
 
     public struct SolarPanelDetails
     {
@@ -55,8 +56,25 @@ public class SolarGyroController
         gyroControl.EnableOverride(true);
 
         Active = true;
+        SaveActive(commons);
         MaxPower = null; // Use first-run initialization
         eventDriver.Schedule(0.0, Run);
+    }
+
+    public void ConditionalInit(ZACommons commons, EventDriver eventDriver,
+                                bool defaultActive = false)
+    {
+        var activeValue = commons.GetValue(ActiveKey);
+        if (activeValue != null)
+        {
+            bool active;
+            if (Boolean.TryParse(activeValue, out active))
+            {
+                if (active) Init(commons, eventDriver);
+                return;
+            }
+        }
+        if (defaultActive) Init(commons, eventDriver);
     }
 
     public void Run(ZACommons commons, EventDriver eventDriver)
@@ -132,6 +150,7 @@ public class SolarGyroController
         if (argument == "pause")
         {
             Active = false;
+            SaveActive(commons);
             var shipControl = (ShipControlCommons)commons;
             var gyroControl = shipControl.GyroControl;
             gyroControl.Reset();
@@ -141,5 +160,10 @@ public class SolarGyroController
         {
             if (!Active) Init(commons, eventDriver);
         }
+    }
+
+    private void SaveActive(ZACommons commons)
+    {
+        commons.SetValue(ActiveKey, Active.ToString());
     }
 }

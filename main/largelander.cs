@@ -54,6 +54,7 @@ void Main(string argument)
         reactorManager.Init(commons, eventDriver);
         timerKicker.Init(commons, eventDriver);
         batteryMonitor.Init(commons, eventDriver);
+        solarGyroController.ConditionalInit(commons, eventDriver);
     }
 
     eventDriver.Tick(commons, preAction: () => {
