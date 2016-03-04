@@ -88,7 +88,7 @@ public class DockingManager
     {
         ManageShip(commons, eventDriver, false);
 
-        eventDriver.Schedule(1.0, UndockDetach);
+        UndockDetach(commons, eventDriver);
     }
 
     public void UndockDetach(ZACommons commons, EventDriver eventDriver)
@@ -141,7 +141,18 @@ public class DockingManager
         }
         if (!docked) ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyReactor>(commons.Blocks), true);
 
-        if (TOUCH_ANTENNA) ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyRadioAntenna>(commons.Blocks), !docked);
+        if (TOUCH_ANTENNA)
+        {
+            ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyRadioAntenna>(commons.Blocks), !docked);
+            // Now defaults to off in 01.124. Thanks, Keen!
+            if (!docked)
+            {
+                eventDriver.Schedule(2, (c,ed) =>
+                        {
+                            ZACommons.GetBlocksOfType<IMyRadioAntenna>(commons.Blocks).ForEach(antenna => antenna.SetValue<bool>("EnableBroadCast", true));
+                        });
+            }
+        }
         if (TOUCH_LANTENNA) ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyLaserAntenna>(commons.Blocks), !docked);
         if (TOUCH_BEACON) ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyBeacon>(commons.Blocks), !docked);
         if (TOUCH_LIGHTS) ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyLightingBlock>(commons.Blocks), !docked);
