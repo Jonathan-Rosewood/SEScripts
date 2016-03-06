@@ -16,7 +16,7 @@ private readonly RedundancyManager redundancyManager = new RedundancyManager();
 private readonly DoorAutoCloser doorAutoCloser = new DoorAutoCloser();
 private readonly SimpleAirlock simpleAirlock = new SimpleAirlock();
 private readonly CruiseControl cruiseControl = new CruiseControl();
-private readonly DropHelper dropHelper = new DropHelper();
+private readonly VTVLHelper vtvlHelper = new VTVLHelper();
 private readonly DamageControl damageControl = new DamageControl();
 private readonly ReactorManager reactorManager = new ReactorManager();
 private readonly TimerKicker timerKicker = new TimerKicker();
@@ -47,7 +47,7 @@ void Main(string argument)
 
         myStorage.Decode(Storage);
 
-        shipOrientation.SetShipReference(commons, DROPHELPER_REMOTE_GROUP);
+        shipOrientation.SetShipReference(commons, VTVLHELPER_REMOTE_GROUP);
 
         safeMode.Init(commons, eventDriver);
         redundancyManager.Init(commons, eventDriver);
@@ -67,7 +67,7 @@ void Main(string argument)
     eventDriver.Tick(commons, preAction: () => {
             safeMode.HandleCommand(commons, eventDriver, argument);
             cruiseControl.HandleCommand(commons, eventDriver, argument);
-            dropHelper.HandleCommand(commons, eventDriver, argument);
+            vtvlHelper.HandleCommand(commons, eventDriver, argument);
             damageControl.HandleCommand(commons, eventDriver, argument);
             solarGyroController.HandleCommand(commons, eventDriver, argument);
         });

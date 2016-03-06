@@ -32,20 +32,25 @@ public class Cruiser
     // Use internal Velocimeter
     public void Cruise(ShipControlCommons shipControl, EventDriver eventDriver,
                        double targetSpeed,
-                       Func<IMyThrust, bool> condition = null)
+                       Func<IMyThrust, bool> condition = null,
+                       bool enableForward = true,
+                       bool enableBackward = true)
     {
         velocimeter.TakeSample(shipControl.ReferencePoint, eventDriver.TimeSinceStart);
         var velocity = velocimeter.GetAverageVelocity();
         if (velocity != null)
         {
-            Cruise(shipControl, targetSpeed, (Vector3D)velocity, condition);
+            Cruise(shipControl, targetSpeed, (Vector3D)velocity, condition,
+                   enableForward, enableBackward);
         }
     }
 
     // Use external Velocimeter
     public void Cruise(ShipControlCommons shipControl, double targetSpeed,
                        Vector3D velocity,
-                       Func<IMyThrust, bool> condition = null)
+                       Func<IMyThrust, bool> condition = null,
+                       bool enableForward = true,
+                       bool enableBackward = true)
     {
         // Determine forward unit vector
         var forward3I = shipControl.Reference.Position + Base6Directions.GetIntVector(shipControl.ShipBlockOrientation.TransformDirection(LocalForward));
@@ -67,15 +72,15 @@ public class Cruiser
         else if (force > 0.0)
         {
             // Thrust forward
-            thrustControl.Enable(LocalForward, true, condition);
-            thrustControl.SetOverride(LocalForward, force, condition);
+            thrustControl.Enable(LocalForward, enableForward, condition);
+            if (enableForward) thrustControl.SetOverride(LocalForward, force, condition);
             thrustControl.Enable(LocalBackward, false, condition);
         }
         else
         {
             thrustControl.Enable(LocalForward, false, condition);
-            thrustControl.Enable(LocalBackward, true, condition);
-            thrustControl.SetOverride(LocalBackward, -force, condition);
+            thrustControl.Enable(LocalBackward, enableBackward, condition);
+            if (enableBackward) thrustControl.SetOverride(LocalBackward, -force, condition);
         }
     }
 }
