@@ -27,6 +27,8 @@ private readonly SolarGyroController solarGyroController =
                             GyroControl.Pitch,
                             GyroControl.Roll
                             );
+private readonly OxygenManager oxygenManager = new OxygenManager();
+private readonly AirVentManager airVentManager = new AirVentManager();
 private readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
@@ -51,10 +53,15 @@ void Main(string argument)
         redundancyManager.Init(commons, eventDriver);
         doorAutoCloser.Init(commons, eventDriver);
         simpleAirlock.Init(commons, eventDriver);
-        reactorManager.Init(commons, eventDriver);
-        timerKicker.Init(commons, eventDriver);
+        if (LANDER_CARRIER_ENABLE)
+        {
+            reactorManager.Init(commons, eventDriver);
+            timerKicker.Init(commons, eventDriver);
+        }
         batteryMonitor.Init(commons, eventDriver);
         solarGyroController.ConditionalInit(commons, eventDriver);
+        if (OXYGEN_MANAGER_ENABLE) oxygenManager.Init(commons, eventDriver);
+        if (AIR_VENT_MANAGER_ENABLE) airVentManager.Init(commons, eventDriver);
     }
 
     eventDriver.Tick(commons, preAction: () => {

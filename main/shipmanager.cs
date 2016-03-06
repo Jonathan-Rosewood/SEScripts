@@ -3,6 +3,7 @@ private readonly DoorAutoCloser doorAutoCloser = new DoorAutoCloser();
 private readonly SimpleAirlock simpleAirlock = new SimpleAirlock();
 private readonly ComplexAirlock complexAirlock = new ComplexAirlock();
 private readonly OxygenManager oxygenManager = new OxygenManager();
+private readonly AirVentManager airVentManager = new AirVentManager();
 private readonly RefineryManager refineryManager = new RefineryManager();
 private readonly ProductionManager productionManager = new ProductionManager();
 private readonly TimerKicker timerKicker = new TimerKicker();
@@ -28,6 +29,7 @@ void Main(string argument)
 
         // Systems management
         if (OXYGEN_MANAGER_ENABLE) oxygenManager.Init(commons, eventDriver);
+        if (AIR_VENT_MANAGER_ENABLE) airVentManager.Init(commons, eventDriver);
         if (REFINERY_MANAGER_ENABLE) refineryManager.Init(commons, eventDriver);
         if (PRODUCTION_MANAGER_ENABLE) productionManager.Init(commons, eventDriver);
 

@@ -114,6 +114,15 @@ public class OxygenManager
 
                 // Farms don't implement IMyFunctionalBlock??
                 ZACommons.EnableBlocks(farms, (bool)farmOxygen);
+
+                // We'll count atmosphere intake vents too, since they're "free"
+                var vents =
+                    ZACommons.GetBlocksOfType<IMyAirVent>(commons.Blocks,
+                                                          vent => vent.IsFunctional &&
+                                                          ((IMyAirVent)vent).IsDepressurizing &&
+                                                          vent.CustomName.IndexOf("[Intake]", ZACommons.IGNORE_CASE) >= 0);
+
+                ZACommons.EnableBlocks(vents, (bool)farmOxygen);
             }
         }
 
