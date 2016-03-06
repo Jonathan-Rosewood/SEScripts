@@ -7,7 +7,7 @@ public class SimpleAirlock
         for (var e = doors.GetEnumerator(); e.MoveNext();)
         {
             var door = e.Current as IMyDoor;
-            if (door != null && door.Open) return true;
+            if (door != null && door.OpenRatio > 0.0f) return true;
         }
         return false;
     }
@@ -30,14 +30,14 @@ public class SimpleAirlock
             for (var f = doors.GetEnumerator(); f.MoveNext();)
             {
                 var door = (IMyDoor)f.Current;
-                if (!door.Open && opened)
+                if (door.OpenRatio == 0.0f && opened)
                 {
                     // This door is not open and some other door in the group is, lock it down
-                    if (door.Enabled) door.GetActionWithName("OnOff_Off").Apply(door);
+                    if (door.Enabled) door.SetValue<bool>("OnOff", false);
                 }
                 else
                 {
-                    if (!door.Enabled) door.GetActionWithName("OnOff_On").Apply(door);
+                    if (!door.Enabled) door.SetValue<bool>("OnOff", true);
                 }
             }
         }
