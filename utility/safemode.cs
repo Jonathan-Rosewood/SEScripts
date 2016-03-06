@@ -190,7 +190,7 @@ public class SafeMode : DockingHandler
         for (var e = commons.Blocks.GetEnumerator(); e.MoveNext();)
         {
             var antenna = e.Current as IMyRadioAntenna;
-            if (antenna != null && antenna.IsWorking && antenna.Enabled && antenna.IsBroadcasting)
+            if (antenna != null && antenna.IsWorking && antenna.Enabled) // && antenna.IsBroadcasting)
             {
                 antennaFound = true;
                 break;
