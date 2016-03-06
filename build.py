@@ -29,13 +29,16 @@ def scan_modules():
     return result
 
 
-def create_chunk(fn, strip=False):
+def create_chunk(fn, strip=False, strip_comments=False, strip_empty=False):
     if os.path.exists(fn):
         with io.StringIO() as out:
             with open(fn, 'rU') as content:
                 for line in content:
                     if strip:
-                        out.write(line.strip() + NL)
+                        line = line.strip()
+                        if line or not strip_empty:
+                            if not strip_comments or not line.startswith('//'):
+                                out.write(line + NL)
                     else:
                         out.write(line.rstrip() + NL)
                 return out.getvalue()
@@ -83,7 +86,8 @@ def build_script(version, available_modules, spec, strip=False):
     for module in modules:
         body_fn = os.path.join(available_modules[module],
                                module + '.cs')
-        chunk = create_chunk(body_fn, strip=strip)
+        chunk = create_chunk(body_fn, strip=strip, strip_comments=True,
+                             strip_empty=True)
         if chunk:
             chunks.append(chunk)
 
