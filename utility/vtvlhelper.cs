@@ -26,10 +26,10 @@ public class VTVLHelper
         if (command == "drop")
         {
             var shipControl = (ShipControlCommons)commons;
-            ThrusterCondition = parts.Length > 2 ? ParseThrusterFlags(parts[2]) : null;
 
             if (subcommand == "start")
             {
+                ThrusterCondition = parts.Length > 2 ? ParseThrusterFlags(parts[2]) : null;
                 shipControl.Reset(gyroOverride: false, thrusterEnable: true,
                                   thrusterCondition: ThrusterCondition);
                 cruiser.Init(shipControl,
@@ -43,6 +43,7 @@ public class VTVLHelper
             }
             else if (subcommand == "brake" || subcommand == "descend")
             {
+                ThrusterCondition = parts.Length > 2 ? ParseThrusterFlags(parts[2]) : null;
                 shipControl.Reset(gyroOverride: true, thrusterEnable: true,
                                   thrusterCondition: ThrusterCondition);
                 var down = shipControl.ShipBlockOrientation.TransformDirection(VTVLHELPER_BRAKE_DIRECTION);
@@ -69,10 +70,10 @@ public class VTVLHelper
         else if (command == "launch")
         {
             var shipControl = (ShipControlCommons)commons;
-            ThrusterCondition = parts.Length > 2 ? ParseThrusterFlags(parts[2]) : null;
 
             if (subcommand == "start")
             {
+                ThrusterCondition = parts.Length > 2 ? ParseThrusterFlags(parts[2]) : null;
                 shipControl.Reset(gyroOverride: true, thrusterEnable: true,
                                   thrusterCondition: ThrusterCondition);
                 var forward = shipControl.ShipBlockOrientation.TransformDirection(VTVLHELPER_LAUNCH_DIRECTION);
