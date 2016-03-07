@@ -1,6 +1,7 @@
 public class ProductionManager
 {
     private const double RunDelay = 1.0;
+    private const string StateKey = "ProductionManager_State";
 
     private const char DelimiterStart = '{';
     private const char DelimiterEnd = '}';
@@ -62,15 +63,14 @@ public class ProductionManager
 
         public void EnableAssemblers(bool enable)
         {
-            for (var e = Assemblers.GetEnumerator(); e.MoveNext();)
-            {
-                var assembler = e.Current;
-                if ((enable && !assembler.Enabled) ||
-                    (!enable && assembler.Enabled))
-                {
-                    assembler.GetActionWithName(enable ? "OnOff_On" : "OnOff_Off").Apply(assembler);
-                }
-            }
+            Assemblers.ForEach(assembler =>
+                    {
+                        if ((enable && !assembler.Enabled) ||
+                            (!enable && assembler.Enabled))
+                        {
+                            assembler.SetValue<bool>("OnOff", enable);
+                        }
+                    });
         }
     }
 
@@ -189,6 +189,22 @@ public class ProductionManager
 
     public void Init(ZACommons commons, EventDriver eventDriver)
     {
+        var stateValue = commons.GetValue(StateKey);
+        if (stateValue != null)
+        {
+            int state;
+            if (int.TryParse(stateValue, out state))
+            {
+                // Use remembered state
+                CurrentState = state;
+                // Should really validate, but eh...
+            }
+        }
+        else
+        {
+            CurrentState = STATE_ACTIVE;
+        }
+
         eventDriver.Schedule(0.0, Run);
     }
 
@@ -200,7 +216,11 @@ public class ProductionManager
 
     private void RunInternal(ZACommons commons)
     {
-        if (CurrentState == STATE_INACTIVE) return;
+        if (CurrentState == STATE_INACTIVE)
+        {
+            commons.Echo("Production Manager: Paused");
+            return;
+        }
 
         var ship = LIMIT_PRODUCTION_MANAGER_SAME_GRID ? commons.Blocks : commons.AllBlocks;
 
@@ -210,6 +230,8 @@ public class ProductionManager
             commons.Echo("Setup complete. Set PRODUCTION_MANAGER_SETUP to false to enable ProductionManager");
             return;
         }
+
+        commons.Echo("Production Manager: Active");
 
         var allowedSubtypes = new HashSet<string>();
         var assemblerTargets = new Dictionary<string, AssemblerTarget>();
@@ -265,7 +287,7 @@ public class ProductionManager
             {
                 e.Current.EnableAssemblers(false);
             }
-            CurrentState = STATE_INACTIVE;
+            SetState(commons, STATE_INACTIVE);
         }
     }
 
@@ -276,11 +298,19 @@ public class ProductionManager
         switch (argument)
         {
             case "prodpause":
-                CurrentState = STATE_INACTIVATING;
+                // We need this intermediate step because we don't know
+                // the assemblers here.
+                SetState(commons, STATE_INACTIVATING);
                 break;
             case "prodresume":
-                CurrentState = STATE_ACTIVE;
+                SetState(commons, STATE_ACTIVE);
                 break;
         }
+    }
+
+    private void SetState(ZACommons commons, int newState)
+    {
+        CurrentState = newState;
+        commons.SetValue(StateKey, CurrentState.ToString());
     }
 }

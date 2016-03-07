@@ -11,16 +11,20 @@ private readonly RedundancyManager redundancyManager = new RedundancyManager();
 private readonly DockingAction dockingAction = new DockingAction();
 private readonly DamageControl damageControl = new DamageControl();
 private readonly ReactorManager reactorManager = new ReactorManager();
+private readonly ZAStorage myStorage = new ZAStorage();
 
 private bool FirstRun = true;
 
 void Main(string argument)
 {
-    var commons = new ZACommons(this);
+    var commons = new ZACommons(this,
+                                storage: myStorage);
 
     if (FirstRun)
     {
         FirstRun = false;
+
+        myStorage.Decode(Storage);
 
         // Door management
         if (AUTO_CLOSE_DOORS_ENABLE) doorAutoCloser.Init(commons, eventDriver);
@@ -46,4 +50,6 @@ void Main(string argument)
             if (PRODUCTION_MANAGER_ENABLE) productionManager.HandleCommand(commons, eventDriver, argument);
             if (DAMAGE_CONTROL_ENABLE) damageControl.HandleCommand(commons, eventDriver, argument);
         });
+
+    if (commons.IsDirty) Storage = myStorage.Encode();
 }
