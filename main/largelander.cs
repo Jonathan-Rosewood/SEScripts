@@ -63,6 +63,7 @@ void Main(string argument)
         if (OXYGEN_MANAGER_ENABLE) oxygenManager.Init(commons, eventDriver);
         if (AIR_VENT_MANAGER_ENABLE) airVentManager.Init(commons, eventDriver);
         cruiseControl.Init(commons, eventDriver);
+        vtvlHelper.Init(commons, eventDriver);
     }
 
     eventDriver.Tick(commons, preAction: () => {

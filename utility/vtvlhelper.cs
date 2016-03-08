@@ -1,5 +1,7 @@
 public class VTVLHelper
 {
+    private const string LastCommandKey = "VTVLHelper_LastCommand";
+
     private const uint FramesPerRun = 2;
     private const double RunsPerSecond = 60.0 / FramesPerRun;
 
@@ -13,6 +15,15 @@ public class VTVLHelper
 
     private int Mode = IDLE;
     private Func<IMyThrust, bool> ThrusterCondition = null;
+
+    public void Init(ZACommons commons, EventDriver eventDriver)
+    {
+        var lastCommand = commons.GetValue(LastCommandKey);
+        if (lastCommand != null)
+        {
+            HandleCommand(commons, eventDriver, lastCommand);
+        }
+    }
 
     public void HandleCommand(ZACommons commons, EventDriver eventDriver,
                               string argument)
@@ -40,6 +51,8 @@ public class VTVLHelper
                     Mode = BURNING_GLIDING;
                     eventDriver.Schedule(0, Burn);
                 }
+
+                SaveLastCommand(commons, argument);
             }
             else if (subcommand == "brake" || subcommand == "descend")
             {
@@ -58,6 +71,8 @@ public class VTVLHelper
                     Mode = BRAKING;
                     eventDriver.Schedule(FramesPerRun, Brake);
                 }
+
+                SaveLastCommand(commons, argument);
             }
             else if (subcommand == "abort" || subcommand == "stop" ||
                      subcommand == "reset")
@@ -65,6 +80,8 @@ public class VTVLHelper
                 shipControl.Reset(gyroOverride: false, thrusterEnable: true,
                                   thrusterCondition: ThrusterCondition);
                 Mode = IDLE;
+
+                SaveLastCommand(commons, null);
             }
         }
         else if (command == "launch")
@@ -88,6 +105,8 @@ public class VTVLHelper
                     Mode = LAUNCHING;
                     eventDriver.Schedule(FramesPerRun, Launch);
                 }
+
+                SaveLastCommand(commons, argument);
             }
             else if (subcommand == "abort" || subcommand == "stop" ||
                      subcommand == "reset")
@@ -95,6 +114,8 @@ public class VTVLHelper
                 shipControl.Reset(gyroOverride: false, thrusterEnable: true,
                                   thrusterCondition: ThrusterCondition);
                 Mode = IDLE;
+
+                SaveLastCommand(commons, null);
             }
         }
     }
@@ -151,6 +172,8 @@ public class VTVLHelper
             shipControl.Reset(gyroOverride: false, thrusterEnable: true,
                               thrusterCondition: ThrusterCondition);
             Mode = IDLE;
+
+            SaveLastCommand(commons, null);
         }
     }
 
@@ -180,6 +203,8 @@ public class VTVLHelper
             shipControl.Reset(gyroOverride: false, thrusterEnable: true,
                               thrusterCondition: ThrusterCondition);
             Mode = IDLE;
+
+            SaveLastCommand(commons, null);
         }
     }
 
@@ -209,6 +234,8 @@ public class VTVLHelper
             shipControl.Reset(gyroOverride: false, thrusterEnable: true,
                               thrusterCondition: ThrusterCondition);
             Mode = IDLE;
+
+            SaveLastCommand(commons, null);
         }
     }
 
@@ -246,5 +273,10 @@ public class VTVLHelper
                         (isAtm && useAtm) ||
                         (!isH && !isAtm && useIon));
             };
+    }
+
+    private void SaveLastCommand(ZACommons commons, string argument)
+    {
+        commons.SetValue(LastCommandKey, argument);
     }
 }
