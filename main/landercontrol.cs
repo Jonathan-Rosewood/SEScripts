@@ -10,12 +10,12 @@ public class MySafeModeHandler : SafeModeHandler
     }
 }
 
-public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
-public readonly DockingManager dockingManager = new DockingManager();
-public readonly SafeMode safeMode = new SafeMode(new MySafeModeHandler());
-public readonly SmartUndock smartUndock = new SmartUndock();
-public readonly CruiseControl cruiseControl = new CruiseControl();
-public readonly ZAStorage myStorage = new ZAStorage();
+private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
+private readonly DockingManager dockingManager = new DockingManager();
+private readonly SafeMode safeMode = new SafeMode(new MySafeModeHandler());
+private readonly SmartUndock smartUndock = new SmartUndock();
+private readonly CruiseControl cruiseControl = new CruiseControl();
+private readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
@@ -38,6 +38,7 @@ void Main(string argument)
         dockingManager.Init(commons, eventDriver, safeMode,
                             new RedundancyManager());
         smartUndock.Init(commons);
+        cruiseControl.Init(commons, eventDriver);
     }
 
     eventDriver.Tick(commons, preAction: () => {

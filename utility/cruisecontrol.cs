@@ -1,5 +1,7 @@
 public class CruiseControl
 {
+    private const string LastCommandKey = "CruiseControl_LastCommand";
+
     private const uint FramesPerRun = 2;
     private const double RunsPerSecond = 60.0 / FramesPerRun;
 
@@ -20,6 +22,15 @@ public class CruiseControl
         thrustPID.Kp = ThrustKp;
         thrustPID.Ki = ThrustKi;
         thrustPID.Kd = ThrustKd;
+    }
+
+    public void Init(ZACommons commons, EventDriver eventDriver)
+    {
+        var lastCommand = commons.GetValue(LastCommandKey);
+        if (lastCommand != null)
+        {
+            HandleCommand(commons, eventDriver, lastCommand);
+        }
     }
 
     private void Reset(ZACommons commons)
@@ -47,6 +58,7 @@ public class CruiseControl
                 if (parts.Length >= 3) CruiseFlags = parts[2];
                 Reset(commons);
                 Active = false;
+                SaveLastCommand(commons, null);
             }
             else
             {
@@ -100,6 +112,8 @@ public class CruiseControl
                         Active = true;
                         eventDriver.Schedule(0, Run);
                     }
+
+                    SaveLastCommand(commons, argument);
                 }
             }
         }
@@ -176,5 +190,10 @@ public class CruiseControl
         }
 
         eventDriver.Schedule(FramesPerRun, Run);
+    }
+
+    private void SaveLastCommand(ZACommons commons, string argument)
+    {
+        commons.SetValue(LastCommandKey, argument);
     }
 }

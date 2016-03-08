@@ -1,5 +1,6 @@
-public readonly EventDriver eventDriver = new EventDriver(timerGroup: "CruiseControlClock");
-public readonly CruiseControl cruiseControl = new CruiseControl();
+private readonly EventDriver eventDriver = new EventDriver(timerGroup: "CruiseControlClock");
+private readonly CruiseControl cruiseControl = new CruiseControl();
+private readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
@@ -8,17 +9,24 @@ private bool FirstRun = true;
 void Main(string argument)
 {
     var commons = new ShipControlCommons(this, shipOrientation,
-                                         shipGroup: "CruiseControlGroup");
+                                         shipGroup: "CruiseControlGroup",
+                                         storage: myStorage);
 
     if (FirstRun)
     {
         FirstRun = false;
 
+        myStorage.Decode(Storage);
+
         shipOrientation.SetShipReference(commons, "CruiseControlReference");
+
+        cruiseControl.Init(commons, eventDriver);
     }
 
     eventDriver.Tick(commons, preAction: () =>
             {
                 cruiseControl.HandleCommand(commons, eventDriver, argument);
             });
+
+    if (commons.IsDirty) Storage = myStorage.Encode();
 }

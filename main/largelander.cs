@@ -62,6 +62,7 @@ void Main(string argument)
         solarGyroController.ConditionalInit(commons, eventDriver);
         if (OXYGEN_MANAGER_ENABLE) oxygenManager.Init(commons, eventDriver);
         if (AIR_VENT_MANAGER_ENABLE) airVentManager.Init(commons, eventDriver);
+        cruiseControl.Init(commons, eventDriver);
     }
 
     eventDriver.Tick(commons, preAction: () => {
