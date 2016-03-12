@@ -31,8 +31,24 @@ public class RefineryManager
 
     public void Run(ZACommons commons, EventDriver eventDriver)
     {
+        var groups = commons.GetBlockGroupsWithPrefix(REFINERY_MANAGER_PREFIX);
+        if (groups.Count > 0)
+        {
+            groups.ForEach(group => Balance(commons, group.Blocks));
+        }
+        else
+        {
+            // Balance all refineries
+            Balance(commons, commons.Blocks);
+        }
+
+        eventDriver.Schedule(RunDelay, Run);
+    }
+
+    private void Balance(ZACommons commons, List<IMyTerminalBlock> blocks)
+    {
         var refineries = ZACommons
-            .GetBlocksOfType<IMyRefinery>(commons.Blocks,
+            .GetBlocksOfType<IMyRefinery>(blocks,
                                           block => block.IsFunctional &&
                                           block.IsWorking &&
                                           ((IMyRefinery)block).Enabled &&
@@ -67,8 +83,6 @@ public class RefineryManager
                 first.Inventory.TransferItemTo(last.Inventory, 0, amount: amount);
             }
         }
-
-        eventDriver.Schedule(RunDelay, Run);
     }
 
     // Because Keen broke List.Sort() and Array.Sort() some time ago...
