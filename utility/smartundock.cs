@@ -4,8 +4,7 @@ public class SmartUndock
     private const double RunsPerSecond = 60.0 / FramesPerRun;
     private const string UndockTargetKey = "SmartUndock_UndockTarget";
 
-    private readonly TranslateAutopilot undockAutopilot = new TranslateAutopilot();
-    private readonly YawPitchAutopilot rtbAutopilot = new YawPitchAutopilot();
+    private readonly YawPitchAutopilot autopilot = new YawPitchAutopilot();
     private readonly Seeker seeker = new Seeker(1.0 / RunsPerSecond);
 
     private Vector3D? UndockTarget = null;
@@ -63,7 +62,6 @@ public class SmartUndock
             {
                 // Undock the opposite direction of connector
                 var forward = connected.Orientation.TransformDirection(Base6Directions.Direction.Backward);
-                var up = connected.Orientation.TransformDirection(Base6Directions.Direction.Up);
 
                 var reference = commons.Me;
                 var backwardPoint = reference.CubeGrid.GridIntegerToWorld(reference.Position + Base6Directions.GetIntVector(forward));
@@ -77,9 +75,10 @@ public class SmartUndock
                 UndockUp = shipControl.ReferenceUp;
 
                 // Schedule the autopilot
-                undockAutopilot.Init(commons, eventDriver, (Vector3D)UndockTarget,
-                                     SMART_UNDOCK_UNDOCK_SPEED,
-                                     delay: 2.0);
+                autopilot.Init(commons, eventDriver, (Vector3D)UndockTarget,
+                               SMART_UNDOCK_UNDOCK_SPEED,
+                               delay: 2.0,
+                               localForward: shipControl.ShipBlockOrientation.TransformDirectionInverse(forward));
                 Reorienting = false;
             }
             SaveUndockTarget(commons);
@@ -114,17 +113,16 @@ public class SmartUndock
             var shipControl = (ShipControlCommons)commons;
 
             // Schedule the autopilot
-            rtbAutopilot.Init(commons, eventDriver, (Vector3D)UndockTarget,
-                              SMART_UNDOCK_RTB_SPEED, doneAction: (c,ed) =>
-                                      {
-                                          ReorientStart(c, ed);
-                                      });
+            autopilot.Init(commons, eventDriver, (Vector3D)UndockTarget,
+                           SMART_UNDOCK_RTB_SPEED, doneAction: (c,ed) =>
+                                   {
+                                       ReorientStart(c, ed);
+                                   });
             Reorienting = false;
         }
         else if (argument == "smartreset")
         {
-            undockAutopilot.Reset(commons);
-            rtbAutopilot.Reset(commons);
+            autopilot.Reset(commons);
             Reorienting = false;
         }
     }

@@ -11,11 +11,13 @@ public class YawPitchAutopilot
     private double AutopilotSpeed;
     private bool AutopilotEngaged;
     private Action<ZACommons, EventDriver> DoneAction = null;
+    private Base6Directions.Direction LocalForward;
 
     public void Init(ZACommons commons, EventDriver eventDriver,
                      Vector3D target, double speed,
                      double delay = 1.0,
-                     Action<ZACommons, EventDriver> doneAction = null)
+                     Action<ZACommons, EventDriver> doneAction = null,
+                     Base6Directions.Direction localForward = Base6Directions.Direction.Forward)
     {
         if (!AutopilotEngaged)
         {
@@ -23,6 +25,7 @@ public class YawPitchAutopilot
             AutopilotSpeed = speed;
             AutopilotEngaged = true;
             DoneAction = doneAction;
+            LocalForward = localForward;
             eventDriver.Schedule(delay, Start);
         }
     }
@@ -33,12 +36,13 @@ public class YawPitchAutopilot
 
         shipControl.Reset(gyroOverride: true, thrusterEnable: null);
 
+        var forward = shipControl.ShipBlockOrientation.TransformDirection(LocalForward);
         seeker.Init(shipControl,
-                    shipUp: shipControl.ShipUp,
-                    shipForward: shipControl.ShipForward);
+                    shipUp: Base6Directions.GetPerpendicular(forward),
+                    shipForward: forward);
 
         cruiser.Init(shipControl,
-                     localForward: Base6Directions.Direction.Forward);
+                     localForward: LocalForward);
 
         eventDriver.Schedule(0, Run);
     }
