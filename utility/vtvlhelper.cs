@@ -124,6 +124,8 @@ public class VTVLHelper
     {
         if (Mode != BURNING_GLIDING) return;
 
+        commons.Echo("VTVL: Burn phase");
+
         var shipControl = (ShipControlCommons)commons;
 
         var remote = GetRemoteControl(commons);
@@ -133,9 +135,9 @@ public class VTVLHelper
             // Override gyro, disable "bottom" thrusters
             shipControl.Reset(gyroOverride: true, thrusterEnable: true,
                               thrusterCondition: ThrusterCondition);
-            var down = shipControl.ShipBlockOrientation.TransformDirection(VTVLHELPER_BRAKE_DIRECTION);
-            shipControl.ThrustControl.Enable(Base6Directions.GetFlippedDirection(down), false);
+            shipControl.ThrustControl.Enable(Base6Directions.GetFlippedDirection(VTVLHELPER_BRAKE_DIRECTION), false);
 
+            var down = shipControl.ShipBlockOrientation.TransformDirection(VTVLHELPER_BRAKE_DIRECTION);
             seeker.Init(shipControl,
                         shipUp: Base6Directions.GetPerpendicular(down),
                         shipForward: down);
@@ -154,6 +156,8 @@ public class VTVLHelper
     public void Glide(ZACommons commons, EventDriver eventDriver)
     {
         if (Mode != BURNING_GLIDING) return;
+
+        commons.Echo("VTVL: Glide phase");
 
         var shipControl = (ShipControlCommons)commons;
 
@@ -180,6 +184,8 @@ public class VTVLHelper
     public void Brake(ZACommons commons, EventDriver eventDriver)
     {
         if (Mode != BRAKING) return;
+
+        commons.Echo("VTVL: Braking");
 
         var shipControl = (ShipControlCommons)commons;
 
@@ -211,6 +217,8 @@ public class VTVLHelper
     public void Launch(ZACommons commons, EventDriver eventDriver)
     {
         if (Mode != LAUNCHING) return;
+
+        commons.Echo("VTVL: Launching");
 
         var shipControl = (ShipControlCommons)commons;
 
