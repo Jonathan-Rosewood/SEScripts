@@ -64,7 +64,8 @@ public class EventDriver
         if (TimerName != null)
         {
             var blocks = ZACommons.SearchBlocksOfName(commons.Blocks, TimerName,
-                                                      block => block is IMyTimerBlock);
+                                                      block => block is IMyTimerBlock &&
+                                                      ((IMyTimerBlock)block).Enabled);
             if (blocks.Count > 0)
             {
                 timer = blocks[0] as IMyTimerBlock;
@@ -76,7 +77,8 @@ public class EventDriver
             if (group != null)
             {
                 var blocks = ZACommons.GetBlocksOfType<IMyTimerBlock>(group.Blocks,
-                                                                      block => block.CubeGrid == commons.Me.CubeGrid);
+                                                                      block => block.CubeGrid == commons.Me.CubeGrid &&
+                                                                      ((IMyTimerBlock)block).Enabled);
                 timer = blocks.Count > 0 ? (IMyTimerBlock)blocks[0] : null;
             }
         }
