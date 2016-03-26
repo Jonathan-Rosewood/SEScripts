@@ -1,6 +1,7 @@
 [script]
 modules = landercontrol, dockingmanager, dockinghandler, safemode,
-    safemodehandler, redundancy, emergencystop, reversethrust, smartundock,
-    cruisecontrol, seeker, cruiser, gyrocontrol, thrustcontrol, shiporientation,
-    shipcontrol, yawpitchauto, pid, velocimeter, eventdriver, commons
+    safemodehandler, smartundock, redundancy, emergencystop, reversethrust,
+    cruisecontrol, damagecontrol, vtvlhelper, batterymonitor, rangefinder,
+    yawpitchauto, seeker, cruiser, gyrocontrol, thrustcontrol, shiporientation,
+    shipcontrol, pid, velocimeter, eventdriver, commons
 out = out/Lander Controller/Script.cs
