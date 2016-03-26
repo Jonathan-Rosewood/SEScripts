@@ -31,6 +31,7 @@ void Main(string argument)
 
     eventDriver.Tick(commons, preAction: () =>
             {
+                reactorManager.HandleCommand(commons, eventDriver, argument);
                 solarGyroController.HandleCommand(commons, eventDriver, argument);
             });
 }

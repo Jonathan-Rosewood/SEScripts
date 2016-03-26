@@ -73,6 +73,7 @@ void Main(string argument)
             cruiseControl.HandleCommand(commons, eventDriver, argument);
             vtvlHelper.HandleCommand(commons, eventDriver, argument);
             damageControl.HandleCommand(commons, eventDriver, argument);
+            reactorManager.HandleCommand(commons, eventDriver, argument);
             solarGyroController.HandleCommand(commons, eventDriver, argument);
             HandleCommand(commons, eventDriver, argument);
         });
