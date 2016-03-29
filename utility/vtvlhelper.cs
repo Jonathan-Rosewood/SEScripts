@@ -23,8 +23,13 @@ public class VTVLHelper
     private double TargetRadius, BrakingRadius;
     private Func<IMyThrust, bool> AutoThrusterCondition = null;
 
-    public void Init(ZACommons commons, EventDriver eventDriver)
+    private Func<ZACommons, EventDriver, bool> LivenessCheck = null;
+
+    public void Init(ZACommons commons, EventDriver eventDriver,
+                     Func<ZACommons, EventDriver, bool> livenessCheck = null)
     {
+        LivenessCheck = livenessCheck;
+
         var lastCommand = commons.GetValue(LastCommandKey);
         if (lastCommand != null)
         {
@@ -153,7 +158,7 @@ public class VTVLHelper
 
     public void Burn(ZACommons commons, EventDriver eventDriver)
     {
-        if (Mode != BURNING) return;
+        if (ShouldAbort(commons, eventDriver, BURNING, false)) return;
 
         commons.Echo("VTVL: Burn phase");
 
@@ -187,7 +192,7 @@ public class VTVLHelper
 
     public void Glide(ZACommons commons, EventDriver eventDriver)
     {
-        if (Mode != GLIDING) return;
+        if (ShouldAbort(commons, eventDriver, GLIDING, Autodrop)) return;
 
         commons.Echo("VTVL: Glide phase");
 
@@ -234,7 +239,7 @@ public class VTVLHelper
 
     public void Brake(ZACommons commons, EventDriver eventDriver)
     {
-        if (Mode != BRAKING) return;
+        if (ShouldAbort(commons, eventDriver, BRAKING, Autodrop)) return;
 
         commons.Echo("VTVL: Braking");
 
@@ -412,5 +417,16 @@ public class VTVLHelper
             }
         }
         return double.TryParse(parts[3], out TargetRadius);
+    }
+
+    private bool ShouldAbort(ZACommons commons, EventDriver eventDriver,
+                             int expectedMode, bool ignoreLiveness)
+    {
+        if (!ignoreLiveness && LivenessCheck != null &&
+            !LivenessCheck(commons, eventDriver))
+        {
+            Reset((ShipControlCommons)commons);
+        }
+        return Mode != expectedMode;
     }
 }

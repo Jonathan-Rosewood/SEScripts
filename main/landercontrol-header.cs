@@ -2,6 +2,8 @@ const string SHIP_NAME = "MyLander";
 
 const bool ABANDONMENT_ENABLED = true; // Set to false to disable abandonment check
 
+const bool CONTROL_CHECK_ENABLED = true; // Typically true for drones or cockpit-based ships
+
 // SmartUndock (ship-dependent)
 const double SMART_UNDOCK_RTB_SPEED = 25.0; // In meters per second
 const double AUTOPILOT_MIN_SPEED = 1.0; // In meters per second

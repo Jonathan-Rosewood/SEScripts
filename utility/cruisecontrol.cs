@@ -16,7 +16,9 @@ public class CruiseControl
     private double TargetSpeed;
     private Base6Directions.Direction CruiseDirection;
     private string CruiseFlags;
-    
+
+    private Func<ZACommons, EventDriver, bool> LivenessCheck = null;
+
     public CruiseControl()
     {
         thrustPID.Kp = ThrustKp;
@@ -24,8 +26,11 @@ public class CruiseControl
         thrustPID.Kd = ThrustKd;
     }
 
-    public void Init(ZACommons commons, EventDriver eventDriver)
+    public void Init(ZACommons commons, EventDriver eventDriver,
+                     Func<ZACommons, EventDriver, bool> livenessCheck = null)
     {
+        LivenessCheck = livenessCheck;
+
         var lastCommand = commons.GetValue(LastCommandKey);
         if (lastCommand != null)
         {
@@ -144,6 +149,7 @@ public class CruiseControl
     {
         var shipControl = (ShipControlCommons)commons;
         
+        ResetIfNotLive(commons, eventDriver);
         if (!Active) return;
 
         velocimeter.TakeSample(shipControl.ReferencePoint, eventDriver.TimeSinceStart);
@@ -195,5 +201,15 @@ public class CruiseControl
     private void SaveLastCommand(ZACommons commons, string argument)
     {
         commons.SetValue(LastCommandKey, argument);
+    }
+
+    private void ResetIfNotLive(ZACommons commons, EventDriver eventDriver)
+    {
+        if (LivenessCheck != null && !LivenessCheck(commons, eventDriver))
+        {
+            Reset(commons);
+            Active = false;
+            SaveLastCommand(commons, null);
+        }
     }
 }

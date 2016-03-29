@@ -43,8 +43,8 @@ void Main(string argument)
                             new BatteryMonitor(),
                             new RedundancyManager());
         smartUndock.Init(commons);
-        cruiseControl.Init(commons, eventDriver);
-        vtvlHelper.Init(commons, eventDriver);
+        cruiseControl.Init(commons, eventDriver, LivenessCheck);
+        vtvlHelper.Init(commons, eventDriver, LivenessCheck);
     }
 
     eventDriver.Tick(commons, preAction: () => {
@@ -107,4 +107,10 @@ void TargetAction(ZACommons commons, Vector3D target, double radius)
             ((IMyTextPanel)e.Current).WritePublicText(targetString);
         }
     }
+}
+
+bool LivenessCheck(ZACommons commons, EventDriver eventDriver)
+{
+    if (CONTROL_CHECK_ENABLED) safeMode.TriggerIfUncontrolled(commons, eventDriver);
+    return !safeMode.Abandoned;
 }

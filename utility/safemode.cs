@@ -10,12 +10,13 @@ public class SafeMode : DockingHandler
     private bool? IsControlled = null;
     private bool IsDocked = true;
     private DateTime LastControlled;
-    private bool Abandoned = false;
+    public bool Abandoned { get; private set; }
 
     public SafeMode(params SafeModeHandler[] safeModeHandlers)
     {
         SafeModeHandlers = safeModeHandlers;
         LastControlled = DateTime.UtcNow;
+        Abandoned = false;
     }
 
     public void Docked(ZACommons commons, EventDriver eventDriver)
@@ -39,6 +40,10 @@ public class SafeMode : DockingHandler
 
     public void Init(ZACommons commons, EventDriver eventDriver)
     {
+        IsControlled = null;
+
+        ResetAbandonment(commons);
+
         IsDocked = false;
         eventDriver.Schedule(0.0, Fast);
         eventDriver.Schedule(0.0, Slow);
@@ -58,7 +63,7 @@ public class SafeMode : DockingHandler
     {
         if (IsDocked) return; // Don't bother if we're docked
 
-        var controllers = ZACommons.GetBlocksOfType<IMyShipController>(commons.Blocks, controller => controller.IsFunctional);
+        var controllers = ZACommons.GetBlocksOfType<IMyShipController>(commons.Blocks, controller => IsValidController(controller));
         var currentState = IsShipControlled(controllers);
 
         // Flight safety stuff, only check on state change
@@ -114,7 +119,7 @@ public class SafeMode : DockingHandler
     {
         if (IsDocked) return; // Don't bother if we're docked
 
-        var controllers = ZACommons.GetBlocksOfType<IMyShipController>(commons.Blocks, controller => controller.IsFunctional);
+        var controllers = ZACommons.GetBlocksOfType<IMyShipController>(commons.Blocks, controller => IsValidController(controller));
 
         if (!Abandoned)
         {
@@ -147,6 +152,27 @@ public class SafeMode : DockingHandler
         }
 
         eventDriver.Schedule(SlowRunDelay, Slow);
+    }
+
+    private bool IsValidController(IMyTerminalBlock block)
+    {
+        var controller = block as IMyShipController;
+        if (controller == null || !controller.IsFunctional) return false;
+        // The only sane one
+        if (controller is IMyRemoteControl) return true;
+        // Grumble grumble
+        switch (controller.DefinitionDisplayNameText)
+        {
+            case "Flight Seat":
+                return true;
+            case "Control Station":
+                return true;
+            case "Cockpit":
+                return true;
+            case "Fighter Cockpit":
+                return true;
+        }
+        return false;
     }
 
     private bool IsShipControlled(IEnumerable<IMyTerminalBlock> controllers)
@@ -208,5 +234,13 @@ public class SafeMode : DockingHandler
         }
 
         if (!antennaFound) TriggerSafeMode(commons, eventDriver); // We're deaf...
+    }
+
+    public void TriggerIfUncontrolled(ZACommons commons, EventDriver eventDriver)
+    {
+        if (!Abandoned && IsControlled != null && !(bool)IsControlled)
+        {
+            TriggerSafeMode(commons, eventDriver);
+        }
     }
 }
