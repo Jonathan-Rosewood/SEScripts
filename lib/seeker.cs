@@ -3,11 +3,9 @@ public class Seeker
     private const double SmallGyroKp = 250.0; // Proportional constant
     private const double SmallGyroKi = 0.0; // Integral constant
     private const double SmallGyroKd = 200.0; // Derivative constant
-    private const double SmallRollFudgeFactor = 10.0;
     private const double LargeGyroKp = 50.0; // Proportional constant
     private const double LargeGyroKi = 0.0; // Integral constant
     private const double LargeGyroKd = 40.0; // Derivative constant
-    private const double LargeRollFudgeFactor = 1.0;
     private readonly PIDController yawPID, pitchPID, rollPID;
 
     private Base6Directions.Direction ShipForward, ShipUp, ShipLeft;
@@ -37,9 +35,9 @@ public class Seeker
         pitchPID.Ki = small ? SmallGyroKi : LargeGyroKi;
         pitchPID.Kd = small ? SmallGyroKd : LargeGyroKd;
 
-        rollPID.Kp = small ? SmallGyroKp / SmallRollFudgeFactor : LargeGyroKp / LargeRollFudgeFactor;
-        rollPID.Ki = small ? SmallGyroKi / SmallRollFudgeFactor : LargeGyroKi / LargeRollFudgeFactor;
-        rollPID.Kd = small ? SmallGyroKd / SmallRollFudgeFactor : LargeGyroKd / LargeRollFudgeFactor;
+        rollPID.Kp = small ? SmallGyroKp : LargeGyroKp;
+        rollPID.Ki = small ? SmallGyroKi : LargeGyroKi;
+        rollPID.Kd = small ? SmallGyroKd : LargeGyroKd;
 
         yawPID.Reset();
         pitchPID.Reset();
