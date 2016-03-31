@@ -1,5 +1,7 @@
 const string SHIP_NAME = "MyLander";
 
+const string VTVLHELPER_REMOTE_GROUP = "*MyLander Remote*";
+
 const bool ABANDONMENT_ENABLED = true; // Set to false to disable abandonment check
 
 const bool CONTROL_CHECK_ENABLED = true; // Typically true for drones or cockpit-based ships

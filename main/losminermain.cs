@@ -10,11 +10,14 @@ public class MySafeModeHandler : SafeModeHandler
     }
 }
 
-public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
-public readonly LOSMiner minerController = new LOSMiner();
-public readonly DockingManager dockingManager = new DockingManager();
-public readonly SafeMode safeMode = new SafeMode(new MySafeModeHandler());
-public readonly SmartUndock smartUndock = new SmartUndock();
+private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
+private readonly LOSMiner minerController = new LOSMiner();
+private readonly DockingManager dockingManager = new DockingManager();
+private readonly SafeMode safeMode = new SafeMode(new MySafeModeHandler());
+private readonly SmartUndock smartUndock = new SmartUndock();
+private readonly CruiseControl cruiseControl = new CruiseControl();
+private readonly VTVLHelper vtvlHelper = new VTVLHelper();
+private readonly DamageControl damageControl = new DamageControl();
 private readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
@@ -38,6 +41,8 @@ void Main(string argument)
                             new BatteryMonitor(),
                             new RedundancyManager());
         smartUndock.Init(commons);
+        cruiseControl.Init(commons, eventDriver, LivenessCheck);
+        vtvlHelper.Init(commons, eventDriver, LivenessCheck);
     }
 
     eventDriver.Tick(commons, preAction: () => {
@@ -48,7 +53,16 @@ void Main(string argument)
                         dockingManager.ManageShip(commons, eventDriver, false);
                     });
             minerController.HandleCommand(commons, eventDriver, argument);
+            cruiseControl.HandleCommand(commons, eventDriver, argument);
+            vtvlHelper.HandleCommand(commons, eventDriver, argument);
+            damageControl.HandleCommand(commons, eventDriver, argument);
         });
 
     if (commons.IsDirty) Storage = myStorage.Encode();
+}
+
+bool LivenessCheck(ZACommons commons, EventDriver eventDriver)
+{
+    if (CONTROL_CHECK_ENABLED) safeMode.TriggerIfUncontrolled(commons, eventDriver);
+    return !safeMode.Abandoned;
 }

@@ -1,5 +1,7 @@
 const string SHIP_NAME = "MyLander";
 
+const string VTVLHELPER_REMOTE_GROUP = "*MyLander Remote*";
+
 const bool ABANDONMENT_ENABLED = false;
 
 const bool CONTROL_CHECK_ENABLED = false;

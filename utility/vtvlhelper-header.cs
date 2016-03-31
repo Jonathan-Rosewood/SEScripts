@@ -1,5 +1,4 @@
 // VTVLHelper
-const string VTVLHELPER_REMOTE_GROUP = "*MyLander Remote*";
 // Drop
 const Base6Directions.Direction VTVLHELPER_BURN_DIRECTION = Base6Directions.Direction.Forward;
 const double VTVLHELPER_BURN_SPEED = 98.0; // In meters per second

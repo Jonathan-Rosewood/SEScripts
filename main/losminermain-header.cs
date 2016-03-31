@@ -1,7 +1,10 @@
 // Should be a group with a single remote or some other ship controller block
 const string MINER_REFERENCE_GROUP = "*Simon RC*";
+const string VTVLHELPER_REMOTE_GROUP = MINER_REFERENCE_GROUP;
 
 const bool ABANDONMENT_ENABLED = true; // Set to false to disable abandonment check
+
+const bool CONTROL_CHECK_ENABLED = true; // Typically true for drones or cockpit-based ships
 
 // SmartUndock (ship-dependent)
 const double SMART_UNDOCK_RTB_SPEED = 10.0; // In meters per second
