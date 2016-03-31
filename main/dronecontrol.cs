@@ -23,7 +23,7 @@ private bool FirstRun = true;
 void Main(string argument)
 {
     var commons = new ShipControlCommons(this, shipOrientation,
-                                         shipGroup: SHIP_NAME,
+                                         shipGroup: SHIP_GROUP,
                                          storage: myStorage);
 
     if (FirstRun)

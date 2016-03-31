@@ -7,7 +7,7 @@
 // In can include more than this, or even simply include the whole ship.
 // If this group doesn't exist, the script will look at all blocks that
 // are on the same grid as this script's programmable block.
-const string SHIP_NAME = "MyDrone";
+const string SHIP_GROUP = "MyDrone";
 
 const bool ABANDONMENT_ENABLED = true; // Set to false to disable abandonment check
 

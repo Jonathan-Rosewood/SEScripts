@@ -9,7 +9,7 @@ private bool FirstRun = true;
 void Main(string argument)
 {
     var commons = new ZACommons(this,
-                                shipGroup: SHIP_NAME,
+                                shipGroup: SHIP_GROUP,
                                 storage: myStorage);
 
     if (FirstRun)
