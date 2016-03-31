@@ -43,6 +43,7 @@ private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_L
 private readonly SafeMode safeMode = new SafeMode();
 private readonly BatteryMonitor batteryMonitor = new BatteryMonitor(new SatelliteLowBatteryHandler());
 private readonly RedundancyManager redundancyManager = new RedundancyManager();
+private readonly DamageControl damageControl = new DamageControl();
 private readonly ReactorManager reactorManager = new ReactorManager();
 private readonly SolarGyroController solarGyroController =
     new SolarGyroController(
@@ -74,6 +75,7 @@ void Main(string argument)
 
     eventDriver.Tick(commons, preAction: () =>
             {
+                damageControl.HandleCommand(commons, eventDriver, argument);
                 reactorManager.HandleCommand(commons, eventDriver, argument);
                 solarGyroController.HandleCommand(commons, eventDriver, argument);
             });
