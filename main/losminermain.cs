@@ -42,6 +42,7 @@ void Main(string argument)
                             new BatteryMonitor(),
                             new RedundancyManager());
         smartUndock.Init(commons);
+        minerController.Init(commons, eventDriver);
         cruiseControl.Init(commons, eventDriver, LivenessCheck);
         vtvlHelper.Init(commons, eventDriver, LivenessCheck);
     }
