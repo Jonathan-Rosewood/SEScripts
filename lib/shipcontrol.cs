@@ -1,3 +1,4 @@
+//@ commons shiporientation gyrocontrol thrustcontrol
 // Do not hold a reference to an instance of this class between runs
 public class ShipControlCommons : ZACommons
 {

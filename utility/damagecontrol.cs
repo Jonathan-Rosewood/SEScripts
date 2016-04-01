@@ -1,3 +1,4 @@
+//@ commons eventdriver
 public class DamageControl
 {
     private const double RunDelay = 3.0;

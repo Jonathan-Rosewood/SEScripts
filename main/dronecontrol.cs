@@ -1,3 +1,6 @@
+//! Drone Controller
+//@ shipcontrol eventdriver dockingmanager safemode smartundock
+//@ batterymonitor redundancy emergencystop
 public class MySafeModeHandler : SafeModeHandler
 {
     public void SafeMode(ZACommons commons, EventDriver eventDriver)

@@ -1,3 +1,4 @@
+//@ shipcontrol eventdriver seeker cruiser
 public class YawPitchAutopilot
 {
     private const uint FramesPerRun = 2;

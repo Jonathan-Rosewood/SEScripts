@@ -1,3 +1,6 @@
+//! MUP Controller
+//@ shipcontrol eventdriver safemode batterymonitor redundancy damagecontrol
+//@ reactormanager solargyrocontroller
 public class SatelliteLowBatteryHandler : BatteryMonitor.LowBatteryHandler
 {
     private const string Message = "HELP! NET POWER LOSS!";

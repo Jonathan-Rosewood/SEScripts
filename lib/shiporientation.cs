@@ -1,3 +1,4 @@
+//@ commons
 public class ShipOrientation
 {
     public Base6Directions.Direction ShipUp { get; private set; }

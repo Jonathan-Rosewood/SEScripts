@@ -1,3 +1,4 @@
+//@ commons eventdriver
 public class DoorAutoCloser
 {
     private const double RunDelay = 1.0;

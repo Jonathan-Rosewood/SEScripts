@@ -1,3 +1,4 @@
+//@ commons eventdriver
 // If there are no active reactors on the main grid, shut off all reactors
 // on all connected grids. Presumably, we are running off battery/solar
 // and don't want to drain connected reactors (because power is buggy and

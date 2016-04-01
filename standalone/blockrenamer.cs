@@ -1,3 +1,4 @@
+//! Block Renamer
 public static HashSet<string> EXCLUDED_BLOCK_TYPES = new HashSet<string>(new string[] {
         "Antenna",
         "Beacon",

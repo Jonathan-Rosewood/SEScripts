@@ -1,3 +1,5 @@
+//! Gravity Surveyor
+//@ commons rangefinder
 public void TargetAction(ZACommons commons, Vector3D target, double radius)
 {
     var targetGroup = commons.GetBlockGroupWithName("GS Target");

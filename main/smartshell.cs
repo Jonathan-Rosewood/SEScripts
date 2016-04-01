@@ -1,3 +1,5 @@
+//! Smart Shell Controller
+//@ shipcontrol eventdriver
 private readonly EventDriver eventDriver = new EventDriver(timerGroup: "Shell Prime");
 private readonly SmartShell smartShell = new SmartShell();
 

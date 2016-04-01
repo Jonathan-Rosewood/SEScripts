@@ -1,3 +1,4 @@
+//@ commons
 // Assumptions: No reactor, only batteries and solar panels
 // Solar panels can power entire system no problem
 // Thus batteries only serve as backup. They should almost always be discharging

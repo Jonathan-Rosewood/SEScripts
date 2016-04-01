@@ -1,3 +1,4 @@
+//@ commons eventdriver dockinghandler
 public class DockingManager
 {
     private const double RunDelay = 10.0;

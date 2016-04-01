@@ -1,3 +1,4 @@
+//@ shipcontrol pid
 public class Seeker
 {
     private const double SmallGyroKp = 250.0; // Proportional constant

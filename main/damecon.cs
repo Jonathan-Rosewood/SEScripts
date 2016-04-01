@@ -1,3 +1,5 @@
+//! Damage Control
+//@ commons eventdriver damagecontrol
 public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
 public readonly DamageControl damageControl = new DamageControl();
 

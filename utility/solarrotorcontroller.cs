@@ -1,3 +1,4 @@
+//@ commons
 public class SolarRotorController
 {
     public struct SolarPanelDetails

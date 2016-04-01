@@ -1,3 +1,4 @@
+//@ shipcontrol eventdriver velocimeter pid
 public class Cruiser
 {
     private readonly Velocimeter velocimeter = new Velocimeter(30);

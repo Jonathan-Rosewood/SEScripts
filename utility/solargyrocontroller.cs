@@ -1,3 +1,4 @@
+//@ shipcontrol eventdriver solarhack
 public class SolarGyroController
 {
     private const double RunDelay = 1.0;

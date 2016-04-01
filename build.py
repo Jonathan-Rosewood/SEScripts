@@ -17,6 +17,8 @@ SCRIPT_DIRECTORIES = [
     'weapon',
 ]
 
+OUTPUT_PATTERN = os.path.join('out', '{}', 'Script.cs')
+
 NL = '\r\n' # Since it's currently a Windows-only game...
 
 
@@ -50,12 +52,17 @@ def generate_version_header(version, modules):
     return s.format(version, ', '.join(modules))
 
 
-def build_script(version, available_modules, spec, strip=False):
-    config = configparser.ConfigParser()
-    config.read(spec)
-
-    modules = [x.strip() for x in config['script']['modules'].split(',')]
-    out_path = config['script']['out']
+def build_script(version, available_modules, dependencies, root, output,
+                 strip=False):
+    modules = [root]
+    queue = [root]
+    while queue:
+        module = queue.pop(0)
+        for dep in dependencies[module]:
+            if dep not in modules:
+                modules.append(dep)
+                queue.append(dep)
+    out_path = OUTPUT_PATTERN.format(output)
 
     chunks = [generate_version_header(version, modules)]
 
@@ -97,7 +104,25 @@ def build_script(version, available_modules, spec, strip=False):
         out.write(NL.join(chunks))
 
 
-def main(specs, strip=False):
+def get_metadata(fn):
+    output = None
+    deps = []
+    with open(fn, 'rU') as content:
+        for line in content:
+            line = line.strip()
+            # Skip blank lines
+            if not line: continue
+            # Stop on first non-blank non-comment
+            if not line.startswith('//'): break
+            if line.startswith('//!'):
+                output = line[3:].strip()
+            elif line.startswith('//@'):
+                new_modules = line[3:].split()
+                deps.extend([x.strip() for x in new_modules])
+    return output, deps
+
+
+def main(strip=False):
     # Fetch version
     if os.path.isdir('.hg'):
         with subprocess.Popen('hg identify', shell=True, stdout=subprocess.PIPE,
@@ -109,9 +134,18 @@ def main(specs, strip=False):
 
     available_modules = scan_modules()
 
-    for spec in specs:
-        build_script(version, available_modules, spec, strip=strip)
+    roots = []
+    dependencies = {}
+    for module in available_modules:
+        output, deps = get_metadata(os.path.join(available_modules[module],
+                                                 module + '.cs'))
+        if output is not None:
+            roots.append((module, output))
+        dependencies[module] = deps
 
+    for module,output in roots:
+        build_script(version, available_modules, dependencies, module,
+                     output, strip=strip)
 
 
 if __name__ == '__main__':
@@ -121,8 +155,6 @@ if __name__ == '__main__':
     parser.add_argument('-w', action='store_true',
                         help='strip leading whitespace',
                         dest='strip')
-    parser.add_argument('specs', nargs='+',
-                        help='script spec files')
     args = parser.parse_args();
 
-    main(args.specs, strip=args.strip)
+    main(strip=args.strip)

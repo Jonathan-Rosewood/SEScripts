@@ -1,3 +1,4 @@
+//@ commons eventdriver
 public class TimerKicker
 {
     private const double RunDelay = 5.0;

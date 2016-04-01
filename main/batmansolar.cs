@@ -1,3 +1,5 @@
+//! Battery Manager
+//@ commons eventdriver batterymanager
 public class TimerBlockPowerDrainHandler : BatteryManager.PowerDrainHandler
 {
     public void PowerDrainStarted(ZACommons commons)

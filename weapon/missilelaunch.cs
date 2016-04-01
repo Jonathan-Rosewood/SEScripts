@@ -1,3 +1,4 @@
+//@ shipcontrol eventdriver
 public class MissileLaunch
 {
     private const string BATTERY_GROUP = "CM Batteries";

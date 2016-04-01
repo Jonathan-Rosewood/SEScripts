@@ -1,3 +1,4 @@
+//@ shipcontrol eventdriver
 public class GuidanceKill
 {
     private const uint FramesPerRun = 1;

@@ -1,3 +1,4 @@
+//@ shipcontrol eventdriver seeker velocimeter pid
 public class LOSGuidance
 {
     private const uint FramesPerRun = 1;

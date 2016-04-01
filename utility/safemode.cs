@@ -1,3 +1,4 @@
+//@ commons eventdriver dockinghandler safemodehandler
 public class SafeMode : DockingHandler
 {
     private const double FastRunDelay = 1.0;

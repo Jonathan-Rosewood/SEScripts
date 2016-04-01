@@ -1,3 +1,4 @@
+//@ shipcontrol eventdriver seeker cruiser
 public class VTVLHelper
 {
     private const string LastCommandKey = "VTVLHelper_LastCommand";

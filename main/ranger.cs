@@ -1,3 +1,5 @@
+//! Ranger
+//@ commons rangefinder
 public void TargetAction(ZACommons commons, Vector3D target)
 {
     var targetGroup = commons.GetBlockGroupWithName(RANGEFINDER_TARGET_GROUP);

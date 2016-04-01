@@ -1,3 +1,5 @@
+//! Missile Controller
+//@ shipcontrol eventdriver missileguidance guidancekill missilelaunch
 private readonly EventDriver eventDriver = new EventDriver();
 public readonly MissileGuidance missileGuidance = new MissileGuidance();
 public readonly GuidanceKill guidanceKill = new GuidanceKill();

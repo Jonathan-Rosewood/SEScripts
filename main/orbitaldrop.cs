@@ -1,3 +1,5 @@
+//! Orbital Drop
+//@ shipcontrol eventdriver seeker cruiser
 private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
 private readonly OrbitalDrop orbitalDrop = new OrbitalDrop();
 

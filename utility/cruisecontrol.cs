@@ -1,3 +1,4 @@
+//@ shipcontrol eventdriver velocimeter pid
 public class CruiseControl
 {
     private const string LastCommandKey = "CruiseControl_LastCommand";

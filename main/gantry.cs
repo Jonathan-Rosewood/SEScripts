@@ -1,3 +1,5 @@
+//! Gantry Controller
+//@ commons eventdriver pistonstepper
 private readonly EventDriver eventDriver = new EventDriver(timerGroup: "GantryClock");
 private readonly PistonStepper udPistonStepper = new PistonStepper("Gantry UpDown", commandPrefix: "gantryy");
 private readonly PistonStepper lrPistonStepper = new PistonStepper("Gantry LeftRight", commandPrefix: "gantryx");

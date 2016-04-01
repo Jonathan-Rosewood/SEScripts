@@ -1,3 +1,7 @@
+//! Ship Manager
+//@ commons eventdriver doorautocloser simpleairlock complexairlock
+//@ oxygenmanager airventmanager refinerymanager productionmanager
+//@ timerkicker redundancy dockingaction damagecontrol reactormanager
 private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
 private readonly DoorAutoCloser doorAutoCloser = new DoorAutoCloser();
 private readonly SimpleAirlock simpleAirlock = new SimpleAirlock();

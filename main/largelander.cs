@@ -1,3 +1,8 @@
+//! Large Lander Controller
+//@ shipcontrol eventdriver safemode redundancy doorautocloser simpleairlock
+//@ cruisecontrol vtvlhelper damagecontrol reactormanager timerkicker
+//@ batterymonitor solargyrocontroller oxygenmanager airventmanager
+//@ emergencystop rangefinder
 public class MySafeModeHandler : SafeModeHandler
 {
     public void SafeMode(ZACommons commons, EventDriver eventDriver)

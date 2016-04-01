@@ -1,3 +1,4 @@
+//@ shipcontrol eventdriver safemodehandler reversethrust
 public class EmergencyStop : SafeModeHandler
 {
     public void SafeMode(ZACommons commons, EventDriver eventDriver)

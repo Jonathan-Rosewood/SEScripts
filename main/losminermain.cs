@@ -1,3 +1,7 @@
+//! LOS Miner Controller
+//@ shipcontrol eventdriver losminer dockingmanager safemode smartundock
+//@ cruisecontrol vtvlhelper damagecontrol batterymonitor redundancy
+//@ emergencystop
 public class MySafeModeHandler : SafeModeHandler
 {
     public void SafeMode(ZACommons commons, EventDriver eventDriver)

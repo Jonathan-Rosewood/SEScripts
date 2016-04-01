@@ -1,3 +1,4 @@
+//@ shipcontrol eventdriver yawpitchauto seeker
 public class SmartUndock
 {
     private const uint FramesPerRun = 2;

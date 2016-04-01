@@ -1,3 +1,4 @@
+//@ commons eventdriver dockinghandler
 public class RedundancyManager : DockingHandler
 {
     private const double RunDelay = 3.0;

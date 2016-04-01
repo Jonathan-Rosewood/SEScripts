@@ -1,3 +1,4 @@
+//@ shipcontrol eventdriver seeker cruiser
 public class LOSMiner
 {
     private const string LOSMinerKey = "LOSMiner_Data";

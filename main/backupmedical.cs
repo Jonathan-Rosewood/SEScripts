@@ -1,3 +1,6 @@
+//! Backup Medical Controller
+//@ shipcontrol eventdriver backupmedicallaunch doorautocloser batterymonitor
+//@ solargyrocontroller
 public class BackupMedicalLowBatteryHandler : BatteryMonitor.LowBatteryHandler
 {
     public void LowBattery(ZACommons commons, EventDriver eventDriver,

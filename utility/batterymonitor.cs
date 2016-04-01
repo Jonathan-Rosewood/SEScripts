@@ -1,3 +1,4 @@
+//@ commons eventdriver dockinghandler
 public class BatteryMonitor : DockingHandler
 {
     public interface LowBatteryHandler

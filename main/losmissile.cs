@@ -1,3 +1,5 @@
+//! LOS Missile Controller
+//@ shipcontrol eventdriver losguidance guidancekill missilelaunch
 private readonly EventDriver eventDriver = new EventDriver();
 public readonly LOSGuidance losGuidance = new LOSGuidance();
 public readonly GuidanceKill guidanceKill = new GuidanceKill();

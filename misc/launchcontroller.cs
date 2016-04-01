@@ -1,3 +1,4 @@
+//@ shipcontrol eventdriver
 public class LaunchController
 {
     private const string BATTERY_GROUP = "Relay Batteries";

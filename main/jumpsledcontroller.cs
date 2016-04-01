@@ -1,3 +1,6 @@
+//! Jump Sled Controller
+//@ shipcontrol eventdriver safemode batterymonitor reactormanager
+//@ solargyrocontroller
 private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
 private readonly SafeMode safeMode = new SafeMode();
 private readonly BatteryMonitor batteryMonitor = new BatteryMonitor();

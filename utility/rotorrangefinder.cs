@@ -1,3 +1,4 @@
+//@ commons eventdriver rotorstepper rangefinder
 public class RotorRangefinder
 {
     private readonly RotorStepper rotorStepper = new RotorStepper(ROTOR_REFERENCE_GROUP);

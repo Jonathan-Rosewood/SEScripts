@@ -1,3 +1,5 @@
+//! Solar Alignment
+//@ shipcontrol eventdriver solargyrocontroller
 private readonly EventDriver eventDriver = new EventDriver(timerName: "SolarGyroClock", timerGroup: "SolarGyroClock");
 private readonly SolarGyroController solarGyroController =
     new SolarGyroController(

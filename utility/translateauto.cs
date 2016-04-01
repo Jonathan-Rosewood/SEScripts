@@ -1,3 +1,4 @@
+//@ shipcontrol eventdriver velocimeter cruiser
 public class TranslateAutopilot
 {
     private const uint FramesPerRun = 2;

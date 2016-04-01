@@ -1,3 +1,4 @@
+//@ commons eventdriver
 public class RandomDecoy
 {
     private const uint FramesPerRun = 1;

@@ -1,3 +1,5 @@
+//! Power Manager
+//@ commons eventdriver powermanager
 public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
 public readonly PowerManager powerManager = new PowerManager();
 

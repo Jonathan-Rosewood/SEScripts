@@ -1,3 +1,5 @@
+//! Cruise Control
+//@ shipcontrol eventdriver cruisecontrol
 private readonly EventDriver eventDriver = new EventDriver(timerGroup: "CruiseControlClock");
 private readonly CruiseControl cruiseControl = new CruiseControl();
 private readonly ZAStorage myStorage = new ZAStorage();

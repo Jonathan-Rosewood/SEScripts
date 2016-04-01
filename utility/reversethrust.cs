@@ -1,3 +1,4 @@
+//@ shipcontrol eventdriver seeker velocimeter
 public class ReverseThrust
 {
     private const uint FramesPerRun = 1;

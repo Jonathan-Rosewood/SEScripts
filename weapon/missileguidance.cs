@@ -1,3 +1,4 @@
+//@ shipcontrol eventdriver seeker velocimeter pid
 public class MissileGuidance
 {
     private const uint FramesPerRun = 1;

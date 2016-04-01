@@ -1,3 +1,4 @@
+//@ commons
 // Assumptions: This is a large ship/station, so there will be reactors, batteries, and
 // perhaps solar panels.
 // Batteries only store 80% of the power from *any* source (look at MyBatteryBlock code)

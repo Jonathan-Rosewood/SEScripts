@@ -1,3 +1,5 @@
+//! Relay Satellite Controller
+//@ shipcontrol eventdriver launchcontroller batterymonitor solargyrocontroller
 public class RelaySatelliteLowBatteryHandler : BatteryMonitor.LowBatteryHandler
 {
     private const string Message = "HELP! NET POWER LOSS!";

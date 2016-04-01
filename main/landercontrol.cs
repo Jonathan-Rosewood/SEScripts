@@ -1,3 +1,7 @@
+//! Lander Controller
+//@ shipcontrol eventdriver dockingmanager safemode smartundock
+//@ cruisecontrol vtvlhelper damagecontrol batterymonitor redundancy
+//@ emergencystop rangefinder
 public class MySafeModeHandler : SafeModeHandler
 {
     public void SafeMode(ZACommons commons, EventDriver eventDriver)
