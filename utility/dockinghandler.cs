@@ -1,6 +1,7 @@
 //@ commons eventdriver
 public interface DockingHandler
 {
-    void Docked(ZACommons commons, EventDriver eventDriver);
-    void Undocked(ZACommons commons, EventDriver eventDriver);
+    void PreDock(ZACommons commons, EventDriver eventDriver);
+    void DockingAction(ZACommons commons, EventDriver eventDriver,
+                       bool docked);
 }

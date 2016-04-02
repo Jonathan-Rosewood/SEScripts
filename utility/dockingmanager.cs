@@ -44,6 +44,12 @@ public class DockingManager
                     }
                 });
 
+        // Perform any pre-docking actions, if any
+        for (var i = 0; i < DockingHandlers.Length; i++)
+        {
+            DockingHandlers[i].PreDock(commons, eventDriver);
+        }
+
         // 1 second from now, lock connectors that are ready
         eventDriver.Schedule(1.0, DockLock);
     }
@@ -127,7 +133,7 @@ public class DockingManager
         {
             for (var i = 0; i < DockingHandlers.Length; i++)
             {
-                DockingHandlers[i].Undocked(commons, eventDriver);
+                DockingHandlers[i].DockingAction(commons, eventDriver, false);
             }
         }
 
@@ -170,7 +176,7 @@ public class DockingManager
         {
             for (var i = 0; i < DockingHandlers.Length; i++)
             {
-                DockingHandlers[i].Docked(commons, eventDriver);
+                DockingHandlers[i].DockingAction(commons, eventDriver, true);
             }
         }
 

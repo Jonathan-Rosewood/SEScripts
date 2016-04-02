@@ -23,7 +23,8 @@ void Main(string argument)
 
         dockingManager.Init(commons, eventDriver, safeMode,
                             new BatteryMonitor(),
-                            new RedundancyManager());
+                            new RedundancyManager(),
+                            new ManageRover());
     }
 
     eventDriver.Tick(commons, preAction: () => {
@@ -33,4 +34,41 @@ void Main(string argument)
         });
 
     if (commons.IsDirty) Storage = myStorage.Encode();
+}
+
+public class ManageRover : DockingHandler
+{
+    public void PreDock(ZACommons commons, EventDriver eventDriver)
+    {
+        // Lower suspension height all the way
+        var wheels = ZACommons.GetBlocksOfType<IMyMotorSuspension>(commons.Blocks);
+        wheels.ForEach(wheel =>
+                {
+                    wheel.SetValue<float>("Height", wheel.GetMaximum<float>("Height"));
+                });
+    }
+
+    public void DockingAction(ZACommons commons, EventDriver eventDriver,
+                               bool docked)
+    {
+        var wheels = ZACommons.GetBlocksOfType<IMyMotorSuspension>(commons.Blocks);
+        ZACommons.EnableBlocks(wheels, !docked);
+        if (!docked)
+        {
+            // Raise suspension height to configured value
+            wheels.ForEach(wheel =>
+                    {
+                        wheel.SetValue<float>("Height", UNDOCK_SUSPENSION_HEIGHT);
+                    });
+        }
+        else
+        {
+            // Apply handbrake
+            var controllers = ZACommons.GetBlocksOfType<IMyShipController>(commons.Blocks);
+            controllers.ForEach(controller =>
+                    {
+                        controller.SetValue<bool>("HandBrake", true);
+                    });
+        }
+    }
 }

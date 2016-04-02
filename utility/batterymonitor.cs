@@ -19,14 +19,16 @@ public class BatteryMonitor : DockingHandler
         this.lowBatteryHandler = lowBatteryHandler;
     }
 
-    public void Docked(ZACommons commons, EventDriver eventDriver)
-    {
-        IsDocked = true;
-    }
+    public void PreDock(ZACommons commons, EventDriver eventDriver) { }
 
-    public void Undocked(ZACommons commons, EventDriver eventDriver)
+    public void DockingAction(ZACommons commons, EventDriver eventDriver,
+                              bool docked)
     {
-        if (IsDocked)
+        if (docked)
+        {
+            IsDocked = true;
+        }
+        else if (IsDocked)
         {
             Triggered = false;
 

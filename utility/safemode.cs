@@ -20,14 +20,16 @@ public class SafeMode : DockingHandler
         Abandoned = false;
     }
 
-    public void Docked(ZACommons commons, EventDriver eventDriver)
-    {
-        IsDocked = true;
-    }
+    public void PreDock(ZACommons commons, EventDriver eventDriver) { }
 
-    public void Undocked(ZACommons commons, EventDriver eventDriver)
+    public void DockingAction(ZACommons commons, EventDriver eventDriver,
+                              bool docked)
     {
-        if (IsDocked)
+        if (docked)
+        {
+            IsDocked = true;
+        }
+        else if (IsDocked)
         {
             IsControlled = null;
 
