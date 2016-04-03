@@ -15,3 +15,5 @@ const bool DAMAGE_CONTROL_ENABLE = true;
 const bool REACTOR_MANAGER_ENABLE = true;
 
 // Options
+const bool ABANDONMENT_ENABLED = false;
+const bool CONTROL_CHECK_ENABLED = false;

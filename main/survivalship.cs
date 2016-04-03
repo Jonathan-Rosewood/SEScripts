@@ -2,7 +2,19 @@
 //@ shipcontrol eventdriver doorautocloser simpleairlock complexairlock
 //@ oxygenmanager airventmanager refinerymanager productionmanager
 //@ timerkicker redundancy dockingaction damagecontrol reactormanager
-//@ cruisecontrol solargyrocontroller
+//@ safemode cruisecontrol solargyrocontroller emergencystop
+public class MySafeModeHandler : SafeModeHandler
+{
+    public void SafeMode(ZACommons commons, EventDriver eventDriver)
+    {
+        // Check after 1 second (let timer block's action take effect)
+        eventDriver.Schedule(1.0, (c,ed) =>
+                {
+                    new EmergencyStop().SafeMode(c, ed);
+                });
+    }
+}
+
 private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
 private readonly DoorAutoCloser doorAutoCloser = new DoorAutoCloser();
 private readonly SimpleAirlock simpleAirlock = new SimpleAirlock();
@@ -16,6 +28,7 @@ private readonly RedundancyManager redundancyManager = new RedundancyManager();
 private readonly DockingAction dockingAction = new DockingAction();
 private readonly DamageControl damageControl = new DamageControl();
 private readonly ReactorManager reactorManager = new ReactorManager();
+private readonly SafeMode safeMode = new SafeMode(new MySafeModeHandler());
 private readonly CruiseControl cruiseControl = new CruiseControl();
 private readonly SolarGyroController solarGyroController =
     new SolarGyroController(
@@ -59,7 +72,8 @@ void Main(string argument)
         if (DOCKING_ACTION_ENABLE) dockingAction.Init(commons, eventDriver);
         if (REACTOR_MANAGER_ENABLE) reactorManager.Init(commons, eventDriver);
 
-        cruiseControl.Init(commons, eventDriver);
+        safeMode.Init(commons, eventDriver);
+        cruiseControl.Init(commons, eventDriver, LivenessCheck);
         solarGyroController.ConditionalInit(commons, eventDriver);
     }
 
@@ -69,9 +83,17 @@ void Main(string argument)
             if (PRODUCTION_MANAGER_ENABLE) productionManager.HandleCommand(commons, eventDriver, argument);
             if (DAMAGE_CONTROL_ENABLE) damageControl.HandleCommand(commons, eventDriver, argument);
             if (REACTOR_MANAGER_ENABLE) reactorManager.HandleCommand(commons, eventDriver, argument);
+            safeMode.HandleCommand(commons, eventDriver, argument);
             cruiseControl.HandleCommand(commons, eventDriver, argument);
             solarGyroController.HandleCommand(commons, eventDriver, argument);
         });
 
     if (commons.IsDirty) Storage = myStorage.Encode();
+}
+
+
+bool LivenessCheck(ZACommons commons, EventDriver eventDriver)
+{
+    if (CONTROL_CHECK_ENABLED) safeMode.TriggerIfUncontrolled(commons, eventDriver);
+    return !safeMode.Abandoned;
 }
