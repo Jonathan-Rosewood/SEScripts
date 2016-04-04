@@ -12,9 +12,11 @@ public class ReverseThrust
     private Base6Directions.Direction ThrusterDirection;
     private bool Enabled;
     private Vector3D TargetVector;
+    private bool ReorientOnly;
 
     public void Init(ZACommons commons, EventDriver eventDriver,
-                     Base6Directions.Direction thrusterDirection = Base6Directions.Direction.Forward)
+                     Base6Directions.Direction thrusterDirection = Base6Directions.Direction.Forward,
+                     bool reorientOnly = false)
     {
         ThrusterDirection = thrusterDirection;
         
@@ -25,6 +27,8 @@ public class ReverseThrust
         seeker.Init(shipControl,
                     shipUp: Base6Directions.GetPerpendicular(forward),
                     shipForward: forward);
+
+        ReorientOnly = reorientOnly;
 
         var gyroControl = shipControl.GyroControl;
         gyroControl.Reset();
@@ -86,7 +90,16 @@ public class ReverseThrust
         {
             gyroControl.Reset();
             shipControl.ThrustControl.Enable(true);
-            eventDriver.Schedule(FramesPerRun, Stop);
+            if (ReorientOnly)
+            {
+                gyroControl.Reset();
+                gyroControl.EnableOverride(false);
+                // And quit here...
+            }
+            else
+            {
+                eventDriver.Schedule(FramesPerRun, Stop);
+            }
         }
         else
         {

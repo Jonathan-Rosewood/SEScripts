@@ -52,11 +52,23 @@ void Main(string argument)
             damageControl.HandleCommand(commons, eventDriver, argument);
             safeMode.HandleCommand(commons, eventDriver, argument);
             cruiseControl.HandleCommand(commons, eventDriver, argument);
+            HandleCommand(commons, eventDriver, argument);
         });
 
     if (commons.IsDirty) Storage = myStorage.Encode();
 }
 
+
+void HandleCommand(ZACommons commons, EventDriver eventDriver, string argument)
+{
+    var command = argument.Trim().ToLower();
+    if (command == "stop")
+    {
+        // TODO global modes
+        cruiseControl.HandleCommand(commons, eventDriver, "cruise stop");
+        new ReverseThrust().Init(commons, eventDriver, reorientOnly: true);
+    }
+}
 
 bool LivenessCheck(ZACommons commons, EventDriver eventDriver)
 {
