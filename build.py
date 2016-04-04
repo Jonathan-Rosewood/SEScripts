@@ -53,7 +53,7 @@ def generate_version_header(version, modules):
 
 
 def build_script(version, available_modules, dependencies, root, output,
-                 strip=False):
+                 strip=False, verbose=False):
     modules = [root]
     queue = [root]
     while queue:
@@ -63,6 +63,9 @@ def build_script(version, available_modules, dependencies, root, output,
                 modules.append(dep)
                 queue.append(dep)
     out_path = OUTPUT_PATTERN.format(output)
+
+    if verbose:
+        print("{} : {}".format(output, ', '.join(modules)))
 
     chunks = [generate_version_header(version, modules)]
 
@@ -122,7 +125,7 @@ def get_metadata(fn):
     return output, deps
 
 
-def main(strip=False):
+def main(strip=False, verbose=False):
     # Fetch version
     if os.path.isdir('.hg'):
         with subprocess.Popen('hg identify', shell=True, stdout=subprocess.PIPE,
@@ -145,7 +148,7 @@ def main(strip=False):
 
     for module,output in roots:
         build_script(version, available_modules, dependencies, module,
-                     output, strip=strip)
+                     output, strip=strip, verbose=verbose)
 
 
 if __name__ == '__main__':
@@ -155,6 +158,9 @@ if __name__ == '__main__':
     parser.add_argument('-w', action='store_true',
                         help='strip leading whitespace',
                         dest='strip')
+    parser.add_argument('-v', action='store_true',
+                        help='be verbose',
+                        dest='verbose')
     args = parser.parse_args();
 
-    main(strip=args.strip)
+    main(strip=args.strip, verbose=args.verbose)
