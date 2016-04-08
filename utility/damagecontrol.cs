@@ -40,19 +40,24 @@ public class DamageControl
     public void Run(ZACommons commons, EventDriver eventDriver)
     {
         if (!Active) return;
-        Show(commons);
+        //commons.Echo("Damage Control: Active");
+        Active = Show(commons) > 0;
         eventDriver.Schedule(RunDelay, Run);
     }
 
-    private void Show(ZACommons commons)
+    private uint Show(ZACommons commons)
     {
+        uint count = 0;
         commons.AllBlocks.ForEach(block => {
                 if (block.GetProperty("ShowOnHUD") != null)
                 {
                     var cubeGrid = block.CubeGrid;
                     var damaged = !cubeGrid.GetCubeBlock(block.Position).IsFullIntegrity;
                     block.SetValue<bool>("ShowOnHUD", damaged);
+
+                    if (damaged) count++;
                 }
             });
+        return count;
     }
 }
