@@ -1,4 +1,6 @@
 //@ commons eventdriver
+// Note that if there are no tanks, the Low Oxygen timer block is triggered
+// on compile/world load. For now, this is desired.
 public class OxygenManager
 {
     private const double RunDelay = 1.0;
