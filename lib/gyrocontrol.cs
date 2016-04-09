@@ -32,73 +32,40 @@ public class GyroControl
             var shipLeft = Base6Directions.GetLeft(shipUp, shipForward);
 
             // Determine yaw axis
-            switch (gyro.Orientation.TransformDirectionInverse(shipUp))
-            {
-                case Base6Directions.Direction.Up:
-                    AxisDetails[Yaw] = new GyroAxisDetails(Yaw, -1);
-                    break;
-                case Base6Directions.Direction.Down:
-                    AxisDetails[Yaw] = new GyroAxisDetails(Yaw, 1);
-                    break;
-                case Base6Directions.Direction.Left:
-                    AxisDetails[Yaw] = new GyroAxisDetails(Pitch, -1);
-                    break;
-                case Base6Directions.Direction.Right:
-                    AxisDetails[Yaw] = new GyroAxisDetails(Pitch, 1);
-                    break;
-                case Base6Directions.Direction.Forward:
-                    AxisDetails[Yaw] = new GyroAxisDetails(Roll, 1);
-                    break;
-                case Base6Directions.Direction.Backward:
-                    AxisDetails[Yaw] = new GyroAxisDetails(Roll, -1);
-                    break;
-            }
+            SetAxisDetails(gyro, Yaw, shipUp);
 
             // Determine pitch axis
-            switch (gyro.Orientation.TransformDirectionInverse(shipLeft))
+            SetAxisDetails(gyro, Pitch, shipLeft);
+
+            // Determine roll axis
+            SetAxisDetails(gyro, Roll, shipForward);
+        }
+
+        private void SetAxisDetails(IMyGyro gyro, int axis,
+                                    Base6Directions.Direction axisDirection)
+        {
+            switch (gyro.Orientation.TransformDirectionInverse(axisDirection))
             {
                 case Base6Directions.Direction.Up:
-                    AxisDetails[Pitch] = new GyroAxisDetails(Yaw, -1);
+                    AxisDetails[axis] = new GyroAxisDetails(Yaw, -1);
                     break;
                 case Base6Directions.Direction.Down:
-                    AxisDetails[Pitch] = new GyroAxisDetails(Yaw, 1);
+                    AxisDetails[axis] = new GyroAxisDetails(Yaw, 1);
                     break;
                 case Base6Directions.Direction.Left:
-                    AxisDetails[Pitch] = new GyroAxisDetails(Pitch, -1);
+                    AxisDetails[axis] = new GyroAxisDetails(Pitch, -1);
                     break;
                 case Base6Directions.Direction.Right:
-                    AxisDetails[Pitch] = new GyroAxisDetails(Pitch, 1);
+                    AxisDetails[axis] = new GyroAxisDetails(Pitch, 1);
                     break;
                 case Base6Directions.Direction.Forward:
-                    AxisDetails[Pitch] = new GyroAxisDetails(Roll, 1);
+                    AxisDetails[axis] = new GyroAxisDetails(Roll, 1);
                     break;
                 case Base6Directions.Direction.Backward:
-                    AxisDetails[Pitch] = new GyroAxisDetails(Roll, -1);
+                    AxisDetails[axis] = new GyroAxisDetails(Roll, -1);
                     break;
             }
 
-            // Determine roll axis
-            switch (gyro.Orientation.TransformDirectionInverse(shipForward))
-            {
-                case Base6Directions.Direction.Up:
-                    AxisDetails[Roll] = new GyroAxisDetails(Yaw, -1);
-                    break;
-                case Base6Directions.Direction.Down:
-                    AxisDetails[Roll] = new GyroAxisDetails(Yaw, 1);
-                    break;
-                case Base6Directions.Direction.Left:
-                    AxisDetails[Roll] = new GyroAxisDetails(Pitch, -1);
-                    break;
-                case Base6Directions.Direction.Right:
-                    AxisDetails[Roll] = new GyroAxisDetails(Pitch, 1);
-                    break;
-                case Base6Directions.Direction.Forward:
-                    AxisDetails[Roll] = new GyroAxisDetails(Roll, 1);
-                    break;
-                case Base6Directions.Direction.Backward:
-                    AxisDetails[Roll] = new GyroAxisDetails(Roll, -1);
-                    break;
-            }
         }
     }
 
