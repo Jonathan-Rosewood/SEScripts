@@ -6,8 +6,8 @@ public class ReverseThrust
 
     private readonly Seeker seeker = new Seeker(1.0 / RunsPerSecond);
 
-    private readonly Velocimeter velocimeter = new Velocimeter(30);
-    private int SampleCount;
+    private const uint SampleDelay = 60;
+    private readonly Velocimeter velocimeter = new Velocimeter(2);
 
     private Base6Directions.Direction ThrusterDirection;
     private bool Enabled;
@@ -35,12 +35,12 @@ public class ReverseThrust
         gyroControl.EnableOverride(true);
 
         velocimeter.Reset();
-        SampleCount = 60;
+        velocimeter.TakeSample(shipControl.ReferencePoint, TimeSpan.FromSeconds(0));
         Enabled = true;
 
         shipControl.ThrustControl.Enable(false);
 
-        eventDriver.Schedule(0, DetermineVelocity);
+        eventDriver.Schedule(SampleDelay, DetermineVelocity);
     }
 
     public void DetermineVelocity(ZACommons commons, EventDriver eventDriver)
@@ -49,28 +49,20 @@ public class ReverseThrust
 
         var shipControl = (ShipControlCommons)commons;
 
-        velocimeter.TakeSample(shipControl.ReferencePoint, eventDriver.TimeSinceStart);
+        velocimeter.TakeSample(shipControl.ReferencePoint, TimeSpan.FromSeconds((double)SampleDelay / 60.0));
 
-        SampleCount--;
-        if (SampleCount > 0)
+        TargetVector = -((Vector3D)velocimeter.GetAverageVelocity());
+        var speed = TargetVector.Normalize();
+        if (speed > 0.1)
         {
-            eventDriver.Schedule(FramesPerRun, DetermineVelocity);
+            eventDriver.Schedule(FramesPerRun, Reorient);
         }
         else
         {
-            TargetVector = -((Vector3D)velocimeter.GetAverageVelocity());
-            var speed = TargetVector.Normalize();
-            if (speed > 0.1)
-            {
-                eventDriver.Schedule(FramesPerRun, Reorient);
-            }
-            else
-            {
-                var gyroControl = shipControl.GyroControl;
-                gyroControl.Reset();
-                gyroControl.EnableOverride(false);
-                shipControl.ThrustControl.Enable(true);
-            }
+            var gyroControl = shipControl.GyroControl;
+            gyroControl.Reset();
+            gyroControl.EnableOverride(false);
+            shipControl.ThrustControl.Enable(true);
         }
     }
 
