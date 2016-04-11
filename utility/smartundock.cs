@@ -61,25 +61,25 @@ public class SmartUndock
             UndockTarget = null;
             if (connected != null)
             {
-                // Undock the opposite direction of connector
-                var forward = connected.Orientation.TransformDirection(Base6Directions.Direction.Backward);
-
-                var reference = commons.Me;
-                var backwardPoint = reference.CubeGrid.GridIntegerToWorld(reference.Position + Base6Directions.GetIntVector(forward));
-                var backwardVector = Vector3D.Normalize(backwardPoint - reference.GetPosition());
+                // Undock in the forward direction of the *other* connector
+                var other = connected.OtherConnector;
+                var forward = other.Orientation.TransformDirection(Base6Directions.Direction.Forward);
+                var forwardPoint = other.CubeGrid.GridIntegerToWorld(other.Position + Base6Directions.GetIntVector(forward));
+                var forwardVector = Vector3D.Normalize(forwardPoint - other.GetPosition());
                 // Determine target undock point
-                UndockTarget = reference.GetPosition() + SMART_UNDOCK_DISTANCE * backwardVector;
+                var shipControl = (ShipControlCommons)commons;
+                UndockTarget = shipControl.ReferencePoint + SMART_UNDOCK_DISTANCE * forwardVector;
 
                 // And original orientation
-                var shipControl = (ShipControlCommons)commons;
                 UndockForward = shipControl.ReferenceForward;
                 UndockUp = shipControl.ReferenceUp;
 
                 // Schedule the autopilot
+                var backward = connected.Orientation.TransformDirection(Base6Directions.Direction.Backward);
                 autopilot.Init(commons, eventDriver, (Vector3D)UndockTarget,
                                SMART_UNDOCK_UNDOCK_SPEED,
                                delay: 2.0,
-                               localForward: shipControl.ShipBlockOrientation.TransformDirectionInverse(forward));
+                               localForward: shipControl.ShipBlockOrientation.TransformDirectionInverse(backward));
                 Reorienting = false;
             }
             SaveUndockTarget(commons);
