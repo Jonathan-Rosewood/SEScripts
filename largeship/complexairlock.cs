@@ -106,7 +106,7 @@ public class ComplexAirlock
         while (e.MoveNext())
         {
             var vent = e.Current;
-            vent.GetActionWithName(depressurize ? "Depressurize_On" : "Depressurize_Off").Apply(vent);
+            vent.SetValue<bool>("Depressurize", depressurize);
         }
     }
 
@@ -116,7 +116,7 @@ public class ComplexAirlock
         while (e.MoveNext())
         {
             var door = e.Current;
-            door.GetActionWithName(open ? "Open_On" : "Open_Off").Apply(door);
+            door.SetValue<bool>("Open", open);
         }
     }
 
@@ -244,7 +244,7 @@ public class ComplexAirlock
                 // Unlock
                 if (!door.Enabled)
                 {
-                    door.GetActionWithName("OnOff_On").Apply(door);
+                    door.SetValue<bool>("OnOff", true);
                 }
             }
             else
@@ -252,11 +252,11 @@ public class ComplexAirlock
                 // Close & lock all others
                 if (door.Open)
                 {
-                    door.GetActionWithName("Open_Off").Apply(door);
+                    door.SetValue<bool>("Open", false);
                 }
                 else if (door.OpenRatio == 0.0f && door.Enabled)
                 {
-                    door.GetActionWithName("OnOff_Off").Apply(door);
+                    door.SetValue<bool>("OnOff", false);
                 }
             }
         }
@@ -269,7 +269,7 @@ public class ComplexAirlock
                         for (var f = openDoors.GetEnumerator(); f.MoveNext();)
                         {
                             var door = f.Current;
-                            door.GetActionWithName("Open_On").Apply(door);
+                            door.SetValue<bool>("Open", true);
                         }
                     });
         }
@@ -306,10 +306,10 @@ public class ComplexAirlock
                     for (var f = doors.GetEnumerator(); f.MoveNext();)
                     {
                         var door = f.Current;
-                        door.GetActionWithName("Open_Off").Apply(door);
+                        door.SetValue<bool>("Open", false);
                         if (door.OpenRatio == 0.0f && door.Enabled)
                         {
-                            door.GetActionWithName("OnOff_Off").Apply(door);
+                            door.SetValue<bool>("OnOff", false);
                         }
                     }
                     break;

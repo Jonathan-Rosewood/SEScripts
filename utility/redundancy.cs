@@ -76,7 +76,7 @@ public class RedundancyManager : DockingHandler
             {
                 var block = spares.First.Value;
                 spares.RemoveFirst();
-                block.GetActionWithName("OnOff_On").Apply(block);
+                block.SetValue<bool>("OnOff", true);
                 running++;
             }
         }

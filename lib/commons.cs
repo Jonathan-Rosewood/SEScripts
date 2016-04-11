@@ -182,41 +182,13 @@ public class ZACommons
         {
             var block = e.Current;
             // Not all blocks will implement IMyFunctionalBlock, so can't checked Enabled
-            block.GetActionWithName(enabled ? "OnOff_On" : "OnOff_Off").Apply(block);
+            block.SetValue<bool>("OnOff", enabled);
         }
     }
 
     public IMyProgrammableBlock Me
     {
         get { return Program.Me; }
-    }
-
-    // Batteries
-
-    public static bool IsBatteryRecharging(IMyBatteryBlock battery)
-    {
-        StringBuilder value = new StringBuilder();
-        battery.GetActionWithName("Recharge").WriteValue(battery, value);
-        return value.ToString() == "On";
-        // BROKEN 01.101 return !battery.ProductionEnabled;
-    }
-
-    public static void SetBatteryRecharge(IMyBatteryBlock battery, bool recharge)
-    {
-        var recharging = IsBatteryRecharging(battery);
-        if ((recharging && !recharge) || (!recharging && recharge))
-        {
-            battery.GetActionWithName("Recharge").Apply(battery);
-        }
-    }
-
-    public static void SetBatteryRecharge(IEnumerable<IMyTerminalBlock> batteries, bool recharge)
-    {
-        for (var e = batteries.GetEnumerator(); e.MoveNext();)
-        {
-            var battery = e.Current as IMyBatteryBlock;
-            if (battery != null) SetBatteryRecharge(battery, recharge);
-        }
     }
 
     // Display
@@ -251,7 +223,7 @@ public class ZACommons
         if (timer != null && timer.Enabled && !timer.IsCountingDown &&
             (condition == null || condition(timer)))
         {
-            timer.GetActionWithName("Start").Apply(timer);
+            timer.ApplyAction("Start");
             return true;
         }
         return false;

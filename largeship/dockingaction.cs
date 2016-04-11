@@ -50,9 +50,7 @@ public class DockingAction
                         {
                             if (!(block is IMyShipConnector)) // ignore connectors
                             {
-                                block.GetActionWithName(enable ?
-                                                        "OnOff_On" :
-                                                        "OnOff_Off").Apply(block);
+                                block.SetValue<bool>("OnOff", enable);
                             }
                         });
             }

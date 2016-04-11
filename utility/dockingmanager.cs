@@ -65,7 +65,7 @@ public class DockingManager
                         connector.DefinitionDisplayNameText == "Connector" &&
                         connector.IsLocked && !connector.IsConnected)
                     {
-                        connector.GetActionWithName("Lock").Apply(connector);
+                        connector.ApplyAction("Lock");
                         connected = true;
                     }
                 });
@@ -84,7 +84,7 @@ public class DockingManager
                 {
                     var gear = (IMyLandingGear)block;
                     if (gear.IsFunctional && gear.IsWorking &&
-                        gear.Enabled && !gear.IsLocked) gear.GetActionWithName("Lock").Apply(gear);
+                        gear.Enabled && !gear.IsLocked) gear.ApplyAction("Lock");
                 });
 
         // Do everything else needed after docking
@@ -105,7 +105,7 @@ public class DockingManager
         connectors.ForEach(block =>
                 {
                     var connector = (IMyShipConnector)block;
-                    if (connector.IsLocked && connector.IsConnected) connector.GetActionWithName("Unlock").Apply(connector);
+                    if (connector.IsLocked && connector.IsConnected) connector.ApplyAction("Unlock");
                 });
 
         // Unlock all landing gear
@@ -113,7 +113,7 @@ public class DockingManager
         gears.ForEach(block =>
                 {
                     var gear = (IMyLandingGear)block;
-                    if (gear.IsLocked) gear.GetActionWithName("Unlock").Apply(gear);
+                    if (gear.IsLocked) gear.ApplyAction("Unlock");
                 });
 
         // 1 second from now, disable all connectors

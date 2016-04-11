@@ -29,8 +29,12 @@ public class MissileLaunch
         }
 
         var batteries = ZACommons.GetBlocksOfType<IMyBatteryBlock>(batteryGroup.Blocks);
-        ZACommons.EnableBlocks(batteries, true);
-        ZACommons.SetBatteryRecharge(batteries, false);
+        batteries.ForEach(battery =>
+                {
+                    battery.SetValue<bool>("OnOff", true);
+                    battery.SetValue<bool>("Recharge", false);
+                    battery.SetValue<bool>("Discharge", true);
+                });
 
         // Activate flight systems
         ZACommons.EnableBlocks(systemsGroup.Blocks, true);
@@ -48,7 +52,7 @@ public class MissileLaunch
 
         // Unlock any landing gear
         ZACommons.ForEachBlockOfType<IMyLandingGear>(releaseGroup.Blocks,
-                                                     gear => gear.GetActionWithName("Unlock").Apply(gear));
+                                                     gear => gear.ApplyAction("Unlock"));
         // And then turn everything off (connectors, merge blocks, etc)
         ZACommons.EnableBlocks(releaseGroup.Blocks, false);
 

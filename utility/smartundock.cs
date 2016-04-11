@@ -88,7 +88,7 @@ public class SmartUndock
             for (var e = connectors.GetEnumerator(); e.MoveNext();)
             {
                 var connector = (IMyShipConnector)e.Current;
-                if (connector.IsLocked) connector.GetActionWithName("Unlock").Apply(connector);
+                if (connector.IsLocked) connector.ApplyAction("Unlock");
             }
             ZACommons.EnableBlocks(connectors, false);
             // Unlock landing gears as well
@@ -96,7 +96,7 @@ public class SmartUndock
             gears.ForEach(block =>
                     {
                         var gear = (IMyLandingGear)block;
-                        if (gear.IsLocked) gear.GetActionWithName("Unlock").Apply(gear);
+                        if (gear.IsLocked) gear.ApplyAction("Unlock");
                     });
 
             // Disable connectors 1 second from now

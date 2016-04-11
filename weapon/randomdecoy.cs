@@ -22,7 +22,7 @@ public class RandomDecoy
         {
             var decoy = decoys[i];
             var enable = i == chosen;
-            decoy.GetActionWithName(enable ? "OnOff_On" : "OnOff_Off").Apply(decoy);
+            decoy.SetValue<bool>("OnOff", enable);
         }
 
         eventDriver.Schedule(FramesPerRun, Run);

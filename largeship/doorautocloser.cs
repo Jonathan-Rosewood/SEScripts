@@ -32,7 +32,7 @@ public class DoorAutoCloser
                     if (openTime <= closeTime)
                     {
                         // Time to close it
-                        door.GetActionWithName("Open_Off").Apply(door);
+                        door.SetValue<bool>("Open", false);
                         opened.Remove(door);
                     }
                 }

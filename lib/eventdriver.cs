@@ -91,7 +91,7 @@ public class EventDriver
             // If you want sub-second accuracy, always use ticks.
             if (TickQueue.First != null)
             {
-                timer.GetActionWithName("TriggerNow").Apply(timer);
+                timer.ApplyAction("TriggerNow");
             }
             else if (TimeQueue.First != null)
             {
@@ -102,7 +102,7 @@ public class EventDriver
                 next = Math.Min(next, timer.GetMaximum<float>("TriggerDelay"));
 
                 timer.SetValue<float>("TriggerDelay", next);
-                timer.GetActionWithName("Start").Apply(timer);
+                timer.ApplyAction("Start");
             }
             // NB If both queues are empty, we stop running
         }

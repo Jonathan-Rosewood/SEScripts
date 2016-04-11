@@ -67,20 +67,20 @@ public class SolarRotorController
             if (delta > minError || currentMaxPower < minError /* failsafe*/)
             {
                 // Keep going
-                if (!rotor.Enabled) rotor.GetActionWithName("OnOff_On").Apply(rotor);
+                if (!rotor.Enabled) rotor.SetValue<bool>("OnOff", true);
                 maxPowers[group.Name] = currentMaxPower;
             }
             else if (delta < -minError)
             {
                 // Back up
-                if (!rotor.Enabled) rotor.GetActionWithName("OnOff_On").Apply(rotor);
-                rotor.GetActionWithName("Reverse").Apply(rotor);
+                if (!rotor.Enabled) rotor.SetValue<bool>("OnOff", true);
+                rotor.ApplyAction("Reverse");
                 maxPowers[group.Name] = currentMaxPower;
             }
             else
             {
                 // Hold still for a moment
-                if (rotor.Enabled) rotor.GetActionWithName("OnOff_Off").Apply(rotor);
+                if (rotor.Enabled) rotor.SetValue<bool>("OnOff", false);
                 // Note, we don't save current max power
             }
 

@@ -83,7 +83,7 @@ public class BatteryMonitor : DockingHandler
         {
             Triggered = true;
             if (lowBatteryHandler != null) lowBatteryHandler.LowBattery(commons, eventDriver, true);
-            if (lowBattery != null) lowBattery.GetActionWithName("Start").Apply(lowBattery);
+            if (lowBattery != null) lowBattery.ApplyAction("Start");
         }
         else if (Triggered && batteryPercent >= BATTERY_THRESHOLD)
         {
