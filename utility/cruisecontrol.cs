@@ -13,6 +13,8 @@ public class CruiseControl
     private const double ThrustKi = 0.001;
     private const double ThrustKd = 1.0;
 
+    private readonly double[] Bias;
+
     private bool Active = false;
     private double TargetSpeed;
     private Base6Directions.Direction CruiseDirection;
@@ -25,6 +27,15 @@ public class CruiseControl
         thrustPID.Kp = ThrustKp;
         thrustPID.Ki = ThrustKi;
         thrustPID.Kd = ThrustKd;
+
+        // Have to do this here
+        Bias = new double[6];
+        Bias[(int)Base6Directions.Direction.Forward] = CRUISE_CONTROL_BIAS_Z;
+        Bias[(int)Base6Directions.Direction.Backward] = 1.0 / CRUISE_CONTROL_BIAS_Z;
+        Bias[(int)Base6Directions.Direction.Left] = CRUISE_CONTROL_BIAS_X;
+        Bias[(int)Base6Directions.Direction.Right] = 1.0 / CRUISE_CONTROL_BIAS_X;
+        Bias[(int)Base6Directions.Direction.Up] = CRUISE_CONTROL_BIAS_Y;
+        Bias[(int)Base6Directions.Direction.Down] = 1.0 / CRUISE_CONTROL_BIAS_Y;
     }
 
     public void Init(ZACommons commons, EventDriver eventDriver,
@@ -185,14 +196,14 @@ public class CruiseControl
             {
                 // Thrust forward
                 thrustControl.Enable(CruiseDirection, true, collect);
-                thrustControl.SetOverride(CruiseDirection, force, collect);
+                thrustControl.SetOverride(CruiseDirection, force * Bias[(int)CruiseDirection], collect);
                 thrustControl.Enable(cruiseDirectionFlipped, false, collect);
             }
             else
             {
                 thrustControl.Enable(CruiseDirection, false, collect);
                 thrustControl.Enable(cruiseDirectionFlipped, true, collect);
-                thrustControl.SetOverride(cruiseDirectionFlipped, -force, collect);
+                thrustControl.SetOverride(cruiseDirectionFlipped, -force * Bias[(int)cruiseDirectionFlipped], collect);
             }
         }
 
