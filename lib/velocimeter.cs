@@ -36,19 +36,11 @@ public class Velocimeter
         // Need at least 2 samples...
         if (Samples.Count > 1)
         {
-            var last = Samples.First;
-            Vector3D distance = new Vector3D();
-            double seconds = 0.0;
-            for (var current = last.Next;
-                 current != null;
-                 current = current.Next)
-            {
-                distance += current.Value.Position - last.Value.Position;
-                seconds += current.Value.Timestamp.TotalSeconds -
-                    last.Value.Timestamp.TotalSeconds;
-                last = current;
-            }
-
+            var oldest = Samples.First;
+            var newest = Samples.Last;
+            var distance = newest.Value.Position - oldest.Value.Position;
+            var seconds = newest.Value.Timestamp.TotalSeconds -
+                oldest.Value.Timestamp.TotalSeconds;
             return distance / seconds;
         }
         return null;
