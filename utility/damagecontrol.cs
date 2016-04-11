@@ -4,6 +4,7 @@ public class DamageControl
     private const double RunDelay = 3.0;
 
     private bool Active = false;
+    private bool Auto = false;
 
     public void HandleCommand(ZACommons commons, EventDriver eventDriver,
                               string argument)
@@ -25,15 +26,25 @@ public class DamageControl
                 break;
             case "show":
                 Show(commons);
+                Active = false;
                 break;
             case "start":
-                Show(commons);
-                if (!Active)
-                {
-                    Active = true;
-                    eventDriver.Schedule(RunDelay, Run);
-                }
+                Start(commons, eventDriver, false);
                 break;
+            case "auto":
+                Start(commons, eventDriver, true);
+                break;
+        }
+    }
+
+    private void Start(ZACommons commons, EventDriver eventDriver, bool auto)
+    {
+        Auto = auto;
+        Show(commons);
+        if (!Active)
+        {
+            Active = true;
+            eventDriver.Schedule(RunDelay, Run);
         }
     }
 
@@ -41,7 +52,7 @@ public class DamageControl
     {
         if (!Active) return;
         //commons.Echo("Damage Control: Active");
-        Active = Show(commons) > 0;
+        Active = Show(commons) > 0 || !Auto;
         eventDriver.Schedule(RunDelay, Run);
     }
 
