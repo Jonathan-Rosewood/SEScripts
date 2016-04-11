@@ -19,6 +19,7 @@ public class CruiseControl
     private double TargetSpeed;
     private Base6Directions.Direction CruiseDirection;
     private string CruiseFlags;
+    private uint VTicks;
 
     private Func<ZACommons, EventDriver, bool> LivenessCheck = null;
 
@@ -122,6 +123,7 @@ public class CruiseControl
                     TargetSpeed = Math.Max(desiredSpeed, 0.0);
 
                     velocimeter.Reset();
+                    VTicks = 0;
                     thrustPID.Reset();
 
                     if (!Active)
@@ -164,7 +166,8 @@ public class CruiseControl
         ResetIfNotLive(commons, eventDriver);
         if (!Active) return;
 
-        velocimeter.TakeSample(shipControl.ReferencePoint, eventDriver.TimeSinceStart);
+        velocimeter.TakeSample(shipControl.ReferencePoint, TimeSpan.FromSeconds((double)VTicks / RunsPerSecond));
+        VTicks++;
 
         // Determine velocity
         var velocity = velocimeter.GetAverageVelocity();

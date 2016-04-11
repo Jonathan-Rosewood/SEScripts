@@ -11,6 +11,8 @@ public class Cruiser
     public Base6Directions.Direction LocalForward { get; private set; }
     public Base6Directions.Direction LocalBackward { get; private set; }
 
+    private uint VTicks;
+
     public Cruiser(double dt, double thrustDeadZone)
     {
         thrustPID = new PIDController(dt);
@@ -27,6 +29,7 @@ public class Cruiser
         LocalBackward = Base6Directions.GetFlippedDirection(LocalForward);
 
         velocimeter.Reset();
+        VTicks = 0;
         thrustPID.Reset();
     }
 
@@ -37,7 +40,8 @@ public class Cruiser
                        bool enableForward = true,
                        bool enableBackward = true)
     {
-        velocimeter.TakeSample(shipControl.ReferencePoint, eventDriver.TimeSinceStart);
+        velocimeter.TakeSample(shipControl.ReferencePoint, TimeSpan.FromSeconds((double)VTicks * thrustPID.dt));
+        VTicks++;
         var velocity = velocimeter.GetAverageVelocity();
         if (velocity != null)
         {
