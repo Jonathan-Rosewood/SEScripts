@@ -89,17 +89,17 @@ void Main(string argument)
 void HandleCommand(ZACommons commons, EventDriver eventDriver, string argument)
 {
     argument = argument.Trim().ToString();
-    if (argument == "first" || argument == "second")
+    if (argument == "gfirst" || argument == "gsecond")
     {
         var reference = vtvlHelper.GetRemoteControl(commons);
         var gravity = reference.GetNaturalGravity();
         if (gravity.LengthSquared() == 0.0) return;
 
-        if (argument == "first")
+        if (argument == "gfirst")
         {
             first = new Rangefinder.LineSample(reference, gravity);
         }
-        else if (argument == "second")
+        else if (argument == "gsecond")
         {
             var second = new Rangefinder.LineSample(reference, gravity);
 
@@ -108,21 +108,21 @@ void HandleCommand(ZACommons commons, EventDriver eventDriver, string argument)
             {
                 var center = (closestFirst + closestSecond) / 2.0;
                 var radius = (reference.GetPosition() - center).Length();
-                TargetAction(commons, center, radius);
+                GravitySurveyAction(commons, center, radius);
             }
         }
     }
 }
 
-void TargetAction(ZACommons commons, Vector3D target, double radius)
+void GravitySurveyAction(ZACommons commons, Vector3D center, double radius)
 {
     var targetGroup = commons.GetBlockGroupWithName(VTVLHELPER_TARGET_GROUP);
     if (targetGroup != null)
     {
         var targetString = string.Format("{0};{1};{2};{3}",
-                                         target.GetDim(0),
-                                         target.GetDim(1),
-                                         target.GetDim(2),
+                                         center.GetDim(0),
+                                         center.GetDim(1),
+                                         center.GetDim(2),
                                          radius);
 
         for (var e = ZACommons.GetBlocksOfType<IMyTextPanel>(targetGroup.Blocks).GetEnumerator(); e.MoveNext();)
@@ -131,7 +131,6 @@ void TargetAction(ZACommons commons, Vector3D target, double radius)
         }
     }
 }
-
 
 bool LivenessCheck(ZACommons commons, EventDriver eventDriver)
 {
