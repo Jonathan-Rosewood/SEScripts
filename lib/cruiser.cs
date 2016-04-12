@@ -64,6 +64,9 @@ public class Cruiser
         // Take dot product with forward unit vector
         var speed = Vector3D.Dot(velocity, referenceForward);
         var error = targetSpeed - speed;
+        //shipControl.Echo(string.Format("Set Speed: {0:F1} m/s", targetSpeed));
+        //shipControl.Echo(string.Format("Actual Speed: {0:F1} m/s", speed));
+        //shipControl.Echo(string.Format("Error: {0:F1} m/s", error));
 
         var force = thrustPID.Compute(error);
 

@@ -293,6 +293,7 @@ public class VTVLHelper
             else
             {
                 var distanceToStop = distance - TargetRadius;
+                commons.Echo(string.Format("Target: {0:F2} m", distanceToStop));
                 var targetSpeed = Math.Min(distanceToStop / VTVLHELPER_TTT_BUFFER,
                                            VTVLHELPER_BRAKING_SPEED);
                 targetSpeed = Math.Max(targetSpeed, 5.0);
