@@ -16,7 +16,7 @@ public class CruiseControl
     private readonly double[] Bias;
 
     private bool Active = false;
-    private double TargetSpeed;
+    private double TargetSpeed, CurrentSpeed;
     private Base6Directions.Direction CruiseDirection;
     private string CruiseFlags;
     private uint VTicks;
@@ -178,13 +178,10 @@ public class CruiseControl
             var forward3I = shipControl.Reference.Position + Base6Directions.GetIntVector(shipControl.ShipBlockOrientation.TransformDirection(CruiseDirection));
             var forward = Vector3D.Normalize(shipControl.Reference.CubeGrid.GridIntegerToWorld(forward3I) - shipControl.ReferencePoint);
             
-            var speed = Vector3D.Dot((Vector3D)velocity, forward);
-            var error = TargetSpeed - speed;
+            CurrentSpeed = Vector3D.Dot((Vector3D)velocity, forward);
+            var error = TargetSpeed - CurrentSpeed;
 
             var force = thrustPID.Compute(error);
-            commons.Echo("Cruise control active");
-            commons.Echo(string.Format("Set Speed: {0:F1} m/s", TargetSpeed));
-            commons.Echo(string.Format("Actual Speed: {0:F1} m/s", speed));
             //commons.Echo("Force: " + force);
 
             var thrustControl = shipControl.ThrustControl;
@@ -211,6 +208,16 @@ public class CruiseControl
         }
 
         eventDriver.Schedule(FramesPerRun, Run);
+    }
+
+    public void Display(ZACommons commons)
+    {
+        if (Active)
+        {
+            commons.Echo("Cruise control active");
+            commons.Echo(string.Format("Set Speed: {0:F1} m/s", TargetSpeed));
+            commons.Echo(string.Format("Actual Speed: {0:F1} m/s", CurrentSpeed));
+        }
     }
 
     private void SaveLastCommand(ZACommons commons, string argument)

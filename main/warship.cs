@@ -58,6 +58,10 @@ void Main(string argument)
             cruiseControl.HandleCommand(commons, eventDriver, argument);
             sequencer.HandleCommand(commons, eventDriver, argument);
             HandleCommand(commons, eventDriver, argument);
+        },
+        postAction: () => {
+            damageControl.Display(commons);
+            cruiseControl.Display(commons);
         });
 
     if (commons.IsDirty) Storage = myStorage.Encode();

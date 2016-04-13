@@ -37,7 +37,8 @@ public class SolarGyroController
     private int AxisIndex = 0;
     private bool Active = false;
     private DateTime TimeOnAxis;
-
+    private float CurrentMaxPower;
+    
     public SolarGyroController(params int[] allowedAxes)
     {
         // Weird things happening with array constants
@@ -59,6 +60,7 @@ public class SolarGyroController
         Active = true;
         SaveActive(commons);
         MaxPower = null; // Use first-run initialization
+        CurrentMaxPower = 0.0f;
         eventDriver.Schedule(0.0, Run);
     }
 
@@ -80,11 +82,7 @@ public class SolarGyroController
 
     public void Run(ZACommons commons, EventDriver eventDriver)
     {
-        if (!Active)
-        {
-            commons.Echo("Solar Max Power: Paused");
-            return;
-        }
+        if (!Active) return;
 
         var shipControl = (ShipControlCommons)commons;
         var gyroControl = shipControl.GyroControl;
@@ -100,11 +98,11 @@ public class SolarGyroController
         }
 
         var solarPanelDetails = new SolarPanelDetails(commons.Blocks);
-        var currentMaxPower = solarPanelDetails.MaxPowerOutput;
+        CurrentMaxPower = solarPanelDetails.MaxPowerOutput;
 
         var minError = solarPanelDetails.DefinedPowerOutput * SOLAR_GYRO_MIN_ERROR;
-        var delta = currentMaxPower - MaxPower;
-        MaxPower = currentMaxPower;
+        var delta = CurrentMaxPower - MaxPower;
+        MaxPower = CurrentMaxPower;
 
         if (delta > minError)
         {
@@ -138,8 +136,6 @@ public class SolarGyroController
             TimeOnAxis = commons.Now;
         }
 
-        commons.Echo(string.Format("Solar Max Power: {0}", ZACommons.FormatPower(currentMaxPower)));
-        
         eventDriver.Schedule(RunDelay, Run);
     }
 
@@ -160,6 +156,18 @@ public class SolarGyroController
         else if (argument == "resume")
         {
             if (!Active) Init(commons, eventDriver);
+        }
+    }
+
+    public void Display(ZACommons commons)
+    {
+        if (!Active)
+        {
+            commons.Echo("Solar Max Power: Paused");
+        }
+        else
+        {
+            commons.Echo(string.Format("Solar Max Power: {0}", ZACommons.FormatPower(CurrentMaxPower)));
         }
     }
 

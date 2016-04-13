@@ -9,5 +9,8 @@ void Main(string argument)
 
     eventDriver.Tick(commons, preAction: () => {
             damageControl.HandleCommand(commons, eventDriver, argument);
+        },
+        postAction: () => {
+            damageControl.Display(commons);
         });
 }

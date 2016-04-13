@@ -62,6 +62,11 @@ void Main(string argument)
             cruiseControl.HandleCommand(commons, eventDriver, argument);
             vtvlHelper.HandleCommand(commons, eventDriver, argument);
             damageControl.HandleCommand(commons, eventDriver, argument);
+        },
+        postAction: () => {
+            damageControl.Display(commons);
+            cruiseControl.Display(commons);
+            vtvlHelper.Display(commons);
         });
 
     if (commons.IsDirty) Storage = myStorage.Encode();

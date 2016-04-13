@@ -51,9 +51,16 @@ public class DamageControl
     public void Run(ZACommons commons, EventDriver eventDriver)
     {
         if (!Active) return;
-        //commons.Echo("Damage Control: Active");
         Active = Show(commons) > 0 || !Auto;
         eventDriver.Schedule(RunDelay, Run);
+    }
+
+    public void Display(ZACommons commons)
+    {
+        if (Active)
+        {
+            commons.Echo("Damage Control: Active");
+        }
     }
 
     private uint Show(ZACommons commons)

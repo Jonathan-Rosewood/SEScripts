@@ -76,10 +76,13 @@ void Main(string argument)
         solarGyroController.Init(commons, eventDriver);
     }
 
-    eventDriver.Tick(commons, preAction: () =>
-            {
-                damageControl.HandleCommand(commons, eventDriver, argument);
-                reactorManager.HandleCommand(commons, eventDriver, argument);
-                solarGyroController.HandleCommand(commons, eventDriver, argument);
-            });
+    eventDriver.Tick(commons, preAction: () => {
+            damageControl.HandleCommand(commons, eventDriver, argument);
+            reactorManager.HandleCommand(commons, eventDriver, argument);
+            solarGyroController.HandleCommand(commons, eventDriver, argument);
+        },
+        postAction: () => {
+            solarGyroController.Display(commons);
+            damageControl.Display(commons);
+        });
 }

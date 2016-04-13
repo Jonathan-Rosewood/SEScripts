@@ -26,6 +26,8 @@ public class VTVLHelper
 
     private Func<ZACommons, EventDriver, bool> LivenessCheck = null;
 
+    private double Distance, DistanceToStop;
+
     public void Init(ZACommons commons, EventDriver eventDriver,
                      Func<ZACommons, EventDriver, bool> livenessCheck = null)
     {
@@ -161,8 +163,6 @@ public class VTVLHelper
     {
         if (ShouldAbort(commons, eventDriver, BURNING, false)) return;
 
-        commons.Echo("VTVL: Burn phase");
-
         var shipControl = (ShipControlCommons)commons;
 
         var remote = GetRemoteControl(commons);
@@ -195,8 +195,6 @@ public class VTVLHelper
     {
         if (ShouldAbort(commons, eventDriver, GLIDING, Autodrop)) return;
 
-        commons.Echo("VTVL: Glide phase");
-
         var shipControl = (ShipControlCommons)commons;
 
         var remote = GetRemoteControl(commons);
@@ -208,9 +206,8 @@ public class VTVLHelper
 
             if (Autodrop)
             {
-                var distance = (remote.GetPosition() - TargetCenter).Length();
-                commons.Echo(string.Format("Distance: {0:F2} m", distance));
-                if (distance < BrakingRadius)
+                Distance = (remote.GetPosition() - TargetCenter).Length();
+                if (Distance < BrakingRadius)
                 {
                     shipControl.Reset(gyroOverride: true, thrusterEnable: true,
                                       thrusterCondition: ThrusterCondition);
@@ -242,8 +239,6 @@ public class VTVLHelper
     {
         if (ShouldAbort(commons, eventDriver, BRAKING, Autodrop)) return;
 
-        commons.Echo("VTVL: Braking");
-
         var shipControl = (ShipControlCommons)commons;
 
         var remote = GetRemoteControl(commons);
@@ -271,8 +266,6 @@ public class VTVLHelper
     {
         if (Mode != APPROACHING) return;
 
-        commons.Echo("VTVL: Approach phase");
-
         var shipControl = (ShipControlCommons)commons;
 
         var remote = GetRemoteControl(commons);
@@ -283,18 +276,16 @@ public class VTVLHelper
             double yawError, pitchError;
             seeker.Seek(shipControl, gravity, out yawError, out pitchError);
 
-            var distance = (remote.GetPosition() - TargetCenter).Length();
-            commons.Echo(string.Format("Distance: {0:F2} m", distance));
-            if (distance <= TargetRadius || remote.IsUnderControl)
+            Distance = (remote.GetPosition() - TargetCenter).Length();
+            if (Distance <= TargetRadius || remote.IsUnderControl)
             {
                 // All done. Re-enable thrusters and restore control.
                 Reset(shipControl);
             }
             else
             {
-                var distanceToStop = distance - TargetRadius;
-                commons.Echo(string.Format("Target: {0:F2} m", distanceToStop));
-                var targetSpeed = Math.Min(distanceToStop / VTVLHELPER_TTT_BUFFER,
+                DistanceToStop = Distance - TargetRadius;
+                var targetSpeed = Math.Min(DistanceToStop / VTVLHELPER_TTT_BUFFER,
                                            VTVLHELPER_BRAKING_SPEED);
                 targetSpeed = Math.Max(targetSpeed, 5.0);
 
@@ -316,8 +307,6 @@ public class VTVLHelper
     {
         if (Mode != LAUNCHING) return;
 
-        commons.Echo("VTVL: Launching");
-
         var shipControl = (ShipControlCommons)commons;
 
         var remote = GetRemoteControl(commons);
@@ -338,6 +327,33 @@ public class VTVLHelper
         {
             // Out of gravity
             Reset(shipControl);
+        }
+    }
+
+    public void Display(ZACommons commons)
+    {
+        switch (Mode)
+        {
+            case IDLE:
+                break;
+            case BURNING:
+                commons.Echo("VTVL: Burn phase");
+                break;
+            case GLIDING:
+                commons.Echo("VTVL: Glide phase");
+                if (Autodrop) commons.Echo(string.Format("Distance: {0:F2} m", Distance));
+                break;
+            case BRAKING:
+                commons.Echo("VTVL: Braking");
+                break;
+            case APPROACHING:
+                commons.Echo("VTVL: Approach phase");
+                commons.Echo(string.Format("Distance: {0:F2} m", Distance));
+                commons.Echo(string.Format("Target: {0:F2} m", DistanceToStop));
+                break;
+            case LAUNCHING:
+                commons.Echo("VTVL: Launching");
+                break;
         }
     }
 

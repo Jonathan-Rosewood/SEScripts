@@ -25,10 +25,12 @@ void Main(string argument)
         cruiseControl.Init(commons, eventDriver);
     }
 
-    eventDriver.Tick(commons, preAction: () =>
-            {
-                cruiseControl.HandleCommand(commons, eventDriver, argument);
-            });
+    eventDriver.Tick(commons, preAction: () => {
+            cruiseControl.HandleCommand(commons, eventDriver, argument);
+        },
+        postAction: () => {
+            cruiseControl.Display(commons);
+        });
 
     if (commons.IsDirty) Storage = myStorage.Encode();
 }

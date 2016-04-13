@@ -57,6 +57,7 @@ void Main(string argument)
         },
         postAction: () => {
             if (PRODUCTION_MANAGER_ENABLE) productionManager.Display(commons);
+            if (DAMAGE_CONTROL_ENABLE) damageControl.Display(commons);
         });
 
     if (commons.IsDirty) Storage = myStorage.Encode();

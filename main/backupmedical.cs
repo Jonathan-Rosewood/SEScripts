@@ -44,8 +44,10 @@ void Main(string argument)
                 });
     }
 
-    eventDriver.Tick(commons, preAction: () =>
-            {
-                solarGyroController.HandleCommand(commons, eventDriver, argument);
-            });
+    eventDriver.Tick(commons, preAction: () => {
+            solarGyroController.HandleCommand(commons, eventDriver, argument);
+        },
+        postAction: () => {
+            solarGyroController.Display(commons);
+        });
 }

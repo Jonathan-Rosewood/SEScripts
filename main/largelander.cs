@@ -81,6 +81,12 @@ void Main(string argument)
             reactorManager.HandleCommand(commons, eventDriver, argument);
             solarGyroController.HandleCommand(commons, eventDriver, argument);
             HandleCommand(commons, eventDriver, argument);
+        },
+        postAction: () => {
+            solarGyroController.Display(commons);
+            damageControl.Display(commons);
+            cruiseControl.Display(commons);
+            vtvlHelper.Display(commons);
         });
 
     if (commons.IsDirty) Storage = myStorage.Encode();

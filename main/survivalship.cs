@@ -88,7 +88,10 @@ void Main(string argument)
             solarGyroController.HandleCommand(commons, eventDriver, argument);
         },
         postAction: () => {
+            solarGyroController.Display(commons);
             if (PRODUCTION_MANAGER_ENABLE) productionManager.Display(commons);
+            if (DAMAGE_CONTROL_ENABLE) damageControl.Display(commons);
+            cruiseControl.Display(commons);
         });
 
     if (commons.IsDirty) Storage = myStorage.Encode();

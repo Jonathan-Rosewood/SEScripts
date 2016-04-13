@@ -56,14 +56,18 @@ void Main(string argument)
         solarGyroController.ConditionalInit(commons, eventDriver, true);
     }
 
-    eventDriver.Tick(commons, preAction: () =>
-            {
-                reactorManager.HandleCommand(commons, eventDriver, argument);
-                damageControl.HandleCommand(commons, eventDriver, argument);
-                safeMode.HandleCommand(commons, eventDriver, argument);
-                cruiseControl.HandleCommand(commons, eventDriver, argument);
-                solarGyroController.HandleCommand(commons, eventDriver, argument);
-            });
+    eventDriver.Tick(commons, preAction: () => {
+            reactorManager.HandleCommand(commons, eventDriver, argument);
+            damageControl.HandleCommand(commons, eventDriver, argument);
+            safeMode.HandleCommand(commons, eventDriver, argument);
+            cruiseControl.HandleCommand(commons, eventDriver, argument);
+            solarGyroController.HandleCommand(commons, eventDriver, argument);
+        },
+        postAction: () => {
+            solarGyroController.Display(commons);
+            damageControl.Display(commons);
+            cruiseControl.Display(commons);
+        });
 
     if (commons.IsDirty) Storage = myStorage.Encode();
 }
