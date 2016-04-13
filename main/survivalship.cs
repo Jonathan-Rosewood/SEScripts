@@ -86,6 +86,9 @@ void Main(string argument)
             safeMode.HandleCommand(commons, eventDriver, argument);
             cruiseControl.HandleCommand(commons, eventDriver, argument);
             solarGyroController.HandleCommand(commons, eventDriver, argument);
+        },
+        postAction: () => {
+            if (PRODUCTION_MANAGER_ENABLE) productionManager.Display(commons);
         });
 
     if (commons.IsDirty) Storage = myStorage.Encode();

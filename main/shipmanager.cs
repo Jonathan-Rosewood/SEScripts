@@ -54,6 +54,9 @@ void Main(string argument)
             if (PRODUCTION_MANAGER_ENABLE) productionManager.HandleCommand(commons, eventDriver, argument);
             if (DAMAGE_CONTROL_ENABLE) damageControl.HandleCommand(commons, eventDriver, argument);
             if (REACTOR_MANAGER_ENABLE) reactorManager.HandleCommand(commons, eventDriver, argument);
+        },
+        postAction: () => {
+            if (PRODUCTION_MANAGER_ENABLE) productionManager.Display(commons);
         });
 
     if (commons.IsDirty) Storage = myStorage.Encode();

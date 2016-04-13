@@ -206,33 +206,21 @@ public class ProductionManager
             CurrentState = STATE_ACTIVE;
         }
 
-        eventDriver.Schedule(0.0, Run);
+        if (PRODUCTION_MANAGER_SETUP)
+        {
+            Setup(LIMIT_PRODUCTION_MANAGER_SAME_GRID ? commons.Blocks : commons.AllBlocks);
+        }
+        else if (CurrentState != STATE_INACTIVE)
+        {
+            eventDriver.Schedule(0.0, Run);
+        }
     }
 
     public void Run(ZACommons commons, EventDriver eventDriver)
     {
-        RunInternal(commons); // TODO Fix up state management and early returns
-        eventDriver.Schedule(RunDelay, Run);
-    }
-
-    private void RunInternal(ZACommons commons)
-    {
-        if (CurrentState == STATE_INACTIVE)
-        {
-            commons.Echo("Production Manager: Paused");
-            return;
-        }
+        if (CurrentState == STATE_INACTIVE) return;
 
         var ship = LIMIT_PRODUCTION_MANAGER_SAME_GRID ? commons.Blocks : commons.AllBlocks;
-
-        if (PRODUCTION_MANAGER_SETUP)
-        {
-            Setup(ship);
-            commons.Echo("Setup complete. Set PRODUCTION_MANAGER_SETUP to false to enable ProductionManager");
-            return;
-        }
-
-        commons.Echo("Production Manager: Active");
 
         var allowedSubtypes = new HashSet<string>();
         var assemblerTargets = new Dictionary<string, AssemblerTarget>();
@@ -290,6 +278,8 @@ public class ProductionManager
             }
             SetState(commons, STATE_INACTIVE);
         }
+
+        eventDriver.Schedule(RunDelay, Run);
     }
 
     public void HandleCommand(ZACommons commons, EventDriver eventDriver,
@@ -304,8 +294,25 @@ public class ProductionManager
                 SetState(commons, STATE_INACTIVATING);
                 break;
             case "prodresume":
-                SetState(commons, STATE_ACTIVE);
+                if (CurrentState != STATE_INACTIVE)
+                {
+                    SetState(commons, STATE_ACTIVE);
+                    if (!PRODUCTION_MANAGER_SETUP) eventDriver.Schedule(RunDelay, Run);
+                }
                 break;
+        }
+    }
+
+    public void Display(ZACommons commons)
+    {
+        if (PRODUCTION_MANAGER_SETUP)
+        {
+            commons.Echo("Setup complete. Set PRODUCTION_MANAGER_SETUP to false to enable ProductionManager");
+        }
+        else
+        {
+            commons.Echo("Production Manager: " +
+                         (CurrentState == STATE_INACTIVE ? "Paused" : "Active"));
         }
     }
 
