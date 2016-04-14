@@ -1,6 +1,9 @@
-//@ commons
+//@ commons solarhack
 public class SolarRotorController
 {
+    private const double RunDelay = 1.0;
+    private const string ActiveKey = "SolarRotorController_Active";
+
     public struct SolarPanelDetails
     {
         public float MaxPowerOutput;
@@ -17,28 +20,50 @@ public class SolarRotorController
 
                 if (panel != null && panel.IsFunctional && panel.IsWorking)
                 {
-                    MaxPowerOutput += panel.MaxPowerOutput;
-                    DefinedPowerOutput += panel.DefinedPowerOutput;
+                    var output = SolarHack.GetSolarPanelMaxOutput(panel);
+                    MaxPowerOutput += output != null ? (float)output : 0.0f;
+                    DefinedPowerOutput += panel.CubeGrid.GridSize == 2.5f ? 0.120f : 0.030f;
                 }
             }
         }
     }
 
-    private readonly Dictionary<string, float> maxPowers = new Dictionary<string, float>();
+    private readonly Dictionary<string, float> MaxPowers = new Dictionary<string, float>();
 
-    private IMyMotorStator GetRotor(IMyBlockGroup group)
+    private bool Active = false;
+    private float TotalPower;
+
+    public void Init(ZACommons commons, EventDriver eventDriver)
     {
-        var rotors = ZACommons.GetBlocksOfType<IMyMotorStator>(group.Blocks);
-        return rotors.Count == 1 ? rotors[0] : null;
+        Active = true;
+        SaveActive(commons);
+        MaxPowers.Clear();
+        TotalPower = 0.0f;
+        eventDriver.Schedule(0.0, Run);
     }
 
-    public void Run(ZACommons commons)
+    public void ConditionalInit(ZACommons commons, EventDriver eventDriver,
+                                bool defaultActive = false)
     {
+        var activeValue = commons.GetValue(ActiveKey);
+        if (activeValue != null)
+        {
+            bool active;
+            if (Boolean.TryParse(activeValue, out active))
+            {
+                if (active) Init(commons, eventDriver);
+                return;
+            }
+        }
+        if (defaultActive) Init(commons, eventDriver);
+    }
+
+    public void Run(ZACommons commons, EventDriver eventDriver)
+    {
+        if (!Active) return;
+
+        TotalPower = 0.0f;
         var solarGroups = commons.GetBlockGroupsWithPrefix(MAX_POWER_GROUP_PREFIX);
-        if (solarGroups.Count == 0) return; // Nothing to do
-
-        var totalPower = 0.0f;
-
         for (var e = solarGroups.GetEnumerator(); e.MoveNext();)
         {
             var group = e.Current;
@@ -59,34 +84,76 @@ public class SolarRotorController
             var currentMaxPower = solarPanelDetails.MaxPowerOutput;
 
             float maxPower;
-            if (!maxPowers.TryGetValue(group.Name, out maxPower)) maxPower = -100.0f;
+            if (!MaxPowers.TryGetValue(group.Name, out maxPower)) maxPower = -100.0f;
 
-            var minError = solarPanelDetails.DefinedPowerOutput * 0.005f; // From experimentation
+            var minError = solarPanelDetails.DefinedPowerOutput * SOLAR_ROTOR_MIN_ERROR;
             var delta = currentMaxPower - maxPower;
+            MaxPowers[group.Name] = currentMaxPower;
 
-            if (delta > minError || currentMaxPower < minError /* failsafe*/)
+            if (delta > minError || currentMaxPower < minError /* failsafe */)
             {
                 // Keep going
-                if (!rotor.Enabled) rotor.SetValue<bool>("OnOff", true);
-                maxPowers[group.Name] = currentMaxPower;
+                rotor.SetValue<bool>("OnOff", true);
             }
             else if (delta < -minError)
             {
                 // Back up
-                if (!rotor.Enabled) rotor.SetValue<bool>("OnOff", true);
+                rotor.SetValue<bool>("OnOff", true);
                 rotor.ApplyAction("Reverse");
-                maxPowers[group.Name] = currentMaxPower;
             }
             else
             {
                 // Hold still for a moment
-                if (rotor.Enabled) rotor.SetValue<bool>("OnOff", false);
-                // Note, we don't save current max power
+                rotor.SetValue<bool>("OnOff", false);
             }
 
-            totalPower += currentMaxPower;
+            TotalPower += currentMaxPower;
         }
 
-        commons.Echo(string.Format("Solar Max Power: {0}", ZACommons.FormatPower(totalPower)));
+        eventDriver.Schedule(RunDelay, Run);
+    }
+
+    public void HandleCommand(ZACommons commons, EventDriver eventDriver,
+                              string argument)
+    {
+        // Handle commands
+        argument = argument.Trim().ToLower();
+        if (argument == "pause")
+        {
+            Active = false;
+            SaveActive(commons);
+            var solarGroups = commons.GetBlockGroupsWithPrefix(MAX_POWER_GROUP_PREFIX);
+            solarGroups.ForEach(group => {
+                    var rotor = GetRotor(group);
+                    if (rotor != null) rotor.SetValue<bool>("OnOff", false);
+                });
+        }
+        else if (argument == "resume")
+        {
+            if (!Active) Init(commons, eventDriver);
+        }
+    }
+
+    public void Display(ZACommons commons)
+    {
+        if (Active)
+        {
+            commons.Echo(string.Format("Solar Max Power: {0}", ZACommons.FormatPower(TotalPower)));
+        }
+        else
+        {
+            commons.Echo("Solar Max Power: Paused");
+        }
+    }
+
+    private IMyMotorStator GetRotor(IMyBlockGroup group)
+    {
+        var rotors = ZACommons.GetBlocksOfType<IMyMotorStator>(group.Blocks);
+        return rotors.Count == 1 ? (IMyMotorStator)rotors[0] : null;
+    }
+
+    private void SaveActive(ZACommons commons)
+    {
+        commons.SetValue(ActiveKey, Active.ToString());
     }
 }
