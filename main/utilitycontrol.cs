@@ -69,6 +69,7 @@ void Main(string argument)
             cruiseControl.Display(commons);
             vtvlHelper.Display(commons);
             smartUndock.Display(commons);
+            Display(commons);
         });
 
     if (commons.IsDirty) Storage = myStorage.Encode();
@@ -84,6 +85,7 @@ void HandleCommand(ZACommons commons, string argument)
         if (argument == "first")
         {
             first = new Rangefinder.LineSample(reference);
+            rangefinderResult.Clear();
         }
         else if (argument == "second")
         {
@@ -136,8 +138,6 @@ void HandleCommand(ZACommons commons, string argument)
             }
         }
     }
-
-    commons.Echo(rangefinderResult.ToString());
 }
 
 void RangefinderAction(ZACommons commons, Vector3D target)
@@ -195,4 +195,9 @@ private IMyCubeBlock GetReference(ZACommons commons)
         throw new Exception("Expecting at least 1 block on the same grid: " + RANGEFINDER_REFERENCE_GROUP);
     }
     return references[0];
+}
+
+private void Display(ZACommons commons)
+{
+    commons.Echo(rangefinderResult.ToString());
 }
