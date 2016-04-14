@@ -4,15 +4,24 @@ public class SmartUndock
     private const uint FramesPerRun = 2;
     private const double RunsPerSecond = 60.0 / FramesPerRun;
     private const string UndockTargetKey = "SmartUndock_UndockTarget";
+    private const string ModeKey = "SmartUndock_Mode";
+    private const string BackwardKey = "SmartUndock_Backward";
 
     private readonly YawPitchAutopilot autopilot = new YawPitchAutopilot();
     private readonly Seeker seeker = new Seeker(1.0 / RunsPerSecond);
 
     private Vector3D? UndockTarget = null;
     private Vector3D UndockForward, UndockUp;
-    private bool Reorienting = false;
+    private Base6Directions.Direction? UndockBackward = null;
 
-    public void Init(ZACommons commons)
+    private const int IDLE = 0;
+    private const int UNDOCKING = 1;
+    private const int RETURNING = 2;
+    private const int ORIENTING = 3;
+
+    private int Mode = IDLE;
+
+    public void Init(ZACommons commons, EventDriver eventDriver)
     {
         UndockTarget = null;
         var previousTarget = commons.GetValue(UndockTargetKey);
@@ -31,6 +40,50 @@ public class SmartUndock
                     UndockUp.SetDim(i, double.Parse(parts[6+i]));
                 }
                 UndockTarget = newTarget; // Set only if all successfully parsed
+            }
+        }
+
+        UndockBackward = null;
+        var backwardString = commons.GetValue(BackwardKey);
+        if (backwardString != null)
+        {
+            // Enum.Parse apparently works, but I don't trust Keen
+            // not breaking it in the future (by making typeof() illegal)
+            //UndockBackward = (Base6Directions.Direction)Enum.Parse(typeof(Base6Directions.Direction), backwardString);
+            UndockBackward = (Base6Directions.Direction)byte.Parse(backwardString);
+        }
+
+        Mode = IDLE;
+        var modeString = commons.GetValue(ModeKey);
+        if (modeString != null)
+        {
+            Mode = int.Parse(modeString);
+
+            switch (Mode)
+            {
+                case IDLE:
+                    break;
+                case UNDOCKING:
+                    if (UndockTarget != null && UndockBackward != null)
+                    {
+                        BeginUndock(commons, eventDriver);
+                    }
+                    else ResetMode(commons);
+                    break;
+                case RETURNING:
+                    if (UndockTarget != null)
+                    {
+                        BeginReturn(commons, eventDriver);
+                    }
+                    else ResetMode(commons);
+                    break;
+                case ORIENTING:
+                    if (UndockTarget != null)
+                    {
+                        ReorientStart(commons, eventDriver);
+                    }
+                    else ResetMode(commons);
+                    break;
             }
         }
     }
@@ -59,6 +112,7 @@ public class SmartUndock
             }
 
             UndockTarget = null;
+            UndockBackward = null;
             if (connected != null)
             {
                 // Undock in the forward direction of the *other* connector
@@ -75,12 +129,10 @@ public class SmartUndock
                 UndockUp = shipControl.ReferenceUp;
 
                 // Schedule the autopilot
-                var backward = connected.Orientation.TransformDirection(Base6Directions.Direction.Backward);
-                autopilot.Init(commons, eventDriver, (Vector3D)UndockTarget,
-                               SMART_UNDOCK_UNDOCK_SPEED,
-                               delay: 2.0,
-                               localForward: shipControl.ShipBlockOrientation.TransformDirectionInverse(backward));
-                Reorienting = false;
+                UndockBackward = connected.Orientation.TransformDirection(Base6Directions.Direction.Backward);
+                BeginUndock(commons, eventDriver);
+                Mode = UNDOCKING;
+                SaveMode(commons);
             }
             SaveUndockTarget(commons);
 
@@ -111,20 +163,15 @@ public class SmartUndock
             // No target, no RTB
             if (UndockTarget == null) return;
 
-            var shipControl = (ShipControlCommons)commons;
-
             // Schedule the autopilot
-            autopilot.Init(commons, eventDriver, (Vector3D)UndockTarget,
-                           SMART_UNDOCK_RTB_SPEED, doneAction: (c,ed) =>
-                                   {
-                                       ReorientStart(c, ed);
-                                   });
-            Reorienting = false;
+            BeginReturn(commons, eventDriver);
+            Mode = RETURNING;
+            SaveMode(commons);
         }
         else if (argument == "smartreset")
         {
             autopilot.Reset(commons);
-            Reorienting = false;
+            ResetMode(commons);
         }
     }
 
@@ -137,13 +184,15 @@ public class SmartUndock
 
         shipControl.Reset(gyroOverride: true, thrusterEnable: null);
 
-        Reorienting = true;
+        Mode = ORIENTING;
+        SaveMode(commons);
+
         eventDriver.Schedule(0, Reorient);
     }
 
     public void Reorient(ZACommons commons, EventDriver eventDriver)
     {
-        if (!Reorienting) return;
+        if (Mode != ORIENTING) return;
 
         var shipControl = (ShipControlCommons)commons;
         double yawError, pitchError, rollError;
@@ -154,12 +203,60 @@ public class SmartUndock
         {
             // All done
             shipControl.Reset(gyroOverride: false, thrusterEnable: null);
-            Reorienting = false;
+            ResetMode(commons);
         }
         else
         {
             eventDriver.Schedule(FramesPerRun, Reorient);
         }
+    }
+
+    public void Display(ZACommons commons)
+    {
+        switch (Mode)
+        {
+            case IDLE:
+                break;
+            case UNDOCKING:
+                commons.Echo("SmartUndock: Undocking");
+                break;
+            case RETURNING:
+                commons.Echo("SmartUndock: Returning");
+                break;
+            case ORIENTING:
+                commons.Echo("SmartUndock: Orienting");
+                break;
+        }
+    }
+
+    private void BeginUndock(ZACommons commons, EventDriver eventDriver)
+    {
+        var shipControl = (ShipControlCommons)commons;
+        autopilot.Init(commons, eventDriver, (Vector3D)UndockTarget,
+                       SMART_UNDOCK_UNDOCK_SPEED,
+                       delay: 2.0,
+                       localForward: shipControl.ShipBlockOrientation.TransformDirectionInverse((Base6Directions.Direction)UndockBackward),
+                       doneAction: (c,ed) => {
+                           ResetMode(c);
+                       });
+    }
+
+    private void BeginReturn(ZACommons commons, EventDriver eventDriver)
+    {
+        autopilot.Init(commons, eventDriver, (Vector3D)UndockTarget,
+                       SMART_UNDOCK_RTB_SPEED,
+                       doneAction: ReorientStart);
+    }
+
+    private void ResetMode(ZACommons commons)
+    {
+        Mode = IDLE;
+        SaveMode(commons);
+    }
+
+    private void SaveMode(ZACommons commons)
+    {
+        commons.SetValue(ModeKey, Mode.ToString());
     }
 
     private void SaveUndockTarget(ZACommons commons)
@@ -179,5 +276,12 @@ public class SmartUndock
                                   UndockUp.GetDim(2));
         }
         commons.SetValue(UndockTargetKey, value);
+
+        value = null;
+        if (UndockBackward != null)
+        {
+            value = ((byte)UndockBackward).ToString();
+        }
+        commons.SetValue(BackwardKey, value);
     }
 }

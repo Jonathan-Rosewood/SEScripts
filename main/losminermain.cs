@@ -45,7 +45,7 @@ void Main(string argument)
         dockingManager.Init(commons, eventDriver, safeMode,
                             new BatteryMonitor(),
                             new RedundancyManager());
-        smartUndock.Init(commons);
+        smartUndock.Init(commons, eventDriver);
         minerController.Init(commons, eventDriver);
         cruiseControl.Init(commons, eventDriver, LivenessCheck);
         vtvlHelper.Init(commons, eventDriver, LivenessCheck);
@@ -67,6 +67,7 @@ void Main(string argument)
             damageControl.Display(commons);
             cruiseControl.Display(commons);
             vtvlHelper.Display(commons);
+            smartUndock.Display(commons);
         });
 
     if (commons.IsDirty) Storage = myStorage.Encode();

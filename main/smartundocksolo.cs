@@ -21,11 +21,14 @@ void Main(string argument)
 
         shipOrientation.SetShipReference(commons, "SmartUndockReference");
 
-        smartUndock.Init(commons);
+        smartUndock.Init(commons, eventDriver);
     }
 
     eventDriver.Tick(commons, preAction: () => {
             smartUndock.HandleCommand(commons, eventDriver, argument);
+        },
+        postAction: () => {
+            smartUndock.Display(commons);
         });
 
     if (commons.IsDirty) Storage = myStorage.Encode();

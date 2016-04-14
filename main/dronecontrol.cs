@@ -40,7 +40,7 @@ void Main(string argument)
         dockingManager.Init(commons, eventDriver, safeMode,
                             new BatteryMonitor(),
                             new RedundancyManager());
-        smartUndock.Init(commons);
+        smartUndock.Init(commons, eventDriver);
     }
 
     eventDriver.Tick(commons, preAction: () => {
@@ -50,6 +50,9 @@ void Main(string argument)
                     {
                         dockingManager.ManageShip(commons, eventDriver, false);
                     });
+        },
+        postAction: () => {
+            smartUndock.Display(commons);
         });
 
     if (commons.IsDirty) Storage = myStorage.Encode();
