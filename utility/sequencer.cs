@@ -66,6 +66,14 @@ public class Sequencer
         eventDriver.Schedule(SEQUENCER_FRAMES_PER_RUN, Run);
     }
 
+    public void Display(ZACommons commons)
+    {
+        if (Indexes.Count > 0)
+        {
+            commons.Echo("Sequencer active: " + string.Join(", ", Indexes.Keys));
+        }
+    }
+
     private List<IMyTerminalBlock> GetSequenceBlocks(ZACommons commons,
                                                      string sequence)
     {

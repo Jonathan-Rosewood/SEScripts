@@ -62,6 +62,7 @@ void Main(string argument)
         postAction: () => {
             damageControl.Display(commons);
             cruiseControl.Display(commons);
+            sequencer.Display(commons);
         });
 
     if (commons.IsDirty) Storage = myStorage.Encode();
