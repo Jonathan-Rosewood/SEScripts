@@ -4,7 +4,7 @@ public class DoorAutoCloser
     private const double RunDelay = 1.0;
 
     // Yeah, not sure if it's a good idea to hold references between invocations...
-    private readonly Dictionary<IMyDoor, DateTime> opened = new Dictionary<IMyDoor, DateTime>();
+    private readonly Dictionary<IMyDoor, TimeSpan> opened = new Dictionary<IMyDoor, TimeSpan>();
 
     public void Init(ZACommons commons, EventDriver eventDriver)
     {
@@ -19,17 +19,16 @@ public class DoorAutoCloser
                                       block.CustomName.IndexOf("[Excluded]", ZACommons.IGNORE_CASE) < 0 &&
                                       block.DefinitionDisplayNameText != "Airtight Hangar Door");
 
-        var closeTime = commons.Now - MAX_DOOR_OPEN_TIME;
         for (var e = doors.GetEnumerator(); e.MoveNext();)
         {
             var door = (IMyDoor)e.Current;
 
             if (door.Open)
             {
-                DateTime openTime;
-                if (opened.TryGetValue(door, out openTime))
+                TimeSpan closeTime;
+                if (opened.TryGetValue(door, out closeTime))
                 {
-                    if (openTime <= closeTime)
+                    if (closeTime <= eventDriver.TimeSinceStart)
                     {
                         // Time to close it
                         door.SetValue<bool>("Open", false);
@@ -38,7 +37,7 @@ public class DoorAutoCloser
                 }
                 else
                 {
-                    opened.Add(door, commons.Now);
+                    opened.Add(door, eventDriver.TimeSinceStart + MAX_DOOR_OPEN_TIME);
                 }
             }
             else

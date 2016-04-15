@@ -10,8 +10,6 @@ public class ZACommons
     private readonly ZAStorage Storage;
     public bool IsDirty { get; private set; }
 
-    public DateTime Now { get; private set; }
-
     // All accessible blocks
     public List<IMyTerminalBlock> AllBlocks
     {
@@ -98,7 +96,6 @@ public class ZACommons
         ShipGroupName = shipGroup;
         Storage = storage;
         IsDirty = false;
-        Now = DateTime.UtcNow;
     }
 
     // Groups

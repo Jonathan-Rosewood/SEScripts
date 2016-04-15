@@ -36,6 +36,9 @@ public class EventDriver
     }
 
     private const ulong TicksPerSecond = 60;
+    // Time events trigger half a frame earlier
+    // Avoid problems with accumulating time when running on Trigger Now
+    private readonly TimeSpan TIMESPAN_FUDGE = TimeSpan.FromMilliseconds(500.0 / TicksPerSecond);
 
     // Why is there no standard priority queue implementation?
     private readonly LinkedList<FutureTickAction> TickQueue = new LinkedList<FutureTickAction>();
@@ -43,7 +46,6 @@ public class EventDriver
     private readonly string TimerName, TimerGroup;
     private ulong Ticks; // Not a reliable measure of time because of variable timer delay.
 
-    private DateTime LastTimeRun;
     public TimeSpan TimeSinceStart { get; private set; }
 
     // If neither timerName nor timerGroup are given, it's assumed the timer will kick itself
@@ -54,7 +56,6 @@ public class EventDriver
         TimerName = timerName;
         TimerGroup = timerGroup;
 
-        LastTimeRun = DateTime.UtcNow;
         TimeSinceStart = TimeSpan.FromSeconds(0);
     }
 
@@ -113,8 +114,7 @@ public class EventDriver
                      Action postAction = null)
     {
         Ticks++;
-        TimeSinceStart += (commons.Now - LastTimeRun);
-        LastTimeRun = commons.Now;
+        TimeSinceStart += commons.Program.Runtime.TimeSinceLastRun;
 
         bool runMain = false;
 
@@ -180,7 +180,7 @@ public class EventDriver
     {
         var delay = Math.Max(seconds, 0.0);
 
-        var future = new FutureTimeAction(TimeSinceStart + TimeSpan.FromSeconds(delay), action);
+        var future = new FutureTimeAction(TimeSinceStart + TimeSpan.FromSeconds(delay) - TIMESPAN_FUDGE, action);
         for (var current = TimeQueue.First;
              current != null;
              current = current.Next)

@@ -36,7 +36,7 @@ public class SolarGyroController
     private float? MaxPower = null;
     private int AxisIndex = 0;
     private bool Active = false;
-    private DateTime TimeOnAxis;
+    private TimeSpan TimeOnAxis;
     private float CurrentMaxPower;
     
     public SolarGyroController(params int[] allowedAxes)
@@ -94,7 +94,7 @@ public class SolarGyroController
             gyroControl.Reset();
             gyroControl.EnableOverride(true);
             gyroControl.SetAxisVelocity(currentAxis, LastVelocities[AxisIndex]);
-            TimeOnAxis = commons.Now;
+            TimeOnAxis = eventDriver.TimeSinceStart + AxisTimeout;
         }
 
         var solarPanelDetails = new SolarPanelDetails(commons.Blocks);
@@ -122,9 +122,7 @@ public class SolarGyroController
             gyroControl.EnableOverride(false);
         }
 
-        var changeTime = commons.Now - AxisTimeout;
-
-        if (TimeOnAxis < changeTime && MaxPower < solarPanelDetails.DefinedPowerOutput * (1.0f - SOLAR_GYRO_MIN_ERROR))
+        if (TimeOnAxis <= eventDriver.TimeSinceStart && MaxPower < solarPanelDetails.DefinedPowerOutput * (1.0f - SOLAR_GYRO_MIN_ERROR))
         {
             // Time out, try next axis
             AxisIndex++;
@@ -133,7 +131,7 @@ public class SolarGyroController
             gyroControl.Reset();
             gyroControl.EnableOverride(true);
             gyroControl.SetAxisVelocity(AllowedAxes[AxisIndex], LastVelocities[AxisIndex]);
-            TimeOnAxis = commons.Now;
+            TimeOnAxis = eventDriver.TimeSinceStart + AxisTimeout;
         }
 
         eventDriver.Schedule(RunDelay, Run);

@@ -20,7 +20,7 @@ public class LOSGuidance
     private const double FULL_BURN_DISTANCE = 10.0; // Meters
     private readonly TimeSpan FULL_BURN_TRIGGER_TIME = TimeSpan.FromSeconds(3);
     private bool FullBurn = false;
-    private DateTime FullBurnTriggerLast;
+    private TimeSpan FullBurnTriggerLast;
 
     public LOSGuidance()
     {
@@ -67,7 +67,7 @@ public class LOSGuidance
                     shipUp: shipControl.ShipUp,
                     shipForward: shipControl.ShipForward);
 
-        FullBurnTriggerLast = commons.Now;
+        FullBurnTriggerLast = eventDriver.TimeSinceStart;
 
         eventDriver.Schedule(0, Run);
     }
@@ -111,7 +111,7 @@ public class LOSGuidance
         {
             if (launcherRej.Length() <= FULL_BURN_DISTANCE)
             {
-                var triggerTime = commons.Now - FULL_BURN_TRIGGER_TIME;
+                var triggerTime = eventDriver.TimeSinceStart - FULL_BURN_TRIGGER_TIME;
                 if (FullBurnTriggerLast <= triggerTime)
                 {
                     FullBurn = true;
@@ -128,7 +128,7 @@ public class LOSGuidance
             else
             {
                 // Reset trigger timer
-                FullBurnTriggerLast = commons.Now;
+                FullBurnTriggerLast = eventDriver.TimeSinceStart;
 
                 // Maintain maneuvering velocity
                 Maneuver(commons, eventDriver);

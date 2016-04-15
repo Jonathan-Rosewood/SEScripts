@@ -10,13 +10,13 @@ public class SafeMode : DockingHandler
 
     private bool? IsControlled = null;
     private bool IsDocked = true;
-    private DateTime LastControlled;
+    private TimeSpan AbandonedTime;
     public bool Abandoned { get; private set; }
 
     public SafeMode(params SafeModeHandler[] safeModeHandlers)
     {
         SafeModeHandlers = safeModeHandlers;
-        LastControlled = DateTime.UtcNow;
+        AbandonedTime = AbandonmentTimeout;
         Abandoned = false;
     }
 
@@ -33,7 +33,7 @@ public class SafeMode : DockingHandler
         {
             IsControlled = null;
 
-            ResetAbandonment(commons);
+            ResetAbandonment(eventDriver);
 
             IsDocked = false;
             eventDriver.Schedule(FastRunDelay, Fast);
@@ -45,7 +45,7 @@ public class SafeMode : DockingHandler
     {
         IsControlled = null;
 
-        ResetAbandonment(commons);
+        ResetAbandonment(eventDriver);
 
         IsDocked = false;
         eventDriver.Schedule(0.0, Fast);
@@ -97,22 +97,20 @@ public class SafeMode : DockingHandler
             }
         }
 
-        if (currentState) ResetAbandonment(commons);
+        if (currentState) ResetAbandonment(eventDriver);
 
         if (ABANDONMENT_ENABLED)
         {
             // Abandonment check
             if (!Abandoned && !currentState)
             {
-                var abandonTime = commons.Now - AbandonmentTimeout;
-
-                if (LastControlled <= abandonTime)
+                if (AbandonedTime <= eventDriver.TimeSinceStart)
                 {
                     TriggerSafeMode(commons, eventDriver);
                 }
             }
-            // commons.Echo("Timeout: " + AbandonmentTimeout);
-            // commons.Echo("Last Controlled: " + LastControlled);
+            //commons.Echo("AbandonedTime:  " + AbandonedTime);
+            //commons.Echo("TimeSinceStart: " + eventDriver.TimeSinceStart);
         }
 
         eventDriver.Schedule(FastRunDelay, Fast);
@@ -191,9 +189,9 @@ public class SafeMode : DockingHandler
         return false;
     }
 
-    private void ResetAbandonment(ZACommons commons)
+    private void ResetAbandonment(EventDriver eventDriver)
     {
-        LastControlled = commons.Now;
+        AbandonedTime = eventDriver.TimeSinceStart + AbandonmentTimeout;
         Abandoned = false;
     }
 
