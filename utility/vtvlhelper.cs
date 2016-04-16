@@ -15,6 +15,7 @@ public class VTVLHelper
     private const int BRAKING = 3;
     private const int APPROACHING = 4;
     private const int LAUNCHING = 5;
+    private const int ORBITING = 6;
 
     private int Mode = IDLE;
     private Func<IMyThrust, bool> ThrusterCondition = null;
@@ -27,6 +28,11 @@ public class VTVLHelper
     private Func<ZACommons, EventDriver, bool> LivenessCheck = null;
 
     private double Distance, DistanceToStop;
+
+    // Multiply by FramesPerRun to get real frame delay
+    private const uint OrbitOnDelay = 5;
+    private const uint OrbitOffDelay = 85;
+    private ulong OrbitTicks = 0;
 
     public void Init(ZACommons commons, EventDriver eventDriver,
                      Func<ZACommons, EventDriver, bool> livenessCheck = null)
@@ -155,6 +161,29 @@ public class VTVLHelper
                      subcommand == "reset")
             {
                 Reset(shipControl);
+            }
+        }
+        else if (command == "orbit")
+        {
+            var shipControl = (ShipControlCommons)commons;
+
+            if (subcommand == "start")
+            {
+                OrbitInit(shipControl);
+
+                if (Mode != ORBITING)
+                {
+                    OrbitTicks = 0;
+                    Mode = ORBITING;
+                    eventDriver.Schedule(0, OrbitOn);
+                }
+
+                SaveLastCommand(commons, argument);
+            }
+            else if (subcommand == "abort" || subcommand == "stop" ||
+                     subcommand == "reset")
+            {
+                ResetOrbit(shipControl);
             }
         }
     }
@@ -330,6 +359,61 @@ public class VTVLHelper
         }
     }
 
+    private void OrbitInit(ShipControlCommons shipControl)
+    {
+        // Don't touch thrusters at all
+        shipControl.GyroControl.Reset();
+        shipControl.GyroControl.EnableOverride(true);
+        var forward = shipControl.ShipBlockOrientation.TransformDirection(VTVLHELPER_ORBIT_DIRECTION);
+        seeker.Init(shipControl,
+                    shipUp: Base6Directions.GetPerpendicular(forward),
+                    shipForward: forward);
+    }
+
+    public void OrbitOn(ZACommons commons, EventDriver eventDriver)
+    {
+        if (Mode != ORBITING) return;
+        var shipControl = (ShipControlCommons)commons;
+
+        var remote = GetRemoteControl(commons);
+        var gravity = remote.GetNaturalGravity();
+        var accel = gravity.Normalize();
+        if (accel > 0.0)
+        {
+            double yawError, pitchError;
+            seeker.Seek(shipControl, gravity, out yawError, out pitchError);
+
+            OrbitTicks++;
+            if (OrbitTicks >= OrbitOnDelay)
+            {
+                // Switch off
+                shipControl.GyroControl.Reset();
+                shipControl.GyroControl.EnableOverride(false);
+                eventDriver.Schedule(OrbitOffDelay, OrbitOff);
+            }
+            else
+            {
+                eventDriver.Schedule(FramesPerRun, OrbitOn);
+            }
+        }
+        else
+        {
+            // Out of gravity
+            ResetOrbit(shipControl);
+        }
+    }
+
+    public void OrbitOff(ZACommons commons, EventDriver eventDriver)
+    {
+        if (Mode != ORBITING) return;
+        var shipControl = (ShipControlCommons)commons;
+
+        // Switch on
+        OrbitInit(shipControl);
+        OrbitTicks = 0;
+        eventDriver.Schedule(FramesPerRun, OrbitOn);
+    }
+
     public void Display(ZACommons commons)
     {
         switch (Mode)
@@ -354,6 +438,9 @@ public class VTVLHelper
             case LAUNCHING:
                 commons.Echo("VTVL: Launching");
                 break;
+            case ORBITING:
+                commons.Echo("VTVL: Orbiting");
+                break;
         }
     }
 
@@ -361,6 +448,17 @@ public class VTVLHelper
     {
         shipControl.Reset(gyroOverride: false, thrusterEnable: true,
                           thrusterCondition: ThrusterCondition);
+        Mode = IDLE;
+
+        SaveLastCommand(shipControl, null);
+    }
+
+    private void ResetOrbit(ShipControlCommons shipControl)
+    {
+        var gyroControl = shipControl.GyroControl;
+        gyroControl.Reset();
+        gyroControl.EnableOverride(false);
+
         Mode = IDLE;
 
         SaveLastCommand(shipControl, null);
