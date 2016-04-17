@@ -50,6 +50,7 @@ void Main(string argument)
         smartUndock.Init(commons, eventDriver);
         cruiseControl.Init(commons, eventDriver, LivenessCheck);
         vtvlHelper.Init(commons, eventDriver, LivenessCheck);
+        damageControl.Init(commons, eventDriver);
     }
 
     eventDriver.Tick(commons, preAction: () => {

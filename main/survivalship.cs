@@ -70,6 +70,7 @@ void Main(string argument)
         if (TIMER_KICKER_ENABLE) timerKicker.Init(commons, eventDriver);
         if (REDUNDANCY_MANAGER_ENABLE) redundancyManager.Init(commons, eventDriver);
         if (DOCKING_ACTION_ENABLE) dockingAction.Init(commons, eventDriver);
+        if (DAMAGE_CONTROL_ENABLE) damageControl.Init(commons, eventDriver);
         if (REACTOR_MANAGER_ENABLE) reactorManager.Init(commons, eventDriver);
 
         safeMode.Init(commons, eventDriver);

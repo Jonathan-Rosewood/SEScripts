@@ -2,9 +2,34 @@
 public class DamageControl
 {
     private const double RunDelay = 3.0;
+    private const string ModeKey = "DamageConrol_Mode";
 
-    private bool Active = false;
-    private bool Auto = false;
+    private const int IDLE = 0;
+    private const int ACTIVE = 1;
+    private const int AUTO = 2;
+
+    private int Mode = IDLE;
+
+    public void Init(ZACommons commons, EventDriver eventDriver)
+    {
+        Mode = IDLE;
+        var modeString = commons.GetValue(ModeKey);
+        if (modeString != null)
+        {
+            Mode = int.Parse(modeString);
+            switch (Mode)
+            {
+                case IDLE:
+                    break;
+                case ACTIVE:
+                    Start(commons, eventDriver, false);
+                    break;
+                case AUTO:
+                    Start(commons, eventDriver, true);
+                    break;
+            }
+        }
+    }
 
     public void HandleCommand(ZACommons commons, EventDriver eventDriver,
                               string argument)
@@ -22,11 +47,11 @@ public class DamageControl
                 commons.AllBlocks.ForEach(block => {
                         if (block.GetProperty("ShowOnHUD") != null) block.SetValue<bool>("ShowOnHUD", false);
                     });
-                Active = false;
+                ResetMode(commons);
                 break;
             case "show":
                 Show(commons);
-                Active = false;
+                ResetMode(commons);
                 break;
             case "start":
                 Start(commons, eventDriver, false);
@@ -39,25 +64,29 @@ public class DamageControl
 
     private void Start(ZACommons commons, EventDriver eventDriver, bool auto)
     {
-        Auto = auto;
         Show(commons);
-        if (!Active)
-        {
-            Active = true;
-            eventDriver.Schedule(RunDelay, Run);
-        }
+        if (Mode == IDLE) eventDriver.Schedule(RunDelay, Run);
+        Mode = auto ? AUTO : ACTIVE;
+        SaveMode(commons);
     }
 
     public void Run(ZACommons commons, EventDriver eventDriver)
     {
-        if (!Active) return;
-        Active = Show(commons) > 0 || !Auto;
-        eventDriver.Schedule(RunDelay, Run);
+        if (Mode == IDLE) return;
+        var damaged = Show(commons) > 0;
+        if (Mode == ACTIVE || damaged)
+        {
+            eventDriver.Schedule(RunDelay, Run);
+        }
+        else
+        {
+            ResetMode(commons);
+        }
     }
 
     public void Display(ZACommons commons)
     {
-        if (Active)
+        if (Mode != IDLE)
         {
             commons.Echo("Damage Control: Active");
         }
@@ -77,5 +106,16 @@ public class DamageControl
                 }
             });
         return count;
+    }
+
+    private void ResetMode(ZACommons commons)
+    {
+        Mode = IDLE;
+        SaveMode(commons);
+    }
+
+    private void SaveMode(ZACommons commons)
+    {
+        commons.SetValue(ModeKey, Mode.ToString());
     }
 }

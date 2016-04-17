@@ -25,6 +25,7 @@ void Main(string argument)
                             new BatteryMonitor(),
                             new RedundancyManager(),
                             new ManageRover());
+        damageControl.Init(commons, eventDriver);
     }
 
     eventDriver.Tick(commons, preAction: () => {

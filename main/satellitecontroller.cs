@@ -74,6 +74,7 @@ void Main(string argument)
         redundancyManager.Init(commons, eventDriver);
         reactorManager.Init(commons, eventDriver);
         solarGyroController.Init(commons, eventDriver);
+        damageControl.Init(commons, eventDriver);
     }
 
     eventDriver.Tick(commons, preAction: () => {

@@ -47,6 +47,7 @@ void Main(string argument)
         simpleAirlock.Init(commons, eventDriver);
         oxygenManager.Init(commons, eventDriver);
         redundancyManager.Init(commons, eventDriver);
+        damageControl.Init(commons, eventDriver);
         safeMode.Init(commons, eventDriver);
         cruiseControl.Init(commons, eventDriver, LivenessCheck);
         speedAction.Init(commons, eventDriver);

@@ -54,6 +54,7 @@ void Main(string argument)
         safeMode.Init(commons, eventDriver);
         cruiseControl.Init(commons, eventDriver, LivenessCheck);
         solarGyroController.ConditionalInit(commons, eventDriver, true);
+        damageControl.Init(commons, eventDriver);
     }
 
     eventDriver.Tick(commons, preAction: () => {

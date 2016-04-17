@@ -71,6 +71,7 @@ void Main(string argument)
         if (AIR_VENT_MANAGER_ENABLE) airVentManager.Init(commons, eventDriver);
         cruiseControl.Init(commons, eventDriver, LivenessCheck);
         vtvlHelper.Init(commons, eventDriver, LivenessCheck);
+        damageControl.Init(commons, eventDriver);
     }
 
     eventDriver.Tick(commons, preAction: () => {
