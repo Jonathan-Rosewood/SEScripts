@@ -307,7 +307,7 @@ public class VTVLHelper
             seeker.Seek(shipControl, gravity, out yawError, out pitchError);
 
             Distance = (remote.GetPosition() - TargetCenter).Length();
-            if (Distance <= TargetRadius || remote.IsUnderControl)
+            if (Distance <= TargetRadius)
             {
                 // All done. Re-enable thrusters and restore control.
                 Reset(shipControl);
