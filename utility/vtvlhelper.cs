@@ -21,6 +21,7 @@ public class VTVLHelper
     private Func<IMyThrust, bool> ThrusterCondition = null;
 
     private bool Autodrop = false;
+    private string TargetLabel;
     private Vector3D TargetCenter;
     private double TargetRadius, BrakingRadius;
     private Func<IMyThrust, bool> AutoThrusterCondition = null;
@@ -422,18 +423,24 @@ public class VTVLHelper
                 break;
             case BURNING:
                 commons.Echo("VTVL: Burn phase");
+                if (Autodrop) commons.Echo("Target: " + TargetLabel);
                 break;
             case GLIDING:
                 commons.Echo("VTVL: Glide phase");
-                if (Autodrop) commons.Echo(string.Format("Distance: {0:F2} m", Distance));
+                if (Autodrop)
+                {
+                    commons.Echo("Target: " + TargetLabel);
+                    commons.Echo(string.Format("Center Distance: {0:F2} m", Distance));
+                }
                 break;
             case BRAKING:
                 commons.Echo("VTVL: Braking");
                 break;
             case APPROACHING:
                 commons.Echo("VTVL: Approach phase");
-                commons.Echo(string.Format("Distance: {0:F2} m", Distance));
-                commons.Echo(string.Format("Target: {0:F2} m", DistanceToStop));
+                commons.Echo("Target: " + TargetLabel);
+                commons.Echo(string.Format("Center Distance: {0:F2} m", Distance));
+                commons.Echo(string.Format("Stopping Distance: {0:F2} m", DistanceToStop));
                 break;
             case LAUNCHING:
                 commons.Echo("VTVL: Launching");
@@ -517,13 +524,16 @@ public class VTVLHelper
         var targetString = panel.GetPublicText();
 
         // Parse target info
-        var parts = targetString.Split(';');
-        if (parts.Length != 4) return false;
+        var lines = targetString.Split('\n');
+        if (lines.Length < 1) return false;
+        var parts = lines[0].Split(';');
+        if (parts.Length != 5) return false;
+        TargetLabel = parts[0];
         TargetCenter = new Vector3D();
         for (int i = 0; i < 3; i++)
         {
             double val;
-            if (double.TryParse(parts[i], out val))
+            if (double.TryParse(parts[1+i], out val))
             {
                 TargetCenter.SetDim(i, val);
             }
@@ -532,7 +542,7 @@ public class VTVLHelper
                 return false;
             }
         }
-        return double.TryParse(parts[3], out TargetRadius);
+        return double.TryParse(parts[4], out TargetRadius);
     }
 
     private bool ShouldAbort(ZACommons commons, EventDriver eventDriver,

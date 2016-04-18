@@ -1,7 +1,7 @@
 //! Utility Controller
 //@ shipcontrol eventdriver dockingmanager safemode smartundock
 //@ batterymonitor redundancy emergencystop
-//@ cruisecontrol vtvlhelper damagecontrol rangefinder
+//@ cruisecontrol vtvlhelper damagecontrol rangefinder gravitysurveyor
 public class MySafeModeHandler : SafeModeHandler
 {
     public void SafeMode(ZACommons commons, EventDriver eventDriver)
@@ -21,6 +21,7 @@ private readonly SmartUndock smartUndock = new SmartUndock();
 private readonly CruiseControl cruiseControl = new CruiseControl();
 private readonly VTVLHelper vtvlHelper = new VTVLHelper();
 private readonly DamageControl damageControl = new DamageControl();
+private readonly GravitySurveyor gravitySurveyor = new GravitySurveyor(VTVLHELPER_TARGET_GROUP);
 private readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
@@ -64,6 +65,7 @@ void Main(string argument)
             vtvlHelper.HandleCommand(commons, eventDriver, argument);
             damageControl.HandleCommand(commons, eventDriver, argument);
             HandleCommand(commons, argument);
+            gravitySurveyor.HandleCommand(commons, argument, vtvlHelper.GetRemoteControl);
         },
         postAction: () => {
             damageControl.Display(commons);
@@ -116,29 +118,6 @@ void HandleCommand(ZACommons commons, string argument)
             }
         }
     }
-    else if (argument == "gfirst" || argument == "gsecond")
-    {
-        var reference = vtvlHelper.GetRemoteControl(commons);
-        var gravity = reference.GetNaturalGravity();
-        if (gravity.LengthSquared() == 0.0) return;
-
-        if (argument == "gfirst")
-        {
-            first = new Rangefinder.LineSample(reference, gravity);
-        }
-        else if (argument == "gsecond")
-        {
-            var second = new Rangefinder.LineSample(reference, gravity);
-
-            Vector3D closestFirst, closestSecond;
-            if (Rangefinder.Compute(first, second, out closestFirst, out closestSecond))
-            {
-                var center = (closestFirst + closestSecond) / 2.0;
-                var radius = (reference.GetPosition() - center).Length();
-                GravitySurveyAction(commons, center, radius);
-            }
-        }
-    }
 }
 
 void RangefinderAction(ZACommons commons, Vector3D target)
@@ -150,24 +129,6 @@ void RangefinderAction(ZACommons commons, Vector3D target)
                                          target.GetDim(0),
                                          target.GetDim(1),
                                          target.GetDim(2));
-
-        for (var e = ZACommons.GetBlocksOfType<IMyTextPanel>(targetGroup.Blocks).GetEnumerator(); e.MoveNext();)
-        {
-            ((IMyTextPanel)e.Current).WritePublicText(targetString);
-        }
-    }
-}
-
-void GravitySurveyAction(ZACommons commons, Vector3D center, double radius)
-{
-    var targetGroup = commons.GetBlockGroupWithName(VTVLHELPER_TARGET_GROUP);
-    if (targetGroup != null)
-    {
-        var targetString = string.Format("{0};{1};{2};{3}",
-                                         center.GetDim(0),
-                                         center.GetDim(1),
-                                         center.GetDim(2),
-                                         radius);
 
         for (var e = ZACommons.GetBlocksOfType<IMyTextPanel>(targetGroup.Blocks).GetEnumerator(); e.MoveNext();)
         {
