@@ -2,6 +2,7 @@
 public class DoorAutoCloser
 {
     private const double RunDelay = 1.0;
+    private const char DURATION_DELIMITER = ':';
 
     // Yeah, not sure if it's a good idea to hold references between invocations...
     private readonly Dictionary<IMyDoor, TimeSpan> opened = new Dictionary<IMyDoor, TimeSpan>();
@@ -13,39 +14,68 @@ public class DoorAutoCloser
 
     public void Run(ZACommons commons, EventDriver eventDriver)
     {
-        var doors = ZACommons
-            .GetBlocksOfType<IMyDoor>(commons.Blocks,
-                                      block => block.IsFunctional &&
-                                      block.CustomName.IndexOf("[Excluded]", ZACommons.IGNORE_CASE) < 0 &&
-                                      block.DefinitionDisplayNameText != "Airtight Hangar Door");
-
-        for (var e = doors.GetEnumerator(); e.MoveNext();)
+        var groups = commons.GetBlockGroupsWithPrefix(DOOR_AUTO_CLOSER_PREFIX);
+        if (groups.Count > 0)
         {
-            var door = (IMyDoor)e.Current;
-
-            if (door.Open)
-            {
-                TimeSpan closeTime;
-                if (opened.TryGetValue(door, out closeTime))
-                {
-                    if (closeTime <= eventDriver.TimeSinceStart)
+            groups.ForEach(group => {
+                    // Determine open duration
+                    var parts = group.Name.Split(new char[] { DURATION_DELIMITER }, 2);
+                    var duration = DEFAULT_DOOR_OPEN_DURATION;
+                    if (parts.Length == 2)
                     {
-                        // Time to close it
-                        door.SetValue<bool>("Open", false);
-                        opened.Remove(door);
+                        if (!double.TryParse(parts[1], out duration))
+                        {
+                            duration = DEFAULT_DOOR_OPEN_DURATION;
+                        }
+                    }
+
+                    var doors = ZACommons.GetBlocksOfType<IMyDoor>(group.Blocks,
+                                                                   block => block.IsFunctional);
+                    CloseDoors(commons, eventDriver, doors, duration);
+                });
+        }
+        else
+        {
+            // Default behavior (all doors except vanilla Airtight Hangar Doors and tagged doors)
+            var doors = ZACommons
+                .GetBlocksOfType<IMyDoor>(commons.Blocks,
+                                          block => block.IsFunctional &&
+                                          block.CustomName.IndexOf("[Excluded]", ZACommons.IGNORE_CASE) < 0 &&
+                                          block.DefinitionDisplayNameText != "Airtight Hangar Door");
+            CloseDoors(commons, eventDriver, doors, DEFAULT_DOOR_OPEN_DURATION);
+        }
+        eventDriver.Schedule(RunDelay, Run);
+    }
+
+    private void CloseDoors(ZACommons commons, EventDriver eventDriver, List<IMyTerminalBlock> doors,
+                            double openDurationSeconds)
+    {
+        var openDuration = TimeSpan.FromSeconds(openDurationSeconds);
+
+        doors.ForEach(block => {
+                var door = (IMyDoor)block;
+
+                if (door.Open)
+                {
+                    TimeSpan closeTime;
+                    if (opened.TryGetValue(door, out closeTime))
+                    {
+                        if (closeTime <= eventDriver.TimeSinceStart)
+                        {
+                            // Time to close it
+                            door.SetValue<bool>("Open", false);
+                            opened.Remove(door);
+                        }
+                    }
+                    else
+                    {
+                        opened.Add(door, eventDriver.TimeSinceStart + openDuration);
                     }
                 }
                 else
                 {
-                    opened.Add(door, eventDriver.TimeSinceStart + MAX_DOOR_OPEN_TIME);
+                    opened.Remove(door);
                 }
-            }
-            else
-            {
-                opened.Remove(door);
-            }
-        }
-
-        eventDriver.Schedule(RunDelay, Run);
+            });
     }
 }
