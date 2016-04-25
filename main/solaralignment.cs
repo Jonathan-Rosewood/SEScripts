@@ -7,6 +7,7 @@ private readonly SolarGyroController solarGyroController =
                             GyroControl.Pitch,
                             GyroControl.Roll
                             );
+private readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
@@ -14,11 +15,14 @@ private bool FirstRun = true;
 
 void Main(string argument)
 {
-    var commons = new ShipControlCommons(this, shipOrientation);
+    var commons = new ShipControlCommons(this, shipOrientation,
+                                         storage: myStorage);
 
     if (FirstRun)
     {
         FirstRun = false;
+
+        myStorage.Decode(Storage);
 
         shipOrientation.SetShipReference(commons, "SolarGyroReference");
 
@@ -31,4 +35,6 @@ void Main(string argument)
         postAction: () => {
             solarGyroController.Display(commons);
         });
+
+    if (commons.IsDirty) Storage = myStorage.Encode();
 }
