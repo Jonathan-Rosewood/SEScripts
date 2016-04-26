@@ -1,17 +1,21 @@
 //! Damage Control
 //@ commons eventdriver damagecontrol
-public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
-public readonly DamageControl damageControl = new DamageControl();
+private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
+private readonly DamageControl damageControl = new DamageControl();
+private readonly ZAStorage myStorage = new ZAStorage();
 
 private bool FirstRun = true;
 
 void Main(string argument)
 {
-    var commons = new ZACommons(this);
+    var commons = new ZACommons(this,
+                                storage: myStorage);
 
     if (FirstRun)
     {
         FirstRun = false;
+
+        myStorage.Decode(Storage);
 
         damageControl.Init(commons, eventDriver);
     }
@@ -22,4 +26,6 @@ void Main(string argument)
         postAction: () => {
             damageControl.Display(commons);
         });
+
+    if (commons.IsDirty) Storage = myStorage.Encode();
 }

@@ -16,8 +16,8 @@ public class DamageControl
         var modeString = commons.GetValue(ModeKey);
         if (modeString != null)
         {
-            Mode = int.Parse(modeString);
-            switch (Mode)
+            var newMode = int.Parse(modeString);
+            switch (newMode)
             {
                 case IDLE:
                     break;
