@@ -169,6 +169,12 @@ public class DockingManager
         {
             ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyOxygenGenerator>(commons.Blocks), !docked);
             ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyOxygenFarm>(commons.Blocks), !docked);
+            ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyAirVent>(commons.Blocks,
+                                                                         vent => ((IMyAirVent)vent).IsDepressurizing &&
+                                                                         vent.CustomName.IndexOf("[Intake]", ZACommons.IGNORE_CASE) >= 0), !docked);
+            var tanks = ZACommons.GetBlocksOfType<IMyOxygenTank>(commons.Blocks,
+                                                                 tank => tank.CustomName.IndexOf("[Excluded]", ZACommons.IGNORE_CASE) < 0);
+            tanks.ForEach(tank => tank.SetValue<bool>("Stockpile", docked));
         }
         if (TOUCH_SENSORS) ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMySensorBlock>(commons.Blocks), !docked);
 
