@@ -61,40 +61,43 @@ public class ReactorManager
             case "reactors":
                 {
                     // Turn on all reactors
-                    var reactors = ZACommons.GetBlocksOfType<IMyReactor>(commons.AllBlocks,
-                                                                         reactor => reactor.IsFunctional &&
-                                                                         reactor.CustomName.IndexOf("[Excluded]", ZACommons.IGNORE_CASE) < 0);
-                    reactors.ForEach(block => block.SetValue<bool>("OnOff", true));
-                    eventDriver.Schedule(1.0, (c,ed) =>
-                            {
-                                // Turn off all local batteries
-                                var batteries = ZACommons.GetBlocksOfType<IMyBatteryBlock>(c.Blocks,
-                                                                                           battery => battery.IsFunctional);
-                                batteries.ForEach(block => block.SetValue<bool>("OnOff", false));
-                            });
+                    GetAllReactors(commons).ForEach(block => block.SetValue<bool>("OnOff", true));
+                    eventDriver.Schedule(1.0, (c,ed) => {
+                            // Turn off all local batteries
+                            GetBatteries(c).ForEach(block => block.SetValue<bool>("OnOff", false));
+                        });
                     break;
                 }
             case "batteries":
                 {
                     // Turn on all local batteries
                     // and disable recharge/discharge
-                    var batteries = ZACommons.GetBlocksOfType<IMyBatteryBlock>(commons.Blocks);
-                    batteries.ForEach(block =>
+                    GetBatteries(commons).ForEach(block =>
                             {
                                 block.SetValue<bool>("OnOff", true);
                                 block.SetValue<bool>("Recharge", false);
                                 block.SetValue<bool>("Discharge", false);
                             });
-                    eventDriver.Schedule(1.0, (c,ed) =>
-                            {
-                                // Turn off all reactors
-                                var reactors = ZACommons.GetBlocksOfType<IMyReactor>(c.AllBlocks,
-                                                                                     reactor => reactor.IsFunctional &&
-                                                                                     reactor.CustomName.IndexOf("[Excluded]", ZACommons.IGNORE_CASE) < 0);
-                                reactors.ForEach(block => block.SetValue<bool>("OnOff", false));
-                            });
+                    eventDriver.Schedule(1.0, (c,ed) => {
+                            // Turn off all reactors
+                            GetAllReactors(c).ForEach(block => block.SetValue<bool>("OnOff", false));
+                        });
                     break;
                 }
         }
+    }
+
+    private static List<IMyTerminalBlock> GetAllReactors(ZACommons commons)
+    {
+        return ZACommons.GetBlocksOfType<IMyReactor>(commons.AllBlocks,
+                                                     reactor => reactor.IsFunctional &&
+                                                     reactor.CustomName.IndexOf("[Excluded]", ZACommons.IGNORE_CASE) < 0);
+    }
+
+    private static List<IMyTerminalBlock> GetBatteries(ZACommons commons)
+    {
+        return ZACommons.GetBlocksOfType<IMyBatteryBlock>(commons.Blocks,
+                                                          battery => battery.IsFunctional &&
+                                                          battery.CustomName.IndexOf("[Excluded]", ZACommons.IGNORE_CASE) < 0);
     }
 }
