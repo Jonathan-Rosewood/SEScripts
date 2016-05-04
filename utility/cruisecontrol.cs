@@ -20,6 +20,21 @@ public class CruiseControl
     private Base6Directions.Direction CruiseDirection;
     private string CruiseFlags;
     private uint VTicks;
+    private bool FirstStop = false;
+
+    public struct ThrusterState
+    {
+        public bool Enabled;
+        public float Override;
+
+        public ThrusterState(IMyThrust thruster)
+        {
+            Enabled = thruster.Enabled;
+            Override = thruster.GetValue<float>("Override");
+        }
+    }
+
+    private readonly Dictionary<Vector3I, ThrusterState> ThrusterStates = new Dictionary<Vector3I, ThrusterState>();
 
     private Func<ZACommons, EventDriver, bool> LivenessCheck = null;
 
@@ -48,6 +63,9 @@ public class CruiseControl
         if (lastCommand != null)
         {
             HandleCommand(commons, eventDriver, lastCommand);
+            // Can't trust current state, force a reset on "cruise stop"
+            ThrusterStates.Clear();
+            FirstStop = true;
         }
     }
 
@@ -70,11 +88,18 @@ public class CruiseControl
 
         if (command == "cruise")
         {
-            if (speed == "stop")
+            if (speed == "reset")
             {
                 CruiseFlags = null;
                 if (parts.Length >= 3) CruiseFlags = parts[2];
                 Reset(commons);
+                ThrusterStates.Clear();
+                Active = false;
+                SaveLastCommand(commons, null);
+            }
+            else if (speed == "stop")
+            {
+                RestoreThrusterStates(commons);
                 Active = false;
                 SaveLastCommand(commons, null);
             }
@@ -128,6 +153,7 @@ public class CruiseControl
 
                     if (!Active)
                     {
+                        SaveThrusterStates(commons);
                         Active = true;
                         eventDriver.Schedule(0, Run);
                     }
@@ -229,9 +255,40 @@ public class CruiseControl
     {
         if (LivenessCheck != null && !LivenessCheck(commons, eventDriver))
         {
-            Reset(commons);
+            RestoreThrusterStates(commons);
             Active = false;
             SaveLastCommand(commons, null);
         }
+    }
+
+    private void SaveThrusterStates(ZACommons commons)
+    {
+        ThrusterStates.Clear();
+        var thrusters = ZACommons.GetBlocksOfType<IMyThrust>(commons.Blocks);
+        thrusters.ForEach(block => {
+                ThrusterStates.Add(block.Position, new ThrusterState((IMyThrust)block));
+            });
+    }
+
+    private void RestoreThrusterStates(ZACommons commons)
+    {
+        if (ThrusterStates.Count > 0)
+        {
+            var thrusters = ZACommons.GetBlocksOfType<IMyThrust>(commons.Blocks);
+            thrusters.ForEach(block => {
+                    ThrusterState oldState;
+                    if (ThrusterStates.TryGetValue(block.Position, out oldState))
+                    {
+                        block.SetValue<bool>("OnOff", oldState.Enabled);
+                        block.SetValue<float>("Override", oldState.Override);
+                    }
+                });
+            ThrusterStates.Clear();
+        }
+        else if (FirstStop)
+        {
+            Reset(commons);
+        }
+        FirstStop = false;
     }
 }

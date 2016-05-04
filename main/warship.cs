@@ -79,7 +79,7 @@ void HandleCommand(ZACommons commons, EventDriver eventDriver, string argument)
     if (command == "stop")
     {
         // TODO global modes
-        cruiseControl.HandleCommand(commons, eventDriver, "cruise stop");
+        cruiseControl.HandleCommand(commons, eventDriver, "cruise reset");
         new ReverseThrust().Init(commons, eventDriver, reorientOnly: true);
     }
 }
