@@ -1,6 +1,6 @@
 //! Smart Shell Controller
-//@ shipcontrol eventdriver
-private readonly EventDriver eventDriver = new EventDriver(timerName: "SmartShellClock");
+//@ shipcontrol eventdriver dumbshell
+private readonly EventDriver eventDriver = new EventDriver(timerName: "ShellClock");
 private readonly SmartShell smartShell = new SmartShell();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
@@ -15,6 +15,8 @@ void Main(string argument)
     {
         FirstRun = false;
 
+        shipOrientation.SetShipReference(commons, "CannonReference");
+
         smartShell.Init(commons, eventDriver);
     }
 
@@ -26,14 +28,15 @@ public class SmartShell
     private const uint TicksPerRun = 1;
     private const double RunsPerSecond = 60.0 / TicksPerRun;
 
-    private Vector3D InitialPosition;
+    private readonly DumbShell dumbShell = new DumbShell();
+
     private Vector3D Target;
     private bool Decoy1Released = false;
 
     public void Init(ZACommons commons, EventDriver eventDriver)
     {
         var shipControl = (ShipControlCommons)commons;
-        InitialPosition = shipControl.ReferencePoint;
+
         var target = AcquireTarget(commons);
         if (target == null)
         {
@@ -47,30 +50,8 @@ public class SmartShell
             // and use that as that target
             Target = shipControl.ReferencePoint + shipControl.ReferenceForward * Vector3D.Dot(targetVector, shipControl.ReferenceForward);
         }
-        eventDriver.Schedule(1.0, Demass);
-    }
 
-    public void Demass(ZACommons commons, EventDriver eventDriver)
-    {
-        var shipControl = (ShipControlCommons)commons;
-
-        var distanceFromLauncher = (shipControl.ReferencePoint - InitialPosition).LengthSquared();
-
-        if (distanceFromLauncher < DemassDistance * DemassDistance)
-        {
-            // Not yet
-            eventDriver.Schedule(TicksPerRun, Demass);
-            return;
-        }
-
-        var group = commons.GetBlockGroupWithName("Shell Mass");
-        ZACommons.EnableBlocks(group.Blocks, false);
-
-        // Start roll
-        shipControl.GyroControl.EnableOverride(true);
-        shipControl.GyroControl.SetAxisVelocity(GyroControl.Roll,
-                                                MathHelper.Pi);
-        eventDriver.Schedule(TicksPerRun, DecoyLoop);
+        dumbShell.Init(commons, eventDriver, postLaunch: DecoyLoop);
     }
 
     public void DecoyLoop(ZACommons commons, EventDriver eventDriver)
