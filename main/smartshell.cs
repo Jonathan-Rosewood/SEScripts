@@ -38,18 +38,12 @@ public class SmartShell
         var shipControl = (ShipControlCommons)commons;
 
         var target = AcquireTarget(commons);
-        if (target == null)
-        {
-            // Use default range
-            Target = shipControl.ReferencePoint + shipControl.ReferenceForward * DefaultRange;
-        }
-        else
-        {
-            // Project target vector on our forward vector
-            var targetVector = (Vector3D)target - shipControl.ReferencePoint;
-            // and use that as that target
-            Target = shipControl.ReferencePoint + shipControl.ReferenceForward * Vector3D.Dot(targetVector, shipControl.ReferenceForward);
-        }
+        // Use current distance from target point, otherwise use default range
+        var range = target != null ?
+            ((Vector3D)target - shipControl.ReferencePoint).Length() :
+            DefaultRange;
+        // Target point is directly in front
+        Target = shipControl.ReferencePoint + shipControl.ReferenceForward * range;
 
         dumbShell.Init(commons, eventDriver, postLaunch: DecoyLoop);
     }
