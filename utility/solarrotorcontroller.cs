@@ -22,7 +22,7 @@ public class SolarRotorController
                 {
                     var output = SolarHack.GetSolarPanelMaxOutput(panel);
                     MaxPowerOutput += output != null ? (float)output : 0.0f;
-                    DefinedPowerOutput += panel.CubeGrid.GridSize == 2.5f ? 0.120f : 0.030f;
+                    DefinedPowerOutput += panel.CubeGrid.GridSize == 2.5f ? SOLAR_PANEL_MAX_POWER_LARGE : SOLAR_PANEL_MAX_POWER_SMALL;
                 }
             }
         }
