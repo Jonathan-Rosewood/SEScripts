@@ -1,17 +1,13 @@
-//@ commons eventdriver velocimeter
+//@ shipcontrol eventdriver
 public class SpeedAction
 {
     private const double RunDelay = 1.0;
     private const char ACTION_DELIMETER = ':';
 
-    private readonly Velocimeter velocimeter = new Velocimeter(2);
-
     private double LastSpeed;
 
     public void Init(ZACommons commons, EventDriver eventDriver)
     {
-        velocimeter.Reset();
-
         LastSpeed = 0.0;
 
         eventDriver.Schedule(0.0, Run);
@@ -19,13 +15,14 @@ public class SpeedAction
 
     public void Run(ZACommons commons, EventDriver eventDriver)
     {
-        velocimeter.TakeSample(commons.Me.GetPosition(), eventDriver.TimeSinceStart);
-        var velocity = velocimeter.GetAverageVelocity();
-        if (velocity != null)
+        var shipControl = (ShipControlCommons)commons;
+
+        var controller = shipControl.ShipController;
+        if (controller != null)
         {
-            var speed = ((Vector3D)velocity).Length();
+            var speed = controller.GetShipSpeed();
             DoActions(commons, eventDriver, speed);
-            LastSpeed = speed;
+            LastSpeed = (double)speed;
         }
 
         eventDriver.Schedule(RunDelay, Run);

@@ -129,4 +129,40 @@ public class ShipControlCommons : ZACommons
         var offset = Reference.Position + Base6Directions.GetIntVector(direction);
         return Vector3D.Normalize(Reference.CubeGrid.GridIntegerToWorld(offset) - ReferencePoint);
     }
+
+    // IMyShipController
+
+    // Return the very first functional controller we find.
+    // NB Not suitable for grid reference, since it can be in any orientation
+    // Also chicken/egg
+    public IMyShipController ShipController
+    {
+        get
+        {
+            if (m_shipController == null)
+            {
+                for (var e = Blocks.GetEnumerator(); e.MoveNext();)
+                {
+                    var controller = e.Current as IMyShipController;
+                    if (controller != null && controller.IsFunctional)
+                    {
+                        m_shipController = controller;
+                        break;
+                    }
+                }
+            }
+            return m_shipController;
+        }
+    }
+    private IMyShipController m_shipController = null;
+
+    // Convenience
+    public Vector3D? LinearVelocity
+    {
+        get
+        {
+            return ShipController != null ?
+                ShipController.GetShipVelocities().LinearVelocity : (Vector3D?)null;
+        }
+    }
 }

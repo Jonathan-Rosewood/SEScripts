@@ -1,4 +1,4 @@
-//@ shipcontrol eventdriver velocimeter pid
+//@ shipcontrol eventdriver pid
 public class CruiseControl
 {
     private const string LastCommandKey = "CruiseControl_LastCommand";
@@ -6,7 +6,6 @@ public class CruiseControl
     private const uint FramesPerRun = 2;
     private const double RunsPerSecond = 60.0 / FramesPerRun;
 
-    private readonly Velocimeter velocimeter = new Velocimeter(30);
     private readonly PIDController thrustPID = new PIDController(1.0 / RunsPerSecond);
 
     private const double ThrustKp = 1.0;
@@ -19,7 +18,6 @@ public class CruiseControl
     private double TargetSpeed, CurrentSpeed;
     private Base6Directions.Direction CruiseDirection;
     private string CruiseFlags;
-    private uint VTicks;
     private bool FirstStop = false;
 
     public struct ThrusterState
@@ -147,8 +145,6 @@ public class CruiseControl
                 {
                     TargetSpeed = Math.Max(desiredSpeed, 0.0);
 
-                    velocimeter.Reset();
-                    VTicks = 0;
                     thrustPID.Reset();
 
                     if (!Active)
@@ -192,11 +188,10 @@ public class CruiseControl
         ResetIfNotLive(commons, eventDriver);
         if (!Active) return;
 
-        velocimeter.TakeSample(shipControl.ReferencePoint, TimeSpan.FromSeconds((double)VTicks / RunsPerSecond));
-        VTicks++;
-
         // Determine velocity
-        var velocity = velocimeter.GetAverageVelocity();
+        var velocity = shipControl.LinearVelocity;
+        // If we have no velocity, we have no ship controllers.
+        // In theory, ResetIfNotLive should have caught it above
         if (velocity != null)
         {
             var cruiseDirectionFlipped = Base6Directions.GetFlippedDirection(CruiseDirection);

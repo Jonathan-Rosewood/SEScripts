@@ -1,10 +1,9 @@
-//@ shipcontrol eventdriver velocimeter cruiser
+//@ shipcontrol eventdriver cruiser
 public class TranslateAutopilot
 {
     private const uint FramesPerRun = 2;
     private const double RunsPerSecond = 60.0 / FramesPerRun;
 
-    private readonly Velocimeter velocimeter = new Velocimeter(30);
     private readonly Cruiser forwardCruiser = new Cruiser(1.0 / RunsPerSecond,
                                                           AUTOPILOT_THRUST_DEAD_ZONE);
     private readonly Cruiser upCruiser = new Cruiser(1.0 / RunsPerSecond,
@@ -33,7 +32,6 @@ public class TranslateAutopilot
     {
         var shipControl = (ShipControlCommons)commons;
         shipControl.Reset(gyroOverride: true, thrusterEnable: null);
-        velocimeter.Reset();
         forwardCruiser.Init(shipControl,
                             localForward: shipControl.ShipForward);
         upCruiser.Init(shipControl,
@@ -61,23 +59,27 @@ public class TranslateAutopilot
         var upError = Vector3D.Dot(targetVector, shipControl.ReferenceUp);
         var leftError = Vector3D.Dot(targetVector, shipControl.ReferenceLeft);
 
-        velocimeter.TakeSample(shipControl.ReferencePoint, eventDriver.TimeSinceStart);
-        var velocity = velocimeter.GetAverageVelocity();
+        var velocity = shipControl.LinearVelocity;
         if (velocity != null)
         {
             // Naive approach: independent control of each axis
             Thrust(shipControl, forwardError, (Vector3D)velocity, forwardCruiser);
             Thrust(shipControl, upError, (Vector3D)velocity, upCruiser);
             Thrust(shipControl, leftError, (Vector3D)velocity, leftCruiser);
-        }
 
-        if (distance < AUTOPILOT_DISENGAGE_DISTANCE)
-        {
-            Reset(commons);
+            if (distance < AUTOPILOT_DISENGAGE_DISTANCE)
+            {
+                Reset(commons);
+            }
+            else
+            {
+                eventDriver.Schedule(FramesPerRun, Run);
+            }
         }
         else
         {
-            eventDriver.Schedule(FramesPerRun, Run);
+            // Can't measure velocity anymore
+            Reset(commons);
         }
     }
 

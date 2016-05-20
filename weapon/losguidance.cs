@@ -1,4 +1,4 @@
-//@ shipcontrol eventdriver seeker cruiser
+//@ shipcontrol eventdriver seeker cruiser velocimeter
 public class LOSGuidance
 {
     private const uint FramesPerRun = 1;
@@ -6,6 +6,8 @@ public class LOSGuidance
 
     private readonly Seeker seeker = new Seeker(1.0 / RunsPerSecond);
     private readonly Cruiser cruiser = new Cruiser(1.0 / RunsPerSecond, 0.005);
+    // Don't want to require a remote, so we'll measure velocity ourselves
+    private readonly Velocimeter velocimeter = new Velocimeter(30);
 
     private Vector3D LauncherReferencePoint;
     private Vector3D LauncherReferenceDirection;
@@ -15,6 +17,8 @@ public class LOSGuidance
     private const double FULL_BURN_DISTANCE = 10.0; // Meters
     private const double FULL_BURN_SPEED = 100.0; // In meters per second
     private readonly TimeSpan FULL_BURN_TRIGGER_TIME = TimeSpan.FromSeconds(3);
+
+    private uint VTicks;
     private bool FullBurn = false;
     private TimeSpan FullBurnTriggerLast;
 
@@ -56,6 +60,8 @@ public class LOSGuidance
                     shipUp: shipControl.ShipUp,
                     shipForward: shipControl.ShipForward);
         cruiser.Init(shipControl);
+        velocimeter.Reset();
+        VTicks = 0;
 
         FullBurnTriggerLast = eventDriver.TimeSinceStart;
 
@@ -97,6 +103,9 @@ public class LOSGuidance
         seeker.Seek(shipControl, targetVector,
                     out yawError, out pitchError);
 
+        velocimeter.TakeSample(shipControl.ReferencePoint, TimeSpan.FromSeconds((double)VTicks / RunsPerSecond));
+        VTicks++;
+
         if (!FullBurn)
         {
             if (launcherRej.Length() <= FULL_BURN_DISTANCE)
@@ -107,6 +116,8 @@ public class LOSGuidance
                     FullBurn = true;
 
                     cruiser.Init(shipControl);
+                    velocimeter.Reset();
+                    VTicks = 0;
                 }
                 else
                 {
@@ -131,15 +142,23 @@ public class LOSGuidance
 
     private void Maneuver(ZACommons commons, EventDriver eventDriver)
     {
-        var shipControl = (ShipControlCommons)commons;
-        cruiser.Cruise(shipControl, eventDriver, MANEUVERING_SPEED,
-                       enableBackward: false);
+        var velocity = velocimeter.GetAverageVelocity();
+        if (velocity != null)
+        {
+            var shipControl = (ShipControlCommons)commons;
+            cruiser.Cruise(shipControl, MANEUVERING_SPEED, (Vector3D)velocity,
+                           enableBackward: false);
+        }
     }
 
     private void Burn(ZACommons commons, EventDriver eventDriver)
     {
-        var shipControl = (ShipControlCommons)commons;
-        cruiser.Cruise(shipControl, eventDriver, FULL_BURN_SPEED,
-                       enableBackward: false);
+        var velocity = velocimeter.GetAverageVelocity();
+        if (velocity != null)
+        {
+            var shipControl = (ShipControlCommons)commons;
+            cruiser.Cruise(shipControl, FULL_BURN_SPEED, (Vector3D)velocity,
+                           enableBackward: false);
+        }
     }
 }

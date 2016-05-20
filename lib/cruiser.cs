@@ -1,7 +1,6 @@
-//@ shipcontrol eventdriver velocimeter pid
+//@ shipcontrol eventdriver pid
 public class Cruiser
 {
-    private readonly Velocimeter velocimeter = new Velocimeter(30);
     private const double ThrustKp = 1.0;
     private const double ThrustKi = 0.001;
     private const double ThrustKd = 1.0;
@@ -10,8 +9,6 @@ public class Cruiser
 
     public Base6Directions.Direction LocalForward { get; private set; }
     public Base6Directions.Direction LocalBackward { get; private set; }
-
-    private uint VTicks;
 
     public Cruiser(double dt, double thrustDeadZone)
     {
@@ -28,29 +25,26 @@ public class Cruiser
         LocalForward = localForward;
         LocalBackward = Base6Directions.GetFlippedDirection(LocalForward);
 
-        velocimeter.Reset();
-        VTicks = 0;
         thrustPID.Reset();
     }
 
-    // Use internal Velocimeter
-    public void Cruise(ShipControlCommons shipControl, EventDriver eventDriver,
+    // Use ship controller velocity
+    public bool Cruise(ShipControlCommons shipControl, EventDriver eventDriver,
                        double targetSpeed,
                        Func<IMyThrust, bool> condition = null,
                        bool enableForward = true,
                        bool enableBackward = true)
     {
-        velocimeter.TakeSample(shipControl.ReferencePoint, TimeSpan.FromSeconds((double)VTicks * thrustPID.dt));
-        VTicks++;
-        var velocity = velocimeter.GetAverageVelocity();
+        var velocity = shipControl.LinearVelocity;
         if (velocity != null)
         {
             Cruise(shipControl, targetSpeed, (Vector3D)velocity, condition,
                    enableForward, enableBackward);
         }
+        return velocity != null;
     }
 
-    // Use external Velocimeter
+    // Use externally-measured velocity
     public void Cruise(ShipControlCommons shipControl, double targetSpeed,
                        Vector3D velocity,
                        Func<IMyThrust, bool> condition = null,
