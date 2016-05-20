@@ -1,4 +1,4 @@
-//@ shipcontrol eventdriver seeker velocimeter
+//@ shipcontrol eventdriver seeker
 public class ReverseThrust
 {
     private const uint FramesPerRun = 1;
@@ -7,16 +7,14 @@ public class ReverseThrust
     private readonly Seeker seeker = new Seeker(1.0 / RunsPerSecond);
 
     private const uint SampleDelay = 60;
-    private readonly Velocimeter velocimeter = new Velocimeter(2);
+    private Vector3D LastPosition;
 
     private Base6Directions.Direction ThrusterDirection;
     private bool Enabled;
     private Vector3D TargetVector;
-    private bool ReorientOnly;
 
     public void Init(ZACommons commons, EventDriver eventDriver,
-                     Base6Directions.Direction thrusterDirection = Base6Directions.Direction.Forward,
-                     bool reorientOnly = false)
+                     Base6Directions.Direction thrusterDirection = Base6Directions.Direction.Forward)
     {
         ThrusterDirection = thrusterDirection;
         
@@ -28,14 +26,12 @@ public class ReverseThrust
                     shipUp: Base6Directions.GetPerpendicular(forward),
                     shipForward: forward);
 
-        ReorientOnly = reorientOnly;
-
         var gyroControl = shipControl.GyroControl;
         gyroControl.Reset();
         gyroControl.EnableOverride(true);
 
-        velocimeter.Reset();
-        velocimeter.TakeSample(shipControl.ReferencePoint, TimeSpan.FromSeconds(0));
+        LastPosition = shipControl.ReferencePoint;
+
         Enabled = true;
 
         shipControl.ThrustControl.Enable(false);
@@ -49,9 +45,10 @@ public class ReverseThrust
 
         var shipControl = (ShipControlCommons)commons;
 
-        velocimeter.TakeSample(shipControl.ReferencePoint, TimeSpan.FromSeconds((double)SampleDelay / 60.0));
+        var velocity = (shipControl.ReferencePoint - LastPosition) /
+            ((double)SampleDelay / 60.0);
 
-        TargetVector = -((Vector3D)velocimeter.GetAverageVelocity());
+        TargetVector = -velocity;
         var speed = TargetVector.Normalize();
         if (speed > 0.1)
         {
@@ -72,8 +69,6 @@ public class ReverseThrust
 
         var shipControl = (ShipControlCommons)commons;
 
-        velocimeter.TakeSample(shipControl.ReferencePoint, eventDriver.TimeSinceStart);
-
         double yawError, pitchError;
         var gyroControl = seeker.Seek(shipControl, TargetVector,
                                       out yawError, out pitchError);
@@ -82,39 +77,14 @@ public class ReverseThrust
         {
             gyroControl.Reset();
             shipControl.ThrustControl.Enable(true);
-            if (ReorientOnly)
-            {
-                gyroControl.Reset();
-                gyroControl.EnableOverride(false);
-                // And quit here...
-            }
-            else
-            {
-                eventDriver.Schedule(FramesPerRun, Stop);
-            }
+            gyroControl.Reset();
+            gyroControl.EnableOverride(false);
+            // Done
         }
         else
         {
             eventDriver.Schedule(FramesPerRun, Reorient);
         }
-    }
-
-    public void Stop(ZACommons commons, EventDriver eventDriver)
-    {
-        if (!Enabled) return;
-
-        var shipControl = (ShipControlCommons)commons;
-
-        velocimeter.TakeSample(shipControl.ReferencePoint, eventDriver.TimeSinceStart);
-        var velocity = velocimeter.GetAverageVelocity();
-        var speed = ((Vector3D)velocity).Length();
-        if (speed <= 0.1)
-        {
-            shipControl.GyroControl.EnableOverride(false);
-            return;
-        }
-
-        eventDriver.Schedule(FramesPerRun, Stop);
     }
 
     public void Reset(ZACommons commons)

@@ -5,6 +5,12 @@ public class EmergencyStop : SafeModeHandler
     {
         var shipControl = (ShipControlCommons)commons;
 
+        // Ensure dampeners are enabled (again, possibly)
+        ZACommons.GetBlocksOfType<IMyShipController>(commons.Blocks).ForEach(block => {
+                var controller = (IMyShipController)block;
+                block.SetValue<bool>("DampenersOverride", true);
+            });
+
         // Make sure we have working thrusters in all directions
 
         // Statically initialized arrays are a bit iffy in-game, so we
@@ -72,8 +78,8 @@ public class EmergencyStop : SafeModeHandler
                         return;
                     }
 
-                    var reverseThrust = new ReverseThrust();
-                    reverseThrust.Init(c, ed, direction);
+                    new ReverseThrust().Init(c, ed,
+                                             thrusterDirection: direction);
                 });
     }
 
