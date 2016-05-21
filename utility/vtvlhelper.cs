@@ -195,8 +195,9 @@ public class VTVLHelper
 
         var shipControl = (ShipControlCommons)commons;
 
-        var remote = GetRemoteControl(commons);
-        var gravity = remote.GetNaturalGravity();
+        var controller = GetShipController(shipControl);
+        if (controller == null) return;
+        var gravity = controller.GetNaturalGravity();
         if (gravity.LengthSquared() > 0.0)
         {
             // Override gyro, disable "bottom" thrusters
@@ -227,8 +228,9 @@ public class VTVLHelper
 
         var shipControl = (ShipControlCommons)commons;
 
-        var remote = GetRemoteControl(commons);
-        var gravity = remote.GetNaturalGravity();
+        var controller = GetShipController(shipControl);
+        if (controller == null) return;
+        var gravity = controller.GetNaturalGravity();
         if (gravity.LengthSquared() > 0.0)
         {
             double yawError, pitchError;
@@ -236,7 +238,7 @@ public class VTVLHelper
 
             if (Autodrop)
             {
-                Distance = (remote.GetPosition() - TargetCenter).Length();
+                Distance = (shipControl.ReferencePoint - TargetCenter).Length();
                 if (Distance < BrakingRadius)
                 {
                     shipControl.Reset(gyroOverride: true, thrusterEnable: true,
@@ -271,10 +273,10 @@ public class VTVLHelper
 
         var shipControl = (ShipControlCommons)commons;
 
-        var remote = GetRemoteControl(commons);
-        var gravity = remote.GetNaturalGravity();
-        var accel = gravity.Normalize();
-        if (accel > 0.0)
+        var controller = GetShipController(shipControl);
+        if (controller == null) return;
+        var gravity = controller.GetNaturalGravity();
+        if (gravity.LengthSquared() > 0.0)
         {
             double yawError, pitchError;
             seeker.Seek(shipControl, gravity, out yawError, out pitchError);
@@ -298,15 +300,15 @@ public class VTVLHelper
 
         var shipControl = (ShipControlCommons)commons;
 
-        var remote = GetRemoteControl(commons);
-        var gravity = remote.GetNaturalGravity();
-        var accel = gravity.Normalize();
-        if (accel > 0.0)
+        var controller = GetShipController(shipControl);
+        if (controller == null) return;
+        var gravity = controller.GetNaturalGravity();
+        if (gravity.LengthSquared() > 0.0)
         {
             double yawError, pitchError;
             seeker.Seek(shipControl, gravity, out yawError, out pitchError);
 
-            Distance = (remote.GetPosition() - TargetCenter).Length();
+            Distance = (shipControl.ReferencePoint - TargetCenter).Length();
             if (Distance <= TargetRadius)
             {
                 // All done. Re-enable thrusters and restore control.
@@ -339,10 +341,10 @@ public class VTVLHelper
 
         var shipControl = (ShipControlCommons)commons;
 
-        var remote = GetRemoteControl(commons);
-        var gravity = remote.GetNaturalGravity();
-        var accel = gravity.Normalize();
-        if (accel > 0.0)
+        var controller = GetShipController(shipControl);
+        if (controller == null) return;
+        var gravity = controller.GetNaturalGravity();
+        if (gravity.LengthSquared() > 0.0)
         {
             double yawError, pitchError;
             seeker.Seek(shipControl, -gravity, out yawError, out pitchError);
@@ -376,10 +378,10 @@ public class VTVLHelper
         if (Mode != ORBITING) return;
         var shipControl = (ShipControlCommons)commons;
 
-        var remote = GetRemoteControl(commons);
-        var gravity = remote.GetNaturalGravity();
-        var accel = gravity.Normalize();
-        if (accel > 0.0)
+        var controller = GetShipController(shipControl);
+        if (controller == null) return;
+        var gravity = controller.GetNaturalGravity();
+        if (gravity.LengthSquared() > 0.0)
         {
             double yawError, pitchError;
             seeker.Seek(shipControl, gravity, out yawError, out pitchError);
@@ -471,19 +473,21 @@ public class VTVLHelper
         SaveLastCommand(shipControl, null);
     }
 
-    public IMyRemoteControl GetRemoteControl(ZACommons commons)
+    private IMyShipController GetShipController(ShipControlCommons shipControl)
     {
-        var remoteGroup = commons.GetBlockGroupWithName(VTVLHELPER_REMOTE_GROUP);
-        if (remoteGroup == null)
+        if (shipControl.ShipController == null)
         {
-            throw new Exception("Missing group: " + VTVLHELPER_REMOTE_GROUP);
+            // No more controllers? Just abort
+            if (Mode == ORBITING)
+            {
+                ResetOrbit(shipControl);
+            }
+            else
+            {
+                Reset(shipControl);
+            }
         }
-        var remotes = ZACommons.GetBlocksOfType<IMyRemoteControl>(remoteGroup.Blocks);
-        if (remotes.Count == 0)
-        {
-            throw new Exception("Expecting at least 1 remote in group");
-        }
-        return (IMyRemoteControl)remotes[0];
+        return shipControl.ShipController;
     }
 
     private Func<IMyThrust, bool> ParseThrusterFlags(string flags)

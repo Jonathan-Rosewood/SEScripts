@@ -65,7 +65,7 @@ void Main(string argument)
             vtvlHelper.HandleCommand(commons, eventDriver, argument);
             damageControl.HandleCommand(commons, eventDriver, argument);
             HandleCommand(commons, argument);
-            gravitySurveyor.HandleCommand(commons, argument, vtvlHelper.GetRemoteControl);
+            gravitySurveyor.HandleCommand(commons, argument);
         },
         postAction: () => {
             damageControl.Display(commons);

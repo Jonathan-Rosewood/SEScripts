@@ -82,7 +82,7 @@ void Main(string argument)
             damageControl.HandleCommand(commons, eventDriver, argument);
             reactorManager.HandleCommand(commons, eventDriver, argument);
             solarGyroController.HandleCommand(commons, eventDriver, argument);
-            gravitySurveyor.HandleCommand(commons, argument, vtvlHelper.GetRemoteControl);
+            gravitySurveyor.HandleCommand(commons, argument);
         },
         postAction: () => {
             solarGyroController.Display(commons);

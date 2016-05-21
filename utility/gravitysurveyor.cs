@@ -1,4 +1,4 @@
-//@ commons rangefinder
+//@ shipcontrol rangefinder
 public class GravitySurveyor
 {
     private readonly string TargetGroupName;
@@ -10,8 +10,7 @@ public class GravitySurveyor
         TargetGroupName = targetGroupName;
     }
 
-    public void HandleCommand(ZACommons commons, string argument,
-                              Func<ZACommons, IMyRemoteControl> getRemoteControl)
+    public void HandleCommand(ZACommons commons, string argument)
     {
         argument = argument.Trim().ToLower();
         var parts = argument.Split(new char[] { ' ' }, 3);
@@ -20,7 +19,8 @@ public class GravitySurveyor
 
         if (command == "origin" || command == "snapshot")
         {
-            var reference = getRemoteControl(commons);
+            var reference = ((ShipControlCommons)commons).ShipController;
+            if (reference == null) return;
             var gravity = reference.GetNaturalGravity();
             if (gravity.LengthSquared() == 0.0) return;
 
