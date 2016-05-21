@@ -1,7 +1,7 @@
 //! Warship Manager
 //@ shipcontrol eventdriver doorautocloser simpleairlock oxygenmanager
 //@ redundancy damagecontrol safemode cruisecontrol emergencystop
-//@ sequencer speedaction combatranger stocker
+//@ sequencer speedaction combatranger stocker projectoraction
 public class MySafeModeHandler : SafeModeHandler
 {
     public void SafeMode(ZACommons commons, EventDriver eventDriver)
@@ -26,6 +26,7 @@ private readonly Sequencer sequencer = new Sequencer();
 private readonly SpeedAction speedAction = new SpeedAction();
 private readonly CombatRanger combatRanger = new CombatRanger();
 private readonly Stocker stocker = new Stocker();
+private readonly ProjectorAction projectorAction = new ProjectorAction();
 private readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
@@ -62,6 +63,7 @@ void Main(string argument)
             cruiseControl.HandleCommand(commons, eventDriver, argument);
             sequencer.HandleCommand(commons, eventDriver, argument);
             combatRanger.HandleCommand(commons, argument);
+            projectorAction.HandleCommand(commons, eventDriver, argument);
             HandleCommand(commons, eventDriver, argument);
         },
         postAction: () => {
