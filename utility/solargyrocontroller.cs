@@ -1,4 +1,4 @@
-//@ shipcontrol eventdriver solarhack
+//@ shipcontrol eventdriver
 public class SolarGyroController
 {
     private const double RunDelay = 1.0;
@@ -20,8 +20,7 @@ public class SolarGyroController
 
                 if (panel.IsFunctional && panel.IsWorking)
                 {
-                    var output = SolarHack.GetSolarPanelMaxOutput(panel);
-                    MaxPowerOutput += output != null ? (float)output : 0.0f;
+                    MaxPowerOutput += panel.MaxOutput;
                     DefinedPowerOutput += panel.CubeGrid.GridSize == 2.5f ? SOLAR_PANEL_MAX_POWER_LARGE : SOLAR_PANEL_MAX_POWER_SMALL;
                 }
             }
