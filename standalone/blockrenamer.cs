@@ -9,6 +9,8 @@ public static HashSet<string> EXCLUDED_BLOCK_NAMES = new HashSet<string>(new str
         "Emergency Stop",
         "Low Battery",
         "Safe Mode",
+        "Launch Done",
+        "Drop Done",
     });
 
 public class BlockRenamer

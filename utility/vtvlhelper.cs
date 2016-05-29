@@ -313,6 +313,8 @@ public class VTVLHelper
             {
                 // All done. Re-enable thrusters and restore control.
                 Reset(shipControl);
+
+                ZACommons.StartTimerBlockWithName(commons.Blocks, VTVLHELPER_DROP_DONE);
             }
             else
             {
@@ -359,6 +361,8 @@ public class VTVLHelper
         {
             // Out of gravity
             Reset(shipControl);
+
+            ZACommons.StartTimerBlockWithName(commons.Blocks, VTVLHELPER_LAUNCH_DONE);
         }
     }
 
