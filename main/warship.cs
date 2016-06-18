@@ -46,9 +46,9 @@ void Main(string argument)
 
         shipOrientation.SetShipReference(commons, "CruiseControlReference");
 
-        doorAutoCloser.Init(commons, eventDriver);
-        simpleAirlock.Init(commons, eventDriver);
-        oxygenManager.Init(commons, eventDriver);
+        if (AUTO_CLOSE_DOORS_ENABLE) doorAutoCloser.Init(commons, eventDriver);
+        if (SIMPLE_AIRLOCK_ENABLE) simpleAirlock.Init(commons, eventDriver);
+        if (OXYGEN_MANAGER_ENABLE) oxygenManager.Init(commons, eventDriver);
         redundancyManager.Init(commons, eventDriver);
         damageControl.Init(commons, eventDriver);
         safeMode.Init(commons, eventDriver);
