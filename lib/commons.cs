@@ -56,28 +56,59 @@ public class ZACommons
     }
     private List<IMyTerminalBlock> m_blocks = null;
 
-    public List<IMyBlockGroup> Groups
+    public class BlockGroup
+    {
+        private readonly IMyBlockGroup MyBlockGroup;
+
+        public BlockGroup(IMyBlockGroup myBlockGroup)
+        {
+            MyBlockGroup = myBlockGroup;
+        }
+
+        public String Name
+        {
+            get { return MyBlockGroup.Name; }
+        }
+
+        public List<IMyTerminalBlock> Blocks
+        {
+            get
+            {
+                if (m_blocks == null)
+                {
+                    m_blocks = new List<IMyTerminalBlock>();
+                    MyBlockGroup.GetBlocks(m_blocks);
+                }
+                return m_blocks;
+            }
+        }
+        private List<IMyTerminalBlock> m_blocks = null;
+    }
+
+    public List<BlockGroup> Groups
     {
         get
         {
             if (m_groups == null)
             {
-                m_groups = new List<IMyBlockGroup>();
-                Program.GridTerminalSystem.GetBlockGroups(m_groups);
+                var groups = new List<IMyBlockGroup>();
+                Program.GridTerminalSystem.GetBlockGroups(groups);
+                m_groups = new List<BlockGroup>();
+                groups.ForEach(group => m_groups.Add(new BlockGroup(group)));
             }
             return m_groups;
         }
     }
-    private List<IMyBlockGroup> m_groups = null;
+    private List<BlockGroup> m_groups = null;
 
     // NB Names are actually lowercased
-    public Dictionary<string, IMyBlockGroup> GroupsByName
+    public Dictionary<string, BlockGroup> GroupsByName
     {
         get
         {
             if (m_groupsByName == null)
             {
-                m_groupsByName = new Dictionary<string, IMyBlockGroup>();
+                m_groupsByName = new Dictionary<string, BlockGroup>();
                 for (var e = Groups.GetEnumerator(); e.MoveNext();)
                 {
                     var group = e.Current;
@@ -87,7 +118,7 @@ public class ZACommons
             return m_groupsByName;
         }
     }
-    private Dictionary<string, IMyBlockGroup> m_groupsByName = null;
+    private Dictionary<string, BlockGroup> m_groupsByName = null;
 
     public ZACommons(MyGridProgram program, string shipGroup = null,
                      ZAStorage storage = null)
@@ -100,9 +131,9 @@ public class ZACommons
 
     // Groups
 
-    public IMyBlockGroup GetBlockGroupWithName(string name)
+    public BlockGroup GetBlockGroupWithName(string name)
     {
-        IMyBlockGroup group;
+        BlockGroup group;
         if (GroupsByName.TryGetValue(name.ToLower(), out group))
         {
             return group;
@@ -110,9 +141,9 @@ public class ZACommons
         return null;
     }
 
-    public List<IMyBlockGroup> GetBlockGroupsWithPrefix(string prefix)
+    public List<BlockGroup> GetBlockGroupsWithPrefix(string prefix)
     {
-        var result = new List<IMyBlockGroup>();
+        var result = new List<BlockGroup>();
         for (var e = Groups.GetEnumerator(); e.MoveNext();)
         {
             var group = e.Current;
