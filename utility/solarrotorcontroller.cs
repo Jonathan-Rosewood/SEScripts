@@ -9,7 +9,7 @@ public class SolarRotorController
         public float MaxPowerOutput;
         public float DefinedPowerOutput;
 
-        public SolarPanelDetails(IMyBlockGroup group)
+        public SolarPanelDetails(ZACommons.BlockGroup group)
         {
             MaxPowerOutput = 0.0f;
             DefinedPowerOutput = 0.0f;
@@ -145,7 +145,7 @@ public class SolarRotorController
         }
     }
 
-    private IMyMotorStator GetRotor(IMyBlockGroup group)
+    private IMyMotorStator GetRotor(ZACommons.BlockGroup group)
     {
         var rotors = ZACommons.GetBlocksOfType<IMyMotorStator>(group.Blocks);
         return rotors.Count == 1 ? (IMyMotorStator)rotors[0] : null;

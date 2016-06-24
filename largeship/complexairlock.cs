@@ -20,14 +20,14 @@ public class ComplexAirlock
     private const int AIRLOCK_STATE_PRESSURIZED = 1;
     private const int AIRLOCK_STATE_UNKNOWN = -1;
 
-    private readonly List<IMyBlockGroup> rooms = new List<IMyBlockGroup>();
-    private readonly Dictionary<string, IMyBlockGroup> roomsMap = new Dictionary<string, IMyBlockGroup>();
+    private readonly List<ZACommons.BlockGroup> rooms = new List<ZACommons.BlockGroup>();
+    private readonly Dictionary<string, ZACommons.BlockGroup> roomsMap = new Dictionary<string, ZACommons.BlockGroup>();
 
     private readonly HashSet<IMyDoor> innerDoors = new HashSet<IMyDoor>();
     private readonly HashSet<IMyDoor> spaceDoors = new HashSet<IMyDoor>();
 
-    private readonly Dictionary<string, IMyBlockGroup> doorVentGroups = new Dictionary<string, IMyBlockGroup>();
-    private readonly Dictionary<IMyDoor, IMyBlockGroup> doorVentRooms = new Dictionary<IMyDoor, IMyBlockGroup>(); // Reverse mapping of rooms
+    private readonly Dictionary<string, ZACommons.BlockGroup> doorVentGroups = new Dictionary<string, ZACommons.BlockGroup>();
+    private readonly Dictionary<IMyDoor, ZACommons.BlockGroup> doorVentRooms = new Dictionary<IMyDoor, ZACommons.BlockGroup>(); // Reverse mapping of rooms
     private readonly Dictionary<IMyDoor, List<IMyAirVent>> doorVentMap = new Dictionary<IMyDoor, List<IMyAirVent>>();
 
     private readonly Dictionary<string, OpenQueueEntry> openQueue = new Dictionary<string, OpenQueueEntry>();
@@ -149,7 +149,7 @@ public class ComplexAirlock
 
         if (command == "inner" || command == "space" || command == "toggle")
         {
-            IMyBlockGroup room;
+            ZACommons.BlockGroup room;
             if (roomsMap.TryGetValue(argument, out room))
             {
                 var vents = ToVents(ZACommons.GetBlocksOfType<IMyAirVent>(room.Blocks));
@@ -177,7 +177,7 @@ public class ComplexAirlock
         else if (command == "open")
         {
             // Find named group
-            IMyBlockGroup group;
+            ZACommons.BlockGroup group;
             if (doorVentGroups.TryGetValue(argument, out group))
             {
                 var doors = ToDoors(ZACommons.GetBlocksOfType<IMyDoor>(group.Blocks));
@@ -185,7 +185,7 @@ public class ComplexAirlock
                 if (doors.Count > 0)
                 {
                     var door = doors[0];
-                    IMyBlockGroup room;
+                    ZACommons.BlockGroup room;
                     if (doorVentRooms.TryGetValue(door, out room))
                     {
                         var otherVents = ToVents(ZACommons.GetBlocksOfType<IMyAirVent>(group.Blocks));
@@ -204,7 +204,7 @@ public class ComplexAirlock
     }
 
     private void CloseDoorsAsNeeded(EventDriver eventDriver,
-                                    IMyBlockGroup room, List<IMyDoor> doors,
+                                    ZACommons.BlockGroup room, List<IMyDoor> doors,
                                     HashSet<IMyDoor> targetDoors,
                                     int checkState)
     {
