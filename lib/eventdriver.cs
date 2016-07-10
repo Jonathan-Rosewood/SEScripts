@@ -99,7 +99,7 @@ public class EventDriver
                 var next = (float)(TimeQueue.First.Value.When.TotalSeconds - TimeSinceStart.TotalSeconds);
                 // Constrain appropriately (not sure if this will be done for us or if it
                 // will just throw). Just do it to be safe.
-                next = Math.Max(next, timer.GetMininum<float>("TriggerDelay"));
+                next = Math.Max(next, timer.GetMinimum<float>("TriggerDelay"));
                 next = Math.Min(next, timer.GetMaximum<float>("TriggerDelay"));
 
                 timer.SetValue<float>("TriggerDelay", next);
