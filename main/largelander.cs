@@ -41,8 +41,6 @@ private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
 private bool FirstRun = true;
 
-private Rangefinder.LineSample first;
-
 void Main(string argument)
 {
     var commons = new ShipControlCommons(this, shipOrientation,
