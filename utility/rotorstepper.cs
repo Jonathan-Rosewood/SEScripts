@@ -115,7 +115,7 @@ public class RotorStepper
         if (Math.Abs(error) > StepAmount / 2.0)
         {
             var rotorVelocity = pid.Compute(error);
-            rotor.SetValue<float>("Velocity", (float)rotorVelocity);
+            rotor.SetValue<float>("Velocity", (float)(rotor.GetMaximum<float>("Velocity") * rotorVelocity));
             eventDriver.Schedule(TicksPerRun, Run);
         }
         else

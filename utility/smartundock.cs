@@ -199,7 +199,7 @@ public class SmartUndock
         seeker.Seek(shipControl, UndockForward, UndockUp,
                     out yawError, out pitchError, out rollError);
 
-        if ((yawError * yawError + pitchError * pitchError + rollError * rollError) < 0.000001)
+        if ((yawError * yawError + pitchError * pitchError + rollError * rollError) < 0.0001)
         {
             // All done
             shipControl.Reset(gyroOverride: false, thrusterEnable: null);

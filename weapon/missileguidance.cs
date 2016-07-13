@@ -8,8 +8,8 @@ public class MissileGuidance
 
     private readonly Velocimeter velocimeter = new Velocimeter(30);
     private const double ThrustKp = 1.0;
-    private const double ThrustKi = 0.001;
-    private const double ThrustKd = 1.0;
+    private const double ThrustTi = 5.0;
+    private const double ThrustTd = 0.3;
     private readonly PIDController thrustPID = new PIDController(1.0 / RunsPerSecond);
 
     private const bool PerturbTarget = true;
@@ -34,8 +34,8 @@ public class MissileGuidance
     public MissileGuidance()
     {
         thrustPID.Kp = ThrustKp;
-        thrustPID.Ki = ThrustKi;
-        thrustPID.Kd = ThrustKd;
+        thrustPID.Ti = ThrustTi;
+        thrustPID.Td = ThrustTd;
     }
 
     public void AcquireTarget(ZACommons commons)

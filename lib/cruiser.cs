@@ -2,8 +2,8 @@
 public class Cruiser
 {
     private const double ThrustKp = 1.0;
-    private const double ThrustKi = 0.001;
-    private const double ThrustKd = 1.0;
+    private const double ThrustTi = 5.0;
+    private const double ThrustTd = 0.3;
     private readonly PIDController thrustPID;
     private readonly double ThrustDeadZone;
 
@@ -14,8 +14,8 @@ public class Cruiser
     {
         thrustPID = new PIDController(dt);
         thrustPID.Kp = ThrustKp;
-        thrustPID.Ki = ThrustKi;
-        thrustPID.Kd = ThrustKd;
+        thrustPID.Ti = ThrustTi;
+        thrustPID.Td = ThrustTd;
         ThrustDeadZone = thrustDeadZone;
     }
 

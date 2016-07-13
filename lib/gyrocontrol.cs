@@ -105,6 +105,14 @@ public class GyroControl
         SetAxisVelocity(axis, rpmVelocity * MathHelper.RPMToRadiansPerSecond);
     }
 
+    public void SetAxisVelocityFraction(int axis, float velocity)
+    {
+        gyros.ForEach(gyro => {
+                var axisName = AxisNames[gyro.AxisDetails[axis].LocalAxis];
+                gyro.Gyro.SetValue<float>(axisName, gyro.Gyro.GetMaximum<float>(axisName) * gyro.AxisDetails[axis].Sign * velocity);
+            });
+    }
+
     public void Reset()
     {
         gyros.ForEach(gyro => {

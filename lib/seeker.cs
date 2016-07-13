@@ -1,12 +1,12 @@
 //@ shipcontrol pid
 public class Seeker
 {
-    private const double SmallGyroKp = 250.0; // Proportional constant
-    private const double SmallGyroKi = 0.0; // Integral constant
-    private const double SmallGyroKd = 200.0; // Derivative constant
-    private const double LargeGyroKp = 50.0; // Proportional constant
-    private const double LargeGyroKi = 0.0; // Integral constant
-    private const double LargeGyroKd = 40.0; // Derivative constant
+    private const double SmallGyroKp = 100.0; // Proportional constant
+    private const double SmallGyroTi = 5.0; // Integral constant
+    private const double SmallGyroTd = 0.3; // Derivative constant
+    private const double LargeGyroKp = 100.0; // Proportional constant
+    private const double LargeGyroTi = 20.0; // Integral constant
+    private const double LargeGyroTd = 1.0; // Derivative constant
     private readonly PIDController yawPID, pitchPID, rollPID;
 
     private Base6Directions.Direction ShipForward, ShipUp, ShipLeft;
@@ -29,16 +29,16 @@ public class Seeker
         var small = shipControl.Reference.CubeGrid.GridSize == 0.5f;
 
         yawPID.Kp = small ? SmallGyroKp : LargeGyroKp;
-        yawPID.Ki = small ? SmallGyroKi : LargeGyroKi;
-        yawPID.Kd = small ? SmallGyroKd : LargeGyroKd;
+        yawPID.Ti = small ? SmallGyroTi : LargeGyroTi;
+        yawPID.Td = small ? SmallGyroTd : LargeGyroTd;
 
         pitchPID.Kp = small ? SmallGyroKp : LargeGyroKp;
-        pitchPID.Ki = small ? SmallGyroKi : LargeGyroKi;
-        pitchPID.Kd = small ? SmallGyroKd : LargeGyroKd;
+        pitchPID.Ti = small ? SmallGyroTi : LargeGyroTi;
+        pitchPID.Td = small ? SmallGyroTd : LargeGyroTd;
 
         rollPID.Kp = small ? SmallGyroKp : LargeGyroKp;
-        rollPID.Ki = small ? SmallGyroKi : LargeGyroKi;
-        rollPID.Kd = small ? SmallGyroKd : LargeGyroKd;
+        rollPID.Ti = small ? SmallGyroTi : LargeGyroTi;
+        rollPID.Td = small ? SmallGyroTd : LargeGyroTd;
 
         yawPID.Reset();
         pitchPID.Reset();
@@ -116,8 +116,8 @@ public class Seeker
         var gyroYaw = yawPID.Compute(yawError);
         var gyroPitch = pitchPID.Compute(pitchError);
 
-        gyroControl.SetAxisVelocity(GyroControl.Yaw, (float)gyroYaw);
-        gyroControl.SetAxisVelocity(GyroControl.Pitch, (float)gyroPitch);
+        gyroControl.SetAxisVelocityFraction(GyroControl.Yaw, (float)gyroYaw);
+        gyroControl.SetAxisVelocityFraction(GyroControl.Pitch, (float)gyroPitch);
 
         if (targetUp != null)
         {
@@ -134,7 +134,7 @@ public class Seeker
 
             var gyroRoll = rollPID.Compute(rollError);
 
-            gyroControl.SetAxisVelocity(GyroControl.Roll, (float)gyroRoll);
+            gyroControl.SetAxisVelocityFraction(GyroControl.Roll, (float)gyroRoll);
         }
         else
         {

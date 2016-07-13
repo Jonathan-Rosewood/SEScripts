@@ -9,8 +9,8 @@ public class CruiseControl
     private readonly PIDController thrustPID = new PIDController(1.0 / RunsPerSecond);
 
     private const double ThrustKp = 1.0;
-    private const double ThrustKi = 0.001;
-    private const double ThrustKd = 1.0;
+    private const double ThrustTi = 5.0;
+    private const double ThrustTd = 0.3;
 
     private readonly double[] Bias;
 
@@ -39,8 +39,8 @@ public class CruiseControl
     public CruiseControl()
     {
         thrustPID.Kp = ThrustKp;
-        thrustPID.Ki = ThrustKi;
-        thrustPID.Kd = ThrustKd;
+        thrustPID.Ti = ThrustTi;
+        thrustPID.Td = ThrustTd;
 
         // Have to do this here
         Bias = new double[6];
