@@ -52,16 +52,17 @@ def generate_version_header(version, modules):
     return s.format(version, ', '.join(modules))
 
 
+def visit_dependencies(modules, dependencies, module):
+    if module not in modules:
+        for dep in dependencies[module]:
+            visit_dependencies(modules, dependencies, dep)
+        modules.insert(0, module)
+
+
 def build_script(version, available_modules, dependencies, root, output,
                  strip=False, verbose=False):
-    modules = [root]
-    queue = [root]
-    while queue:
-        module = queue.pop(0)
-        for dep in dependencies[module]:
-            if dep not in modules:
-                modules.append(dep)
-                queue.append(dep)
+    modules = []
+    visit_dependencies(modules, dependencies, root)
     out_path = OUTPUT_PATTERN.format(output)
 
     if verbose:
