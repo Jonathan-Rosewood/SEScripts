@@ -19,7 +19,7 @@ public class ProductionManager
             Amount = amount * PRODUCTION_MANAGER_SETUP_AMOUNT_MULTIPLIER;
         }
 
-        public string ToString()
+        public override string ToString()
         {
             return SubtypeName + ":" + Amount;
         }
