@@ -129,7 +129,7 @@ def get_metadata(fn):
 def main(strip=False, verbose=False):
     # Fetch version
     if os.path.isdir('.hg'):
-        with subprocess.Popen('hg identify', shell=True, stdout=subprocess.PIPE,
+        with subprocess.Popen('hg identify -i', shell=True, stdout=subprocess.PIPE,
                               close_fds=True) as p:
             version, err = p.communicate()
             version = version.decode(sys.getdefaultencoding()).strip()
