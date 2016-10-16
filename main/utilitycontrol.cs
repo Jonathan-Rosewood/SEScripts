@@ -1,7 +1,7 @@
 //! Utility Controller
 //@ shipcontrol eventdriver dockingmanager safemode smartundock
 //@ batterymonitor redundancy emergencystop
-//@ cruisecontrol vtvlhelper damagecontrol rangefinder gravitysurveyor
+//@ cruisecontrol vtvlhelper damagecontrol rangefinder
 public class MySafeModeHandler : SafeModeHandler
 {
     public void SafeMode(ZACommons commons, EventDriver eventDriver)
@@ -21,7 +21,6 @@ private readonly SmartUndock smartUndock = new SmartUndock();
 private readonly CruiseControl cruiseControl = new CruiseControl();
 private readonly VTVLHelper vtvlHelper = new VTVLHelper();
 private readonly DamageControl damageControl = new DamageControl();
-private readonly GravitySurveyor gravitySurveyor = new GravitySurveyor(VTVLHELPER_TARGET_GROUP);
 private readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
@@ -65,7 +64,6 @@ void Main(string argument)
             vtvlHelper.HandleCommand(commons, eventDriver, argument);
             damageControl.HandleCommand(commons, eventDriver, argument);
             HandleCommand(commons, argument);
-            gravitySurveyor.HandleCommand(commons, argument);
         },
         postAction: () => {
             damageControl.Display(commons);

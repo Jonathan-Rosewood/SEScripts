@@ -2,7 +2,7 @@
 //@ shipcontrol eventdriver safemode redundancy doorautocloser simpleairlock
 //@ cruisecontrol vtvlhelper damagecontrol reactormanager timerkicker
 //@ batterymonitor solargyrocontroller oxygenmanager airventmanager
-//@ emergencystop gravitysurveyor
+//@ emergencystop
 public class MySafeModeHandler : SafeModeHandler
 {
     public void SafeMode(ZACommons commons, EventDriver eventDriver)
@@ -34,7 +34,6 @@ private readonly SolarGyroController solarGyroController =
                             );
 private readonly OxygenManager oxygenManager = new OxygenManager();
 private readonly AirVentManager airVentManager = new AirVentManager();
-private readonly GravitySurveyor gravitySurveyor = new GravitySurveyor(VTVLHELPER_TARGET_GROUP);
 private readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
@@ -80,7 +79,6 @@ void Main(string argument)
             damageControl.HandleCommand(commons, eventDriver, argument);
             reactorManager.HandleCommand(commons, eventDriver, argument);
             solarGyroController.HandleCommand(commons, eventDriver, argument);
-            gravitySurveyor.HandleCommand(commons, argument);
         },
         postAction: () => {
             solarGyroController.Display(commons);

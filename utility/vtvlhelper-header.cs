@@ -10,7 +10,6 @@ const Base6Directions.Direction VTVLHELPER_LAUNCH_DIRECTION = Base6Directions.Di
 const double VTVLHELPER_LAUNCH_SPEED = 98.0; // In meters per second
 const string VTVLHELPER_LAUNCH_DONE = "Launch Done";
 // Autodrop
-const string VTVLHELPER_TARGET_GROUP = "GS Target";
 const double VTVLHELPER_TTT_BUFFER = 10.0; // Time-to-target, in seconds
 // Orbit
 const Base6Directions.Direction VTVLHELPER_ORBIT_DIRECTION = Base6Directions.Direction.Down;

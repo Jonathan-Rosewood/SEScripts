@@ -21,14 +21,12 @@ public class VTVLHelper
     private Func<IMyThrust, bool> ThrusterCondition = null;
 
     private bool Autodrop = false;
-    private string TargetLabel;
-    private Vector3D TargetCenter;
-    private double TargetRadius, BrakingRadius;
+    private double TargetElevation, BrakingElevation;
     private Func<IMyThrust, bool> AutoThrusterCondition = null;
 
     private Func<ZACommons, EventDriver, bool> LivenessCheck = null;
 
-    private double Distance, DistanceToStop;
+    private double Elevation, Distance;
 
     // Multiply by FramesPerRun to get real frame delay
     private const uint OrbitOnDelay = 5;
@@ -51,7 +49,7 @@ public class VTVLHelper
                               string argument)
     {
         argument = argument.Trim().ToLower();
-        var parts = argument.Split(new char[] { ' ' }, 5);
+        var parts = argument.Split(new char[] { ' ' }, 6);
         if (parts.Length < 2) return;
         var command = parts[0];
         var subcommand = parts[1];
@@ -104,20 +102,39 @@ public class VTVLHelper
             }
             else if (subcommand == "auto")
             {
-                if (!AcquireTarget(commons)) return;
                 // Defaults
                 ThrusterCondition = null;
-                var extraRadius = 0.0;
                 AutoThrusterCondition = null;
+                TargetElevation = 1000.0;
                 // From arguments
-                if (parts.Length > 2) ThrusterCondition = ParseThrusterFlags(parts[2]);
-                if (parts.Length > 3)
+                if (parts.Length > 2)
                 {
-                    if (!double.TryParse(parts[3], out extraRadius)) extraRadius = 0.0;
+                    if (double.TryParse(parts[2], out TargetElevation))
+                    {
+                        TargetElevation = Math.Max(0.0, TargetElevation);
+                    }
+                    else
+                    {
+                        TargetElevation = 1000.0;
+                    }
                 }
-                if (parts.Length > 4) AutoThrusterCondition = ParseThrusterFlags(parts[4]);
 
-                BrakingRadius = TargetRadius + extraRadius;
+                if (parts.Length > 3) ThrusterCondition = ParseThrusterFlags(parts[3]);
+
+                BrakingElevation = TargetElevation;
+                if (parts.Length > 4)
+                {
+                    if (double.TryParse(parts[4], out BrakingElevation))
+                    {
+                        BrakingElevation = Math.Max(TargetElevation, BrakingElevation);
+                    }
+                    else
+                    {
+                        BrakingElevation = TargetElevation;
+                    }
+                }
+
+                if (parts.Length > 5) AutoThrusterCondition = ParseThrusterFlags(parts[5]);
 
                 shipControl.Reset(gyroOverride: false, thrusterEnable: true,
                                   thrusterCondition: ThrusterCondition);
@@ -238,8 +255,11 @@ public class VTVLHelper
 
             if (Autodrop)
             {
-                Distance = (shipControl.ReferencePoint - TargetCenter).Length();
-                if (Distance < BrakingRadius)
+                // Shouldn't fail since we do gravity check above
+                if (!shipControl.ShipController.TryGetPlanetElevation(MyPlanetElevation.Surface, out Elevation)) Elevation = 0.0;
+
+                Distance = Elevation - BrakingElevation;
+                if (Elevation < BrakingElevation)
                 {
                     shipControl.Reset(gyroOverride: true, thrusterEnable: true,
                                       thrusterCondition: ThrusterCondition);
@@ -308,8 +328,11 @@ public class VTVLHelper
             double yawError, pitchError;
             seeker.Seek(shipControl, gravity, out yawError, out pitchError);
 
-            Distance = (shipControl.ReferencePoint - TargetCenter).Length();
-            if (Distance <= TargetRadius)
+            // Shouldn't fail since we do gravity check above
+            if (!shipControl.ShipController.TryGetPlanetElevation(MyPlanetElevation.Surface, out Elevation)) Elevation = 0.0;
+
+            Distance = Elevation - TargetElevation;
+            if (Elevation <= TargetElevation)
             {
                 // All done. Re-enable thrusters and restore control.
                 Reset(shipControl);
@@ -318,8 +341,7 @@ public class VTVLHelper
             }
             else
             {
-                DistanceToStop = Distance - TargetRadius;
-                var targetSpeed = Math.Min(DistanceToStop / VTVLHELPER_TTT_BUFFER,
+                var targetSpeed = Math.Min(Distance / VTVLHELPER_TTT_BUFFER,
                                            VTVLHELPER_BRAKING_SPEED);
                 targetSpeed = Math.Max(targetSpeed, 5.0);
 
@@ -429,14 +451,14 @@ public class VTVLHelper
                 break;
             case BURNING:
                 commons.Echo("VTVL: Burn phase");
-                if (Autodrop) commons.Echo("Target: " + TargetLabel);
+                if (Autodrop) commons.Echo("Auto-drop starting");
                 break;
             case GLIDING:
                 commons.Echo("VTVL: Glide phase");
                 if (Autodrop)
                 {
-                    commons.Echo("Target: " + TargetLabel);
-                    commons.Echo(string.Format("Center Distance: {0:F2} m", Distance));
+                    commons.Echo(string.Format("Elevation: {0:F2} m", Elevation));
+                    commons.Echo(string.Format("Brake Distance: {0:F2} m", Distance));
                 }
                 break;
             case BRAKING:
@@ -444,9 +466,8 @@ public class VTVLHelper
                 break;
             case APPROACHING:
                 commons.Echo("VTVL: Approach phase");
-                commons.Echo("Target: " + TargetLabel);
-                commons.Echo(string.Format("Center Distance: {0:F2} m", Distance));
-                commons.Echo(string.Format("Stopping Distance: {0:F2} m", DistanceToStop));
+                commons.Echo(string.Format("Elevation: {0:F2} m", Elevation));
+                commons.Echo(string.Format("Stop Distance: {0:F2} m", Distance));
                 break;
             case LAUNCHING:
                 commons.Echo("VTVL: Launching");
@@ -518,39 +539,6 @@ public class VTVLHelper
     private void SaveLastCommand(ZACommons commons, string argument)
     {
         commons.SetValue(LastCommandKey, argument);
-    }
-
-    private bool AcquireTarget(ZACommons commons)
-    {
-        var panelGroup = commons.GetBlockGroupWithName(VTVLHELPER_TARGET_GROUP);
-        if (panelGroup == null) return false;
-
-        var panels = ZACommons.GetBlocksOfType<IMyTextPanel>(panelGroup.Blocks);
-        if (panels.Count == 0) return false;
-
-        var panel = panels[0] as IMyTextPanel; // Just use the first one
-        var targetString = panel.GetPublicText();
-
-        // Parse target info
-        var lines = targetString.Split('\n');
-        if (lines.Length < 1) return false;
-        var parts = lines[0].Split(';');
-        if (parts.Length != 5) return false;
-        TargetLabel = parts[0];
-        TargetCenter = new Vector3D();
-        for (int i = 0; i < 3; i++)
-        {
-            double val;
-            if (double.TryParse(parts[1+i], out val))
-            {
-                TargetCenter.SetDim(i, val);
-            }
-            else
-            {
-                return false;
-            }
-        }
-        return double.TryParse(parts[4], out TargetRadius);
     }
 
     private bool ShouldAbort(ZACommons commons, EventDriver eventDriver,
