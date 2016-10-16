@@ -10,7 +10,7 @@ public class CruiseControl
 
     private const double ThrustKp = 1.0;
     private const double ThrustTi = 5.0;
-    private const double ThrustTd = 0.3;
+    private const double ThrustTd = 0.1;
 
     private bool Active = false;
     private double TargetSpeed, CurrentSpeed;

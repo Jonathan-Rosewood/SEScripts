@@ -3,7 +3,7 @@ public class Cruiser
 {
     private const double ThrustKp = 1.0;
     private const double ThrustTi = 5.0;
-    private const double ThrustTd = 0.3;
+    private const double ThrustTd = 0.1;
     private readonly PIDController thrustPID;
     private readonly double ThrustDeadZone;
 
