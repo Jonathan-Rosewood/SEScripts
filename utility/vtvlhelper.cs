@@ -341,9 +341,9 @@ public class VTVLHelper
             }
             else
             {
-                var targetSpeed = Math.Min(Distance / VTVLHELPER_TTT_BUFFER,
+                var targetSpeed = Math.Min(Distance * VTVLHELPER_APPROACH_GAIN,
                                            VTVLHELPER_BRAKING_SPEED);
-                targetSpeed = Math.Max(targetSpeed, 5.0);
+                targetSpeed = Math.Max(targetSpeed, VTVLHELPER_MINIMUM_SPEED);
 
                 cruiser.Cruise(shipControl, eventDriver, targetSpeed,
                                condition: ThrusterCondition,
