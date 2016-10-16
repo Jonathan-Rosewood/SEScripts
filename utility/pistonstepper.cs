@@ -115,7 +115,7 @@ public class PistonStepper
         if (Math.Abs(error) > PISTONSTEPPER_MIN_ERROR)
         {
             var pistonVelocity = pid.Compute(error);
-            piston.SetValue<float>("Velocity", (float)(rotor.GetMaximum<float>("Velocity") * pistonVelocity));
+            piston.SetValue<float>("Velocity", (float)(piston.GetMaximum<float>("Velocity") * pistonVelocity));
             eventDriver.Schedule(TicksPerRun, Run);
         }
         else
