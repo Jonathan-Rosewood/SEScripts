@@ -23,6 +23,7 @@ public class VTVLHelper
     private bool Autodrop = false;
     private double TargetElevation, BrakingElevation;
     private Func<IMyThrust, bool> AutoThrusterCondition = null;
+    private double MinimumSpeed;
 
     private Func<ZACommons, EventDriver, bool> LivenessCheck = null;
 
@@ -49,7 +50,7 @@ public class VTVLHelper
                               string argument)
     {
         argument = argument.Trim().ToLower();
-        var parts = argument.Split(new char[] { ' ' }, 6);
+        var parts = argument.Split(new char[] { ' ' }, 7);
         if (parts.Length < 2) return;
         var command = parts[0];
         var subcommand = parts[1];
@@ -135,6 +136,19 @@ public class VTVLHelper
                 }
 
                 if (parts.Length > 5) AutoThrusterCondition = ParseThrusterFlags(parts[5]);
+
+                MinimumSpeed = VTVLHELPER_MINIMUM_SPEED;
+                if (parts.Length > 6)
+                {
+                    if (double.TryParse(parts[6], out MinimumSpeed))
+                    {
+                        MinimumSpeed = Math.Max(1.0, MinimumSpeed);
+                    }
+                    else
+                    {
+                        MinimumSpeed = VTVLHELPER_MINIMUM_SPEED;
+                    }
+                }
 
                 shipControl.Reset(gyroOverride: false, thrusterEnable: true,
                                   thrusterCondition: ThrusterCondition);
@@ -343,7 +357,7 @@ public class VTVLHelper
             {
                 var targetSpeed = Math.Min(Distance * VTVLHELPER_APPROACH_GAIN,
                                            VTVLHELPER_BRAKING_SPEED);
-                targetSpeed = Math.Max(targetSpeed, VTVLHELPER_MINIMUM_SPEED);
+                targetSpeed = Math.Max(targetSpeed, MinimumSpeed);
 
                 cruiser.Cruise(shipControl, eventDriver, targetSpeed,
                                condition: ThrusterCondition,
