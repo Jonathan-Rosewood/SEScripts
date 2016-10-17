@@ -79,6 +79,7 @@ public class EmergencyStop : SafeModeHandler
                     }
 
                     new ReverseThrust().Init(c, ed,
+                                             EMERGENCY_STOP_MAX_GYRO_ERROR,
                                              thrusterDirection: direction);
                 });
     }

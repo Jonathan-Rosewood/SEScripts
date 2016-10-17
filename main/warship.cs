@@ -84,7 +84,7 @@ void HandleCommand(ZACommons commons, EventDriver eventDriver, string argument)
     {
         // TODO global modes
         cruiseControl.HandleCommand(commons, eventDriver, "cruise reset");
-        new ReverseThrust().Init(commons, eventDriver);
+        new ReverseThrust().Init(commons, eventDriver, REVERSE_THRUST_MAX_GYRO_ERROR);
     }
 }
 
