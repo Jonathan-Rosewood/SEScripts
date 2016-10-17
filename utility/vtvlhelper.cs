@@ -256,7 +256,7 @@ public class VTVLHelper
             if (Autodrop)
             {
                 // Shouldn't fail since we do gravity check above
-                if (!shipControl.ShipController.TryGetPlanetElevation(MyPlanetElevation.Surface, out Elevation)) Elevation = 0.0;
+                if (!controller.TryGetPlanetElevation(MyPlanetElevation.Surface, out Elevation)) Elevation = 0.0;
 
                 Distance = Elevation - BrakingElevation;
                 if (Elevation < BrakingElevation)
@@ -329,7 +329,7 @@ public class VTVLHelper
             seeker.Seek(shipControl, gravity, out yawError, out pitchError);
 
             // Shouldn't fail since we do gravity check above
-            if (!shipControl.ShipController.TryGetPlanetElevation(MyPlanetElevation.Surface, out Elevation)) Elevation = 0.0;
+            if (!controller.TryGetPlanetElevation(MyPlanetElevation.Surface, out Elevation)) Elevation = 0.0;
 
             Distance = Elevation - TargetElevation;
             if (Elevation <= TargetElevation)
