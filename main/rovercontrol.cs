@@ -44,11 +44,11 @@ public class ManageRover : DockingHandler
 {
     public void PreDock(ZACommons commons, EventDriver eventDriver)
     {
-        // Lower suspension height all the way
+        // Lower suspension strength all the way
         var wheels = ZACommons.GetBlocksOfType<IMyMotorSuspension>(commons.Blocks);
         wheels.ForEach(wheel =>
                 {
-                    wheel.SetValue<float>("Height", wheel.GetMaximum<float>("Height"));
+                    wheel.SetValue<float>("Strength", wheel.GetMinimum<float>("Strength"));
                 });
     }
 
@@ -59,10 +59,10 @@ public class ManageRover : DockingHandler
         ZACommons.EnableBlocks(wheels, !docked);
         if (!docked)
         {
-            // Raise suspension height to configured value
+            // Set suspension strength to configured value
             wheels.ForEach(wheel =>
                     {
-                        wheel.SetValue<float>("Height", UNDOCK_SUSPENSION_HEIGHT);
+                        wheel.SetValue<float>("Strength", UNDOCK_SUSPENSION_STRENGTH);
                     });
         }
         else
@@ -71,7 +71,10 @@ public class ManageRover : DockingHandler
             var controllers = ZACommons.GetBlocksOfType<IMyShipController>(commons.Blocks);
             controllers.ForEach(controller =>
                     {
-                        controller.SetValue<bool>("HandBrake", true);
+                        if (!((IMyShipController)controller).HandBrake)
+                        {
+                            controller.SetValue<bool>("HandBrake", true);
+                        }
                     });
         }
     }
