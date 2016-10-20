@@ -12,5 +12,6 @@ const string VTVLHELPER_LAUNCH_DONE = "Launch Done";
 // Autodrop
 const double VTVLHELPER_APPROACH_GAIN = 0.1; // Multiplied by distance to get approach speed
 const double VTVLHELPER_MINIMUM_SPEED = 5.0; // In meters per second
+const double VTVLHELPER_MAXIMUM_SPEED = 100.0; // In meters per second
 // Orbit
 const Base6Directions.Direction VTVLHELPER_ORBIT_DIRECTION = Base6Directions.Direction.Down;

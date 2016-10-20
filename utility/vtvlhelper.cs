@@ -8,6 +8,8 @@ public class VTVLHelper
 
     private readonly Seeker seeker = new Seeker(1.0 / RunsPerSecond);
     private readonly Cruiser cruiser = new Cruiser(1.0 / RunsPerSecond, 0.02);
+    private readonly Cruiser LongCruiser = new Cruiser(1.0 / RunsPerSecond, 0.02);
+    private readonly Cruiser LatCruiser = new Cruiser(1.0 / RunsPerSecond, 0.02);
 
     private const int IDLE = 0;
     private const int BURNING = 1;
@@ -24,6 +26,7 @@ public class VTVLHelper
     private double TargetElevation, BrakingElevation;
     private Func<IMyThrust, bool> AutoThrusterCondition = null;
     private double MinimumSpeed;
+    private Vector3D? DropTarget = null;
 
     private Func<ZACommons, EventDriver, bool> LivenessCheck = null;
 
@@ -50,7 +53,7 @@ public class VTVLHelper
                               string argument)
     {
         argument = argument.Trim().ToLower();
-        var parts = argument.Split(new char[] { ' ' }, 7);
+        var parts = argument.Split(new char[] { ' ' }, 10);
         if (parts.Length < 2) return;
         var command = parts[0];
         var subcommand = parts[1];
@@ -150,6 +153,18 @@ public class VTVLHelper
                     }
                 }
 
+                DropTarget = null;
+                if (parts.Length > 9)
+                {
+                    double x, y, z;
+                    if (double.TryParse(parts[7], out x) &&
+                        double.TryParse(parts[8], out y) &&
+                        double.TryParse(parts[9], out z))
+                    {
+                        DropTarget = new Vector3D(x, y, z);
+                    }
+                }
+
                 shipControl.Reset(gyroOverride: false, thrusterEnable: true,
                                   thrusterCondition: ThrusterCondition);
                 cruiser.Init(shipControl,
@@ -241,6 +256,17 @@ public class VTVLHelper
                         shipUp: Base6Directions.GetPerpendicular(down),
                         shipForward: down);
 
+            if (Autodrop)
+            {
+                // "forward" & "right"
+                var forward = Base6Directions.GetPerpendicular(VTVLHELPER_BRAKE_DIRECTION);
+                var right = Base6Directions.GetCross(forward, VTVLHELPER_BRAKE_DIRECTION);
+                // Actual orientations don't matter
+                // Just as long as they're planar & perpendicular to down
+                LongCruiser.Init(shipControl, localForward: forward);
+                LatCruiser.Init(shipControl, localForward: right);
+            }
+
             Mode = GLIDING;
             eventDriver.Schedule(FramesPerRun, Glide);
         }
@@ -271,6 +297,9 @@ public class VTVLHelper
             {
                 // Shouldn't fail since we do gravity check above
                 if (!controller.TryGetPlanetElevation(MyPlanetElevation.Surface, out Elevation)) Elevation = 0.0;
+
+                // Stay on target if we have one
+                Alignment(shipControl, controller);
 
                 Distance = Elevation - BrakingElevation;
                 if (Elevation < BrakingElevation)
@@ -362,6 +391,9 @@ public class VTVLHelper
                 cruiser.Cruise(shipControl, eventDriver, targetSpeed,
                                condition: ThrusterCondition,
                                enableForward: false);
+
+                // Keep on target
+                Alignment(shipControl, controller);
 
                 eventDriver.Schedule(FramesPerRun, Approach);
             }
@@ -564,5 +596,46 @@ public class VTVLHelper
             Reset((ShipControlCommons)commons);
         }
         return Mode != expectedMode;
+    }
+
+    private void Alignment(ShipControlCommons shipControl, IMyShipController controller)
+    {
+        Vector3D center;
+        if (DropTarget == null || !controller.TryGetPlanetPosition(out center)) return;
+
+        // Project the target position to our sphere
+        var targetRayDirection = Vector3D.Normalize((Vector3D)DropTarget - center);
+        var myRayLength = (shipControl.ReferencePoint - center).Length();
+        var targetPosition = center + targetRayDirection * myRayLength;
+
+        // Now get offset to target point on our sphere
+        // (not all that accurate over large distances, but eh)
+        var targetOffset = targetPosition - shipControl.ReferencePoint;
+
+        // Project targetOffset along each reference vector,
+        // set cruiser speed appropriately
+        AlignmentThrust(shipControl, targetOffset, LongCruiser);
+        AlignmentThrust(shipControl, targetOffset, LatCruiser);
+    }
+
+    private void AlignmentThrust(ShipControlCommons shipControl, Vector3D offset, Cruiser cruiser)
+    {
+        var velocity = shipControl.LinearVelocity;
+        if (velocity != null)
+        {
+            // Project offset against reference direction
+            var referenceDirection = GetReferenceVector(shipControl, cruiser.LocalForward);
+            var referenceDistance = Vector3D.Dot(offset, referenceDirection);
+            var targetSpeed = Math.Min(Math.Abs(referenceDistance) * VTVLHELPER_APPROACH_GAIN, VTVLHELPER_MAXIMUM_SPEED);
+            targetSpeed *= Math.Sign(referenceDistance);
+
+            cruiser.Cruise(shipControl, targetSpeed, (Vector3D)velocity);
+        }
+    }
+
+    private Vector3D GetReferenceVector(ShipControlCommons shipControl, Base6Directions.Direction direction)
+    {
+        var offset = shipControl.Reference.Position + Base6Directions.GetIntVector(shipControl.ShipBlockOrientation.TransformDirection(direction));
+        return Vector3D.Normalize(shipControl.Reference.CubeGrid.GridIntegerToWorld(offset) - shipControl.ReferencePoint);
     }
 }
