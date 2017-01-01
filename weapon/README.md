@@ -17,7 +17,3 @@ Note that the last two may no longer be true today. But my missiles no longer wo
  * missileguidance &mdash; Guidance script that would spiral the missile toward a given point (acquired usually via rangefinding). In its heydey, it was able to bring an *explosive* missile to its target even with 4-5 turrets firing.
 
  * missilelaunch &mdash; State machine for launching missiles ("state machine" being a fancy word for "chain of timer blocks simulator").
- 
- * missilepayload &mdash; Given a cargo container with a single stack of items in its first slot, it will split the stack into multiple slots. In the olden days, this made the shrapnel-type missiles more deadly.
- 
- * randomdecoy &mdash; Some random dude on Reddit claimed that strobing decoys would lock up turrets and I believed him. It's all B.S. His demo worked because his guns and decoys were *on the same grid*.
