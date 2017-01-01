@@ -1,4 +1,4 @@
-//@ commons
+//@ commons eventdriver
 public class SolarRotorController
 {
     private const double RunDelay = 1.0;

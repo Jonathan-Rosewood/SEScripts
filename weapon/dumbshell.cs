@@ -1,3 +1,4 @@
+//@ shipcontrol eventdriver
 public class DumbShell
 {
     private const string BATTERY_GROUP = "Shell Batteries";
