@@ -1,4 +1,4 @@
-//@ shipcontrol eventdriver pid
+//@ shipcontrol pid
 public class Cruiser
 {
     private const double ThrustKp = 1.0;
@@ -29,7 +29,7 @@ public class Cruiser
     }
 
     // Use ship controller velocity
-    public bool Cruise(ShipControlCommons shipControl, EventDriver eventDriver,
+    public bool Cruise(ShipControlCommons shipControl,
                        double targetSpeed,
                        Func<IMyThrust, bool> condition = null,
                        bool enableForward = true,

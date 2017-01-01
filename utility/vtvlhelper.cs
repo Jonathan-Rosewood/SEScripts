@@ -272,7 +272,7 @@ public class VTVLHelper
         }
         else
         {
-            cruiser.Cruise(shipControl, eventDriver, VTVLHELPER_BURN_SPEED,
+            cruiser.Cruise(shipControl, VTVLHELPER_BURN_SPEED,
                            condition: ThrusterCondition);
 
             eventDriver.Schedule(FramesPerRun, Burn);
@@ -344,7 +344,7 @@ public class VTVLHelper
             double yawError, pitchError;
             seeker.Seek(shipControl, gravity, out yawError, out pitchError);
 
-            cruiser.Cruise(shipControl, eventDriver, VTVLHELPER_BRAKING_SPEED,
+            cruiser.Cruise(shipControl, VTVLHELPER_BRAKING_SPEED,
                            condition: ThrusterCondition,
                            enableForward: false);
 
@@ -388,7 +388,7 @@ public class VTVLHelper
                                            VTVLHELPER_BRAKING_SPEED);
                 targetSpeed = Math.Max(targetSpeed, MinimumSpeed);
 
-                cruiser.Cruise(shipControl, eventDriver, targetSpeed,
+                cruiser.Cruise(shipControl, targetSpeed,
                                condition: ThrusterCondition,
                                enableForward: false);
 
@@ -419,7 +419,7 @@ public class VTVLHelper
             double yawError, pitchError;
             seeker.Seek(shipControl, -gravity, out yawError, out pitchError);
 
-            cruiser.Cruise(shipControl, eventDriver, VTVLHELPER_LAUNCH_SPEED,
+            cruiser.Cruise(shipControl, VTVLHELPER_LAUNCH_SPEED,
                            condition: ThrusterCondition,
                            enableBackward: false);
 

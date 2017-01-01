@@ -121,7 +121,7 @@ public class LOSMiner
         seeker.Seek(shipControl, targetVector,
                     out yawError, out pitchError);
 
-        cruiser.Cruise(shipControl, eventDriver, TARGET_MINING_SPEED);
+        cruiser.Cruise(shipControl, TARGET_MINING_SPEED);
 
         eventDriver.Schedule(FramesPerRun, Mine);
     }
@@ -157,7 +157,7 @@ public class LOSMiner
         seeker.Seek(shipControl, targetVector,
                     out yawError, out pitchError);
 
-        cruiser.Cruise(shipControl, eventDriver, TARGET_MINING_SPEED);
+        cruiser.Cruise(shipControl, TARGET_MINING_SPEED);
 
         eventDriver.Schedule(FramesPerRun, Reverse);
     }

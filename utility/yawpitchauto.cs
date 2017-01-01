@@ -69,7 +69,7 @@ public class YawPitchAutopilot
                                    AutopilotSpeed);
         targetSpeed = Math.Max(targetSpeed, AUTOPILOT_MIN_SPEED); // Avoid Zeno's paradox...
 
-        cruiser.Cruise(shipControl, eventDriver, targetSpeed);
+        cruiser.Cruise(shipControl, targetSpeed);
 
         if (distance < AUTOPILOT_DISENGAGE_DISTANCE)
         {
