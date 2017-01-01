@@ -77,9 +77,9 @@ public class GyroControl
                      Base6Directions.Direction shipForward = Base6Directions.Direction.Forward)
     {
         gyros.Clear();
-        for (var e = blocks.GetEnumerator(); e.MoveNext();)
+        foreach (var block in blocks)
         {
-            var gyro = e.Current as IMyGyro;
+            var gyro = block as IMyGyro;
             if (gyro != null &&
                 gyro.IsFunctional && gyro.IsWorking && gyro.Enabled &&
                 (collect == null || collect(gyro)))

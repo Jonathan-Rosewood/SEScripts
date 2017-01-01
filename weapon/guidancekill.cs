@@ -24,9 +24,8 @@ public class GuidanceKill
     {
         bool kill = false;
         // Check if any essential blocks have been damaged
-        for (var e = BlocksToCheck.GetEnumerator(); e.MoveNext();)
+        foreach (var block in BlocksToCheck)
         {
-            var block = e.Current;
             var slimBlock = block.CubeGrid.GetCubeBlock(block.Position);
             if (slimBlock.CurrentDamage > 0.0f)
             {

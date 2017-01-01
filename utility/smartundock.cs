@@ -100,9 +100,9 @@ public class SmartUndock
             IMyShipConnector connected = null;
             var connectors = ZACommons.GetBlocksOfType<IMyShipConnector>(commons.Blocks,
                                                                          connector => connector.DefinitionDisplayNameText == "Connector"); // Avoid Ejectors
-            for (var e = connectors.GetEnumerator(); e.MoveNext();)
+            foreach (var block in connectors)
             {
-                var connector = (IMyShipConnector)e.Current;
+                var connector = (IMyShipConnector)block;
                 if (connector.IsLocked && connector.IsConnected)
                 {
                     // Assume the first one as well
@@ -137,9 +137,9 @@ public class SmartUndock
             SaveUndockTarget(commons);
 
             // Next, physically undock
-            for (var e = connectors.GetEnumerator(); e.MoveNext();)
+            foreach (var block in connectors)
             {
-                var connector = (IMyShipConnector)e.Current;
+                var connector = (IMyShipConnector)block;
                 if (connector.IsLocked) connector.ApplyAction("Unlock");
             }
             ZACommons.EnableBlocks(connectors, false);

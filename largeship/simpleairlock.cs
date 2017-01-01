@@ -5,9 +5,9 @@ public class SimpleAirlock
 
     private bool IsAnyDoorOpen(List<IMyTerminalBlock> doors)
     {
-        for (var e = doors.GetEnumerator(); e.MoveNext();)
+        foreach (var block in doors)
         {
-            var door = e.Current as IMyDoor;
+            var door = block as IMyDoor;
             if (door != null && door.OpenRatio > 0.0f) return true;
         }
         return false;
@@ -21,16 +21,16 @@ public class SimpleAirlock
     public void Run(ZACommons commons, EventDriver eventDriver)
     {
         var groups = commons.GetBlockGroupsWithPrefix(SIMPLE_AIRLOCK_GROUP_PREFIX);
-        for (var e = groups.GetEnumerator(); e.MoveNext();)
+        foreach (var group in groups)
         {
-            var doors = ZACommons.GetBlocksOfType<IMyDoor>(e.Current.Blocks,
+            var doors = ZACommons.GetBlocksOfType<IMyDoor>(group.Blocks,
                                                            door => door.CubeGrid == commons.Me.CubeGrid &&
                                                            door.IsFunctional);
 
             var opened = IsAnyDoorOpen(doors);
-            for (var f = doors.GetEnumerator(); f.MoveNext();)
+            foreach (var block in doors)
             {
-                var door = (IMyDoor)f.Current;
+                var door = (IMyDoor)block;
                 if (door.OpenRatio == 0.0f && opened)
                 {
                     // This door is not open and some other door in the group is, lock it down

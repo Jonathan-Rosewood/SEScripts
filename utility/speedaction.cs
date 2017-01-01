@@ -31,10 +31,8 @@ public class SpeedAction
     private void DoActions(ZACommons commons, EventDriver eventDriver,
                            double currentSpeed)
     {
-        for (var e = commons.GetBlockGroupsWithPrefix(SPEED_ACTION_PREFIX).GetEnumerator(); e.MoveNext();)
+        foreach (var group in commons.GetBlockGroupsWithPrefix(SPEED_ACTION_PREFIX))
         {
-            var group = e.Current;
-
             // Break it up and parse each part
             var parts = group.Name.Split(new char[] { ACTION_DELIMETER }, 3);
 

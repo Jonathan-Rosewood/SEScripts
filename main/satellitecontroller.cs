@@ -13,10 +13,8 @@ public class SatelliteLowBatteryHandler : BatteryMonitor.LowBatteryHandler
         if (started)
         {
             // Just change the name of the first active antenna
-            for (var e = ZACommons.GetBlocksOfType<IMyRadioAntenna>(commons.Blocks).GetEnumerator(); e.MoveNext();)
+            foreach (var antenna in ZACommons.GetBlocksOfType<IMyRadioAntenna>(commons.Blocks))
             {
-                var antenna = e.Current;
-
                 if (antenna.IsFunctional && antenna.IsWorking)
                 {
                     OldAntennaName = antenna.CustomName;
@@ -28,10 +26,8 @@ public class SatelliteLowBatteryHandler : BatteryMonitor.LowBatteryHandler
         else
         {
             // Scan for the antenna with the message, change it back
-            for (var e = ZACommons.GetBlocksOfType<IMyRadioAntenna>(commons.Blocks).GetEnumerator(); e.MoveNext();)
+            foreach (var antenna in ZACommons.GetBlocksOfType<IMyRadioAntenna>(commons.Blocks))
             {
-                var antenna = e.Current;
-
                 if (antenna.CustomName == Message)
                 {
                     antenna.SetCustomName(OldAntennaName);

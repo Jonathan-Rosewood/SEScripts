@@ -32,9 +32,9 @@ public class TurretBasedDetector
             {
                 var turrets = ZACommons.GetBlocksOfType<IMyLargeTurretBase>(turretGroup.Blocks,
                                                                             block => block.CubeGrid == commons.Me.CubeGrid);
-                for (var e = turrets.GetEnumerator(); e.MoveNext();)
+                foreach (var block in turrets)
                 {
-                    var turret = e.Current as IMyLargeTurretBase;
+                    var turret = block as IMyLargeTurretBase;
                     TurretInfo info;
                     if (turretInfos.TryGetValue(turret, out info))
                     {

@@ -35,10 +35,8 @@ public class Stocker
 
         var toCheck = new Dictionary<IMyTerminalBlock, Dictionary<string, int>>();
 
-        for (var e = commons.GetBlockGroupsWithPrefix(STOCKER_PREFIX).GetEnumerator(); e.MoveNext();)
+        foreach (var group in commons.GetBlockGroupsWithPrefix(STOCKER_PREFIX))
         {
-            var group = e.Current;
-
             if (group.Name == STOCKER_SOURCE_NAME) continue;
 
             // Determine count
@@ -88,10 +86,10 @@ public class Stocker
 
         // Determine how many are missing from all destinations
         var missingStocks = new Dictionary<string, LinkedList<MissingStock>>();
-        for (var e = toCheck.GetEnumerator(); e.MoveNext();)
+        foreach (var kv in toCheck)
         {
-            var block = e.Current.Key;
-            var wantedStocks = e.Current.Value;
+            var block = kv.Key;
+            var wantedStocks = kv.Value;
 
             // Gather current item counts
             var currents = new Dictionary<string, VRage.MyFixedPoint>();
@@ -117,10 +115,10 @@ public class Stocker
             }
 
             // Now figure out what's missing
-            for (var f = wantedStocks.GetEnumerator(); f.MoveNext();)
+            foreach (var kv2 in wantedStocks)
             {
-                var subtypeName = f.Current.Key;
-                var count = f.Current.Value;
+                var subtypeName = kv2.Key;
+                var count = kv2.Value;
 
                 VRage.MyFixedPoint current;
                 if (!currents.TryGetValue(subtypeName, out current))

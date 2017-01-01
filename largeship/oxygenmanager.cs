@@ -18,9 +18,9 @@ public class OxygenManager
         float total = 0.0f;
         int count = 0;
 
-        for (var e = blocks.GetEnumerator(); e.MoveNext();)
+        foreach (var block in blocks)
         {
-            var tank = e.Current as IMyOxygenTank;
+            var tank = block as IMyOxygenTank;
             if (tank != null)
             {
                 total += tank.GetOxygenLevel();

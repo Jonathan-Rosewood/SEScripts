@@ -25,10 +25,8 @@ public class BlockRenamer
 
         var countsByType = new Dictionary<string, uint>();
 
-        for (var e = blocks.GetEnumerator(); e.MoveNext();)
+        foreach (var block in blocks)
         {
-            var block = e.Current;
-
             if (EXCLUDED_BLOCK_TYPES.Contains(block.DefinitionDisplayNameText)) continue;
             if (EXCLUDED_BLOCK_NAMES.Contains(block.CustomName)) continue;
 

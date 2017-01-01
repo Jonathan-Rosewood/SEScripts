@@ -69,9 +69,9 @@ public class BatteryMonitor : DockingHandler
         // Hmm, doesn't check battery recharge state...
         // With the "full-auto mode" (if it worked as advertised),
         // it probably doesn't make sense to check input/output state anyway
-        for (var e = batteries.GetEnumerator(); e.MoveNext();)
+        foreach (var block in batteries)
         {
-            var battery = e.Current as IMyBatteryBlock;
+            var battery = block as IMyBatteryBlock;
 
             currentStoredPower += battery.CurrentStoredPower;
             maxStoredPower += battery.MaxStoredPower;

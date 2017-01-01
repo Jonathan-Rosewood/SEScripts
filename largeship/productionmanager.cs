@@ -110,25 +110,20 @@ public class ProductionManager
     {
         var result = new Dictionary<string, VRage.MyFixedPoint>();
 
-        for (var e = blocks.GetEnumerator(); e.MoveNext();)
+        foreach (var owner in blocks)
         {
-            var owner = e.Current;
-            if (owner != null)
+            for (int i = 0; i < owner.GetInventoryCount(); i++)
             {
-                for (int i = 0; i < owner.GetInventoryCount(); i++)
+                var inventory = owner.GetInventory(i);
+                var items = inventory.GetItems();
+                foreach (var item in items)
                 {
-                    var inventory = owner.GetInventory(i);
-                    var items = inventory.GetItems();
-                    for (var f = items.GetEnumerator(); f.MoveNext();)
+                    var subtypeName = item.Content.SubtypeName;
+                    if (allowedSubtypes.Contains(subtypeName))
                     {
-                        var item = f.Current;
-                        var subtypeName = item.Content.SubtypeName;
-                        if (allowedSubtypes.Contains(subtypeName))
-                        {
-                            VRage.MyFixedPoint current;
-                            if (!result.TryGetValue(subtypeName, out current)) current = (VRage.MyFixedPoint)0.0f;
-                            result[subtypeName] = current + item.Amount;
-                        }
+                        VRage.MyFixedPoint current;
+                        if (!result.TryGetValue(subtypeName, out current)) current = (VRage.MyFixedPoint)0.0f;
+                        result[subtypeName] = current + item.Amount;
                     }
                 }
             }
@@ -152,9 +147,9 @@ public class ProductionManager
         var candidates = new LinkedList<IMyAssembler>();
 
         // If anything has already been appropriately named, remove it from our map
-        for (var e = assemblers.GetEnumerator(); e.MoveNext();)
+        foreach (var block in assemblers)
         {
-            var assembler = (IMyAssembler)e.Current;
+            var assembler = (IMyAssembler)block;
             ItemStock target;
             if (ItemStock.TryParse(assembler.CustomName, out target))
             {
@@ -226,9 +221,9 @@ public class ProductionManager
         var assemblerTargets = new Dictionary<string, AssemblerTarget>();
 
         var assemblers = ZACommons.GetBlocksOfType<IMyAssembler>(ship);
-        for (var e = assemblers.GetEnumerator(); e.MoveNext();)
+        foreach (var block in assemblers)
         {
-            var assembler = (IMyAssembler)e.Current;
+            var assembler = (IMyAssembler)block;
             ItemStock target;
             if (ItemStock.TryParse(assembler.CustomName, out target))
             {
@@ -258,10 +253,10 @@ public class ProductionManager
             var stocks = EnumerateItems(ship, allowedSubtypes);
 
             // Now we just enable/disable based on who's low
-            for (var e = assemblerTargets.GetEnumerator(); e.MoveNext();)
+            foreach (var kv in assemblerTargets)
             {
-                var subtype = e.Current.Key;
-                var target = e.Current.Value;
+                var subtype = kv.Key;
+                var target = kv.Value;
                 VRage.MyFixedPoint currentStock;
                 if (!stocks.TryGetValue(subtype, out currentStock)) currentStock = (VRage.MyFixedPoint)0.0f;
 
@@ -272,9 +267,9 @@ public class ProductionManager
         else if (CurrentState == STATE_INACTIVATING)
         {
             // Shut down all known assemblers
-            for (var e = assemblerTargets.Values.GetEnumerator(); e.MoveNext();)
+            foreach (var target in assemblerTargets.Values)
             {
-                e.Current.EnableAssemblers(false);
+                target.EnableAssemblers(false);
             }
             SetState(commons, STATE_INACTIVE);
         }

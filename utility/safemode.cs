@@ -79,9 +79,9 @@ public class SafeMode : DockingHandler
                 var dampenersChanged = false;
 
                 // Enable dampeners
-                for (var e = controllers.GetEnumerator(); e.MoveNext();)
+                foreach (var block in controllers)
                 {
-                    var controller = (IMyShipController)e.Current;
+                    var controller = (IMyShipController)block;
                     if (!controller.DampenersOverride)
                     {
                         controller.SetValue<bool>("DampenersOverride", true);
@@ -133,9 +133,9 @@ public class SafeMode : DockingHandler
             {
                 // We have any non-remotes?
                 var nonRemote = false;
-                for (var e = controllers.GetEnumerator(); e.MoveNext();)
+                foreach (var block in controllers)
                 {
-                    var remote = e.Current as IMyRemoteControl;
+                    var remote = block as IMyRemoteControl;
                     if (remote == null)
                     {
                         nonRemote = true;
@@ -178,9 +178,9 @@ public class SafeMode : DockingHandler
 
     private bool IsShipControlled(IEnumerable<IMyTerminalBlock> controllers)
     {
-        for (var e = controllers.GetEnumerator(); e.MoveNext();)
+        foreach (var block in controllers)
         {
-            var controller = e.Current as IMyShipController;
+            var controller = block as IMyShipController;
             if (controller != null && controller.IsUnderControl)
             {
                 return true;
@@ -214,16 +214,16 @@ public class SafeMode : DockingHandler
 
         // Look for functioning antenna or laser antenna
         var antennaFound = false;
-        for (var e = commons.Blocks.GetEnumerator(); e.MoveNext();)
+        foreach (var block in commons.Blocks)
         {
-            var antenna = e.Current as IMyRadioAntenna;
+            var antenna = block as IMyRadioAntenna;
             if (antenna != null && antenna.IsWorking && antenna.Enabled) // && antenna.IsBroadcasting)
             {
                 antennaFound = true;
                 break;
             }
 
-            var lantenna = e.Current as IMyLaserAntenna;
+            var lantenna = block as IMyLaserAntenna;
             // Unfortunately, can't know if lantenna is connected
             // w/o parsing DetailedInfo.
             // So just check IsOutsideLimits.

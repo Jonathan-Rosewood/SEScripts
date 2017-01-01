@@ -58,9 +58,9 @@ public class RefineryManager
         var isProducing = false;
         var isIdle = false;
         var wrappers = new LinkedList<RefineryWrapper>();
-        for (var e = refineries.GetEnumerator(); e.MoveNext();)
+        foreach (var block in refineries)
         {
-            var refinery = (IMyRefinery)e.Current;
+            var refinery = (IMyRefinery)block;
             InsertSorted(wrappers, new RefineryWrapper(refinery));
             if (refinery.IsProducing)
             {

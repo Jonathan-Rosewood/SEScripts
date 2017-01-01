@@ -10,9 +10,9 @@ public void TargetAction(ZACommons commons, Vector3D target)
                                          target.GetDim(1),
                                          target.GetDim(2));
 
-        for (var e = ZACommons.GetBlocksOfType<IMyTextPanel>(targetGroup.Blocks).GetEnumerator(); e.MoveNext();)
+        foreach (var block in ZACommons.GetBlocksOfType<IMyTextPanel>(targetGroup.Blocks))
         {
-            ((IMyTextPanel)e.Current).WritePublicText(targetString);
+            ((IMyTextPanel)block).WritePublicText(targetString);
         }
     }
 

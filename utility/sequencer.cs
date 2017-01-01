@@ -42,9 +42,8 @@ public class Sequencer
 
         var newIndexes = new Dictionary<string, int>();
 
-        for (var e = Indexes.GetEnumerator(); e.MoveNext();)
+        foreach (var kv in Indexes)
         {
-            var kv = e.Current;
             var sequence = kv.Key;
             var index = kv.Value;
 

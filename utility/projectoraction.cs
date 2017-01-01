@@ -46,9 +46,8 @@ public class ProjectorAction
         if (groups.Count > 0)
         {
             var blocks = ZACommons.GetBlocksOfType<IMyProjector>(groups[0].Blocks);
-            for (var e = blocks.GetEnumerator(); e.MoveNext();)
+            foreach (var block in blocks)
             {
-                var block = e.Current;
                 // Just take first one
                 if (block.IsFunctional)
                 {
@@ -66,9 +65,9 @@ public class ProjectorAction
         if (name.Length == 0) return;
         var timers = ZACommons.SearchBlocksOfName(commons.Blocks, name);
         // Find the first timer block that's enabled
-        for (var e = timers.GetEnumerator(); e.MoveNext();)
+        foreach (var block in timers)
         {
-            var timer = e.Current as IMyTimerBlock;
+            var timer = block as IMyTimerBlock;
             if (timer != null && timer.Enabled)
             {
                 // And start it if it isn't already counting down

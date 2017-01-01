@@ -16,9 +16,9 @@ public class ThrustControl
         MyBlockOrientation shipOrientation = new MyBlockOrientation(shipForward, shipUp);
 
         thrusters.Clear();
-        for (var e = blocks.GetEnumerator(); e.MoveNext();)
+        foreach (var block in blocks)
         {
-            var thruster = e.Current as IMyThrust;
+            var thruster = block as IMyThrust;
             if (thruster != null && thruster.IsFunctional &&
                 (collect == null || collect(thruster)))
             {
@@ -47,9 +47,8 @@ public class ThrustControl
         else
         {
             var result = new List<IMyThrust>();
-            for (var e = thrusterList.GetEnumerator(); e.MoveNext();)
+            foreach (var thruster in thrusterList)
             {
-                var thruster = (IMyThrust)e.Current;
                 if (collect(thruster))
                 {
                     result.Add(thruster);
@@ -94,9 +93,8 @@ public class ThrustControl
     public void Enable(bool enable,
                        Func<IMyThrust, bool> collect = null)
     {
-        for (var e = thrusters.Values.GetEnumerator(); e.MoveNext();)
+        foreach (var thrusterList in thrusters.Values)
         {
-            var thrusterList = e.Current;
             thrusterList.ForEach(thruster =>
                     {
                         if (collect == null || collect(thruster)) thruster.SetValue<bool>("OnOff", enable);
@@ -106,9 +104,8 @@ public class ThrustControl
 
     public void Reset(Func<IMyThrust, bool> collect = null)
     {
-        for (var e = thrusters.Values.GetEnumerator(); e.MoveNext();)
+        foreach (var thrusterList in thrusters.Values)
         {
-            var thrusterList = e.Current;
             thrusterList.ForEach(thruster =>
                     {
                         if (collect == null || collect(thruster)) thruster.SetValue<float>("Override", 0.0f);

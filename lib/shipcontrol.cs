@@ -141,9 +141,9 @@ public class ShipControlCommons : ZACommons
         {
             if (m_shipController == null)
             {
-                for (var e = Blocks.GetEnumerator(); e.MoveNext();)
+                foreach (var block in Blocks)
                 {
-                    var controller = e.Current as IMyShipController;
+                    var controller = block as IMyShipController;
                     if (controller != null && controller.IsFunctional)
                     {
                         m_shipController = controller;

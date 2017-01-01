@@ -33,10 +33,8 @@ public class RedundancyManager : DockingHandler
 
     public void Run(ZACommons commons)
     {
-        for (var e = commons.GetBlockGroupsWithPrefix(REDUNDANCY_PREFIX).GetEnumerator(); e.MoveNext();)
+        foreach (var group in commons.GetBlockGroupsWithPrefix(REDUNDANCY_PREFIX))
         {
-            var group = e.Current;
-
             // Figure out how many to maintain
             var parts = group.Name.Split(new char[] { COUNT_DELIMITER }, 2);
             var count = 1;
@@ -55,19 +53,19 @@ public class RedundancyManager : DockingHandler
             var running = 0;
             var spares = new LinkedList<IMyTerminalBlock>();
 
-            for (var f = group.Blocks.GetEnumerator(); f.MoveNext();)
+            foreach (var block in group.Blocks)
             {
-                var block = f.Current as IMyFunctionalBlock;
-                if (block != null && block.CubeGrid == commons.Me.CubeGrid &&
-                    block.IsFunctional)
+                var fblock = block as IMyFunctionalBlock;
+                if (fblock != null && fblock.CubeGrid == commons.Me.CubeGrid &&
+                    fblock.IsFunctional)
                 {
-                    if (block.IsWorking && block.Enabled)
+                    if (fblock.IsWorking && fblock.Enabled)
                     {
                         running++;
                     }
                     else
                     {
-                        spares.AddLast(block);
+                        spares.AddLast(fblock);
                     }
                 }
             }

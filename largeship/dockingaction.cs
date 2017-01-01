@@ -11,10 +11,8 @@ public class DockingAction
 
     public void Run(ZACommons commons, EventDriver eventDriver)
     {
-        for (var e = commons.GetBlockGroupsWithPrefix(DOCKING_ACTION_PREFIX).GetEnumerator(); e.MoveNext();)
+        foreach (var group in commons.GetBlockGroupsWithPrefix(DOCKING_ACTION_PREFIX))
         {
-            var group = e.Current;
-
             // Figure out action
             var parts = group.Name.Split(new char[] { ACTION_DELIMETER }, 2);
             string action = "on";

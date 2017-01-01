@@ -14,9 +14,9 @@ public class SolarRotorController
             MaxPowerOutput = 0.0f;
             DefinedPowerOutput = 0.0f;
 
-            for (var e = group.Blocks.GetEnumerator(); e.MoveNext();)
+            foreach (var block in group.Blocks)
             {
-                var panel = e.Current as IMySolarPanel;
+                var panel = block as IMySolarPanel;
 
                 if (panel != null && panel.IsFunctional && panel.IsWorking)
                 {
@@ -63,10 +63,8 @@ public class SolarRotorController
 
         TotalPower = 0.0f;
         var solarGroups = commons.GetBlockGroupsWithPrefix(MAX_POWER_GROUP_PREFIX);
-        for (var e = solarGroups.GetEnumerator(); e.MoveNext();)
+        foreach (var group in solarGroups)
         {
-            var group = e.Current;
-
             var rotor = GetRotor(group);
             if (rotor == null)
             {

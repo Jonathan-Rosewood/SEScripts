@@ -44,9 +44,8 @@ public class ZACommons
                 if (m_blocks == null)
                 {
                     m_blocks = new List<IMyTerminalBlock>();
-                    for (var e = AllBlocks.GetEnumerator(); e.MoveNext();)
+                    foreach (var block in AllBlocks)
                     {
-                        var block = e.Current;
                         if (block.CubeGrid == Program.Me.CubeGrid) m_blocks.Add(block);
                     }
                 }
@@ -109,9 +108,8 @@ public class ZACommons
             if (m_groupsByName == null)
             {
                 m_groupsByName = new Dictionary<string, BlockGroup>();
-                for (var e = Groups.GetEnumerator(); e.MoveNext();)
+                foreach (var group in Groups)
                 {
-                    var group = e.Current;
                     m_groupsByName.Add(group.Name.ToLower(), group);
                 }
             }
@@ -144,9 +142,8 @@ public class ZACommons
     public List<BlockGroup> GetBlockGroupsWithPrefix(string prefix)
     {
         var result = new List<BlockGroup>();
-        for (var e = Groups.GetEnumerator(); e.MoveNext();)
+        foreach (var group in Groups)
         {
-            var group = e.Current;
             if (group.Name.StartsWith(prefix, IGNORE_CASE)) result.Add(group);
         }
         return result;
@@ -158,9 +155,8 @@ public class ZACommons
                                                             Func<IMyTerminalBlock, bool> collect = null)
     {
         var list = new List<IMyTerminalBlock>();
-        for (var e = blocks.GetEnumerator(); e.MoveNext();)
+        foreach (var block in blocks)
         {
-            var block = e.Current;
             if (block is T && (collect == null || collect(block))) list.Add(block);
         }
         return list;
@@ -169,9 +165,8 @@ public class ZACommons
     public static T GetBlockWithName<T>(IEnumerable<IMyTerminalBlock> blocks, string name)
         where T : IMyTerminalBlock
     {
-        for (var e = blocks.GetEnumerator(); e.MoveNext();)
+        foreach (var block in blocks)
         {
-            var block = e.Current;
             if(block is T && block.CustomName.Equals(name, IGNORE_CASE)) return (T)block;
         }
         return default(T);
@@ -180,9 +175,8 @@ public class ZACommons
     public static List<IMyTerminalBlock> SearchBlocksOfName(IEnumerable<IMyTerminalBlock> blocks, string name, Func<IMyTerminalBlock, bool> collect = null)
     {
         var result = new List<IMyTerminalBlock>();
-        for (var e = blocks.GetEnumerator(); e.MoveNext();)
+        foreach (var block in blocks)
         {
-            var block = e.Current;
             if (block.CustomName.IndexOf(name, IGNORE_CASE) >= 0 &&
                 (collect == null || collect(block)))
             {
@@ -194,9 +188,8 @@ public class ZACommons
 
     public static void ForEachBlockOfType<T>(IEnumerable<IMyTerminalBlock> blocks, Action<IMyTerminalBlock> action)
     {
-        for (var e = blocks.GetEnumerator(); e.MoveNext();)
+        foreach (var block in blocks)
         {
-            var block = e.Current;
             if (block is T)
             {
                 action(block);
@@ -206,9 +199,8 @@ public class ZACommons
 
     public static void EnableBlocks(IEnumerable<IMyTerminalBlock> blocks, bool enabled)
     {
-        for (var e = blocks.GetEnumerator(); e.MoveNext();)
+        foreach (var block in blocks)
         {
-            var block = e.Current;
             // Not all blocks will implement IMyFunctionalBlock, so can't checked Enabled
             block.SetValue<bool>("OnOff", enabled);
         }
@@ -259,9 +251,9 @@ public class ZACommons
 
     public static bool IsConnectedAnywhere(IEnumerable<IMyTerminalBlock> connectors)
     {
-        for (var e = connectors.GetEnumerator(); e.MoveNext();)
+        foreach (var block in connectors)
         {
-            var connector = e.Current as IMyShipConnector;
+            var connector = block as IMyShipConnector;
             if (connector != null && connector.IsLocked && connector.IsConnected)
             {
                 return true;
@@ -319,9 +311,8 @@ public class ZAStorage
     {
         var encoded = new List<string>();
 
-        for (var e = Data.GetEnumerator(); e.MoveNext();)
+        foreach (var kv in Data)
         {
-            var kv = e.Current;
             ValidityCheck(kv.Key);
             ValidityCheck(kv.Value);
             var pair = new StringBuilder();

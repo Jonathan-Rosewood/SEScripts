@@ -36,9 +36,8 @@ public class ComplexAirlock
     {
         var groups = commons.GetBlockGroupsWithPrefix("Airlock");
         // Classify each group
-        for (var e = groups.GetEnumerator(); e.MoveNext();)
+        foreach (var group in groups)
         {
-            var group = e.Current;
             if (string.Equals("AirlockDoorInner", group.Name, ZACommons.IGNORE_CASE))
             {
                 innerDoors.UnionWith(ToDoors(ZACommons.GetBlocksOfType<IMyDoor>(group.Blocks)));
@@ -53,9 +52,9 @@ public class ComplexAirlock
 
                 var vents = ToVents(ZACommons.GetBlocksOfType<IMyAirVent>(group.Blocks));
                 var doors = ToDoors(ZACommons.GetBlocksOfType<IMyDoor>(group.Blocks));
-                for (var f = doors.GetEnumerator(); f.MoveNext();)
+                foreach (var door in doors)
                 {
-                    doorVentMap.Add(f.Current, vents);
+                    doorVentMap.Add(door, vents);
                 }
             }
             else
@@ -65,9 +64,9 @@ public class ComplexAirlock
                 roomsMap.Add(group.Name, group);
 
                 var doors = ToDoors(ZACommons.GetBlocksOfType<IMyDoor>(group.Blocks));
-                for (var f = doors.GetEnumerator(); f.MoveNext();)
+                foreach (var door in doors)
                 {
-                    doorVentRooms.Add(f.Current, group);
+                    doorVentRooms.Add(door, group);
                 }
             }
         }
@@ -89,9 +88,9 @@ public class ComplexAirlock
         if (vents.Count == 0) return AIRLOCK_STATE_UNKNOWN;
 
         float level = 0.0f;
-        for (var e = vents.GetEnumerator(); e.MoveNext();)
+        foreach (var vent in vents)
         {
-            level += e.Current.GetOxygenLevel();
+            level += vent.GetOxygenLevel();
         }
         level /= vents.Count;
 
@@ -102,20 +101,16 @@ public class ComplexAirlock
 
     private void DepressurizeVents(IEnumerable<IMyAirVent> vents, bool depressurize)
     {
-        var e = vents.GetEnumerator();
-        while (e.MoveNext())
+        foreach (var vent in vents)
         {
-            var vent = e.Current;
             vent.SetValue<bool>("Depressurize", depressurize);
         }
     }
 
     private void OpenCloseDoors(IEnumerable<IMyDoor> doors, bool open)
     {
-        var e = doors.GetEnumerator();
-        while (e.MoveNext())
+        foreach (var door in doors)
         {
-            var door = e.Current;
             door.SetValue<bool>("Open", open);
         }
     }
@@ -227,10 +222,8 @@ public class ComplexAirlock
         }
 
         // Close and lock all doors with different pressure
-        for (var f = doors.GetEnumerator(); f.MoveNext();)
+        foreach (var door in doors)
         {
-            var door = f.Current;
-
             int otherState;
             List<IMyAirVent> otherVents;
             if (doorVentMap.TryGetValue(door, out otherVents))
@@ -266,9 +259,8 @@ public class ComplexAirlock
         {
             eventDriver.Schedule(2.5, (p, e) =>
                     {
-                        for (var f = openDoors.GetEnumerator(); f.MoveNext();)
+                        foreach (var door in openDoors)
                         {
-                            var door = f.Current;
                             door.SetValue<bool>("Open", true);
                         }
                     });
@@ -277,9 +269,8 @@ public class ComplexAirlock
 
     private void OpenCloseDoorsAsNeeded(EventDriver eventDriver)
     {
-        for (var e = rooms.GetEnumerator(); e.MoveNext();)
+        foreach (var room in rooms)
         {
-            var room = e.Current;
             var vents = ToVents(ZACommons.GetBlocksOfType<IMyAirVent>(room.Blocks));
             if (vents.Count == 0) continue;
 
@@ -303,9 +294,8 @@ public class ComplexAirlock
                     break;
                 case AIRLOCK_STATE_UNKNOWN:
                     // Close and lock all doors
-                    for (var f = doors.GetEnumerator(); f.MoveNext();)
+                    foreach (var door in doors)
                     {
-                        var door = f.Current;
                         door.SetValue<bool>("Open", false);
                         if (door.OpenRatio == 0.0f && door.Enabled)
                         {
@@ -350,9 +340,9 @@ public class ComplexAirlock
     private List<IMyDoor> ToDoors(IEnumerable<IMyTerminalBlock> blocks)
     {
         var result = new List<IMyDoor>();
-        for (var e = blocks.GetEnumerator(); e.MoveNext();)
+        foreach (var block in blocks)
         {
-            var door = e.Current as IMyDoor;
+            var door = block as IMyDoor;
             if (door != null) result.Add(door);
         }
         return result;
@@ -361,9 +351,9 @@ public class ComplexAirlock
     private List<IMyAirVent> ToVents(IEnumerable<IMyTerminalBlock> blocks)
     {
         var result = new List<IMyAirVent>();
-        for (var e = blocks.GetEnumerator(); e.MoveNext();)
+        foreach (var block in blocks)
         {
-            var vent = e.Current as IMyAirVent;
+            var vent = block as IMyAirVent;
             if (vent != null) result.Add(vent);
         }
         return result;

@@ -38,9 +38,8 @@ public class LOSGuidance
         var group = commons.GetBlockGroupWithName(groupName);
         if (group != null)
         {
-            for (var e = group.Blocks.GetEnumerator(); e.MoveNext();)
+            foreach (var block in group.Blocks)
             {
-                var block = e.Current;
                 if (condition == null || condition(block))
                 {
                     // Use first block that matches condition
