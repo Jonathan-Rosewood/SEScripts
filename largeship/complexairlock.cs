@@ -40,18 +40,18 @@ public class ComplexAirlock
         {
             if (string.Equals("AirlockDoorInner", group.Name, ZACommons.IGNORE_CASE))
             {
-                innerDoors.UnionWith(ToDoors(ZACommons.GetBlocksOfType<IMyDoor>(group.Blocks)));
+                innerDoors.UnionWith(ZACommons.GetBlocksOfType<IMyDoor>(group.Blocks));
             }
             else if (string.Equals("AirlockDoorSpace", group.Name, ZACommons.IGNORE_CASE))
             {
-                spaceDoors.UnionWith(ToDoors(ZACommons.GetBlocksOfType<IMyDoor>(group.Blocks)));
+                spaceDoors.UnionWith(ZACommons.GetBlocksOfType<IMyDoor>(group.Blocks));
             }
             else if (group.Name.StartsWith("AirlockDoor", ZACommons.IGNORE_CASE))
             {
                 doorVentGroups.Add(group.Name, group);
 
-                var vents = ToVents(ZACommons.GetBlocksOfType<IMyAirVent>(group.Blocks));
-                var doors = ToDoors(ZACommons.GetBlocksOfType<IMyDoor>(group.Blocks));
+                var vents = ZACommons.GetBlocksOfType<IMyAirVent>(group.Blocks);
+                var doors = ZACommons.GetBlocksOfType<IMyDoor>(group.Blocks);
                 foreach (var door in doors)
                 {
                     doorVentMap.Add(door, vents);
@@ -63,7 +63,7 @@ public class ComplexAirlock
 
                 roomsMap.Add(group.Name, group);
 
-                var doors = ToDoors(ZACommons.GetBlocksOfType<IMyDoor>(group.Blocks));
+                var doors = ZACommons.GetBlocksOfType<IMyDoor>(group.Blocks);
                 foreach (var door in doors)
                 {
                     doorVentRooms.Add(door, group);
@@ -147,7 +147,7 @@ public class ComplexAirlock
             ZACommons.BlockGroup room;
             if (roomsMap.TryGetValue(argument, out room))
             {
-                var vents = ToVents(ZACommons.GetBlocksOfType<IMyAirVent>(room.Blocks));
+                var vents = ZACommons.GetBlocksOfType<IMyAirVent>(room.Blocks);
                 var current = GetAirlockState(vents);
                 int target = AIRLOCK_STATE_UNKNOWN;
                 switch (command)
@@ -165,7 +165,7 @@ public class ComplexAirlock
                 }
 
                 ChangeRoomState(room.Name,
-                                vents, ToDoors(ZACommons.GetBlocksOfType<IMyDoor>(room.Blocks)),
+                                vents, ZACommons.GetBlocksOfType<IMyDoor>(room.Blocks),
                                 current, target, null);
             }
         }
@@ -175,7 +175,7 @@ public class ComplexAirlock
             ZACommons.BlockGroup group;
             if (doorVentGroups.TryGetValue(argument, out group))
             {
-                var doors = ToDoors(ZACommons.GetBlocksOfType<IMyDoor>(group.Blocks));
+                var doors = ZACommons.GetBlocksOfType<IMyDoor>(group.Blocks);
                 // Only need to do one (assumes door groups were set up correctly... heh)
                 if (doors.Count > 0)
                 {
@@ -183,14 +183,14 @@ public class ComplexAirlock
                     ZACommons.BlockGroup room;
                     if (doorVentRooms.TryGetValue(door, out room))
                     {
-                        var otherVents = ToVents(ZACommons.GetBlocksOfType<IMyAirVent>(group.Blocks));
-                        var roomVents = ToVents(ZACommons.GetBlocksOfType<IMyAirVent>(room.Blocks));
+                        var otherVents = ZACommons.GetBlocksOfType<IMyAirVent>(group.Blocks);
+                        var roomVents = ZACommons.GetBlocksOfType<IMyAirVent>(room.Blocks);
                         var target = GetAirlockState(otherVents);
                         var current = GetAirlockState(roomVents);
 
                         ChangeRoomState(room.Name,
                                         roomVents,
-                                        ToDoors(ZACommons.GetBlocksOfType<IMyDoor>(room.Blocks)),
+                                        ZACommons.GetBlocksOfType<IMyDoor>(room.Blocks),
                                         current, target, doors);
                     }
                 }
@@ -271,10 +271,10 @@ public class ComplexAirlock
     {
         foreach (var room in rooms)
         {
-            var vents = ToVents(ZACommons.GetBlocksOfType<IMyAirVent>(room.Blocks));
+            var vents = ZACommons.GetBlocksOfType<IMyAirVent>(room.Blocks);
             if (vents.Count == 0) continue;
 
-            var doors = ToDoors(ZACommons.GetBlocksOfType<IMyDoor>(room.Blocks));
+            var doors = ZACommons.GetBlocksOfType<IMyDoor>(room.Blocks);
             if (doors.Count == 0) continue;
 
             // Determine room state
@@ -335,27 +335,5 @@ public class ComplexAirlock
     public void HandleCommand(ZACommons commons, EventDriver eventDriver, string argument)
     {
         RunInternal(commons, eventDriver, argument); // Why...
-    }
-
-    private List<IMyDoor> ToDoors(IEnumerable<IMyTerminalBlock> blocks)
-    {
-        var result = new List<IMyDoor>();
-        foreach (var block in blocks)
-        {
-            var door = block as IMyDoor;
-            if (door != null) result.Add(door);
-        }
-        return result;
-    }
-
-    private List<IMyAirVent> ToVents(IEnumerable<IMyTerminalBlock> blocks)
-    {
-        var result = new List<IMyAirVent>();
-        foreach (var block in blocks)
-        {
-            var vent = block as IMyAirVent;
-            if (vent != null) result.Add(vent);
-        }
-        return result;
     }
 }

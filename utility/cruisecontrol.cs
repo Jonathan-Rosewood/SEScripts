@@ -249,8 +249,8 @@ public class CruiseControl
     {
         ThrusterStates.Clear();
         var thrusters = ZACommons.GetBlocksOfType<IMyThrust>(commons.Blocks);
-        thrusters.ForEach(block => {
-                ThrusterStates.Add(block.Position, new ThrusterState((IMyThrust)block));
+        thrusters.ForEach(thruster => {
+                ThrusterStates.Add(thruster.Position, new ThrusterState(thruster));
             });
     }
 
@@ -259,12 +259,12 @@ public class CruiseControl
         if (ThrusterStates.Count > 0)
         {
             var thrusters = ZACommons.GetBlocksOfType<IMyThrust>(commons.Blocks);
-            thrusters.ForEach(block => {
+            thrusters.ForEach(thruster => {
                     ThrusterState oldState;
-                    if (ThrusterStates.TryGetValue(block.Position, out oldState))
+                    if (ThrusterStates.TryGetValue(thruster.Position, out oldState))
                     {
-                        block.SetValue<bool>("OnOff", oldState.Enabled);
-                        block.SetValue<float>("Override", oldState.Override);
+                        thruster.SetValue<bool>("OnOff", oldState.Enabled);
+                        thruster.SetValue<float>("Override", oldState.Override);
                     }
                 });
             ThrusterStates.Clear();

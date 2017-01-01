@@ -15,9 +15,8 @@ public class AirVentManager
                                                           vent.CustomName.IndexOf("[Excluded]", ZACommons.IGNORE_CASE) < 0 &&
                                                           vent.CustomName.IndexOf("[Intake]", ZACommons.IGNORE_CASE) < 0);
 
-        vents.ForEach(block =>
+        vents.ForEach(vent =>
                 {
-                    var vent = (IMyAirVent)block;
                     var level = vent.GetOxygenLevel();
                     if (vent.IsDepressurizing && !vent.Enabled && level > 0.0f)
                     {

@@ -147,9 +147,8 @@ public class ProductionManager
         var candidates = new LinkedList<IMyAssembler>();
 
         // If anything has already been appropriately named, remove it from our map
-        foreach (var block in assemblers)
+        foreach (var assembler in assemblers)
         {
-            var assembler = (IMyAssembler)block;
             ItemStock target;
             if (ItemStock.TryParse(assembler.CustomName, out target))
             {
@@ -221,9 +220,8 @@ public class ProductionManager
         var assemblerTargets = new Dictionary<string, AssemblerTarget>();
 
         var assemblers = ZACommons.GetBlocksOfType<IMyAssembler>(ship);
-        foreach (var block in assemblers)
+        foreach (var assembler in assemblers)
         {
-            var assembler = (IMyAssembler)block;
             ItemStock target;
             if (ItemStock.TryParse(assembler.CustomName, out target))
             {

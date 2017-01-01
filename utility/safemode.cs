@@ -155,10 +155,9 @@ public class SafeMode : DockingHandler
         eventDriver.Schedule(SlowRunDelay, Slow);
     }
 
-    private bool IsValidController(IMyTerminalBlock block)
+    private bool IsValidController(IMyShipController controller)
     {
-        var controller = block as IMyShipController;
-        if (controller == null || !controller.IsFunctional) return false;
+        if (!controller.IsFunctional) return false;
         // The only sane one
         if (controller is IMyRemoteControl) return true;
         // Grumble grumble
@@ -176,12 +175,11 @@ public class SafeMode : DockingHandler
         return false;
     }
 
-    private bool IsShipControlled(IEnumerable<IMyTerminalBlock> controllers)
+    private bool IsShipControlled(IEnumerable<IMyShipController> controllers)
     {
-        foreach (var block in controllers)
+        foreach (var controller in controllers)
         {
-            var controller = block as IMyShipController;
-            if (controller != null && controller.IsUnderControl)
+            if (controller.IsUnderControl)
             {
                 return true;
             }

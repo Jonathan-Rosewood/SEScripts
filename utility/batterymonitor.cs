@@ -58,7 +58,7 @@ public class BatteryMonitor : DockingHandler
         // Don't bother if there's no timer block or handler
         if (lowBatteryHandler == null && lowBattery == null) return;
 
-        var batteries = ZACommons.GetBlocksOfType<IMyBatteryBlock>(commons.Blocks, battery => battery.IsFunctional && ((IMyBatteryBlock)battery).Enabled);
+        var batteries = ZACommons.GetBlocksOfType<IMyBatteryBlock>(commons.Blocks, battery => battery.IsFunctional && battery.Enabled);
 
         // Avoid divide-by-zero in case there are no batteries
         if (batteries.Count == 0) return;

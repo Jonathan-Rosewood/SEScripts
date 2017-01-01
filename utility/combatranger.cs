@@ -80,8 +80,8 @@ public class CombatRanger
                                              target.GetDim(1),
                                              target.GetDim(2));
 
-            ZACommons.GetBlocksOfType<IMyTextPanel>(targetGroup.Blocks).ForEach(block => {
-                    ((IMyTextPanel)block).WritePublicText(targetString);
+            ZACommons.GetBlocksOfType<IMyTextPanel>(targetGroup.Blocks).ForEach(panel => {
+                    panel.WritePublicText(targetString);
                 });
         }
     }

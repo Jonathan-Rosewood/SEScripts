@@ -26,7 +26,7 @@ public class DockingAction
             var connectors = ZACommons.GetBlocksOfType<IMyShipConnector>(group.Blocks);
             if (connectors.Count > 0)
             {
-                var connector = (IMyShipConnector)connectors[0];
+                var connector = connectors[0];
                 connected = connector.IsLocked && connector.IsConnected;
             }
 

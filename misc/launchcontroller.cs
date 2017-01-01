@@ -26,7 +26,7 @@ public class LaunchController
         {
             throw new Exception("Expecting exactly 1 remote control");
         }
-        return (IMyRemoteControl)remotes[0];
+        return remotes[0];
     }
 
     public void Init(ZACommons commons, EventDriver eventDriver,

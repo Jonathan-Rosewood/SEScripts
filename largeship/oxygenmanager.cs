@@ -13,25 +13,21 @@ public class OxygenManager
 
     private int PreviousState = OXYGEN_LEVEL_UNKNOWN;
 
-    private float GetAverageOxygenTankLevel(List<IMyTerminalBlock> blocks)
+    private float GetAverageOxygenTankLevel(List<IMyOxygenTank> tanks)
     {
         float total = 0.0f;
         int count = 0;
 
-        foreach (var block in blocks)
+        foreach (var tank in tanks)
         {
-            var tank = block as IMyOxygenTank;
-            if (tank != null)
-            {
-                total += tank.GetOxygenLevel();
-                count++;
-            }
+            total += tank.GetOxygenLevel();
+            count++;
         }
 
         return count != 0 ? total / count : 0.0f;
     }
 
-    private int GetOxygenState(List<IMyTerminalBlock> tanks)
+    private int GetOxygenState(List<IMyOxygenTank> tanks)
     {
         var level = GetAverageOxygenTankLevel(tanks);
         if (level >= MAX_OXYGEN_TANK_LEVEL)
@@ -122,7 +118,7 @@ public class OxygenManager
                 var vents =
                     ZACommons.GetBlocksOfType<IMyAirVent>(commons.Blocks,
                                                           vent => vent.IsFunctional &&
-                                                          ((IMyAirVent)vent).IsDepressurizing &&
+                                                          vent.IsDepressurizing &&
                                                           vent.CustomName.IndexOf("[Intake]", ZACommons.IGNORE_CASE) >= 0);
 
                 ZACommons.EnableBlocks(vents, (bool)farmOxygen);

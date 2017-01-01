@@ -52,7 +52,7 @@ public class ProjectorAction
                 if (block.IsFunctional)
                 {
                     rest = groups[0].Name.Substring(groupPrefix.Length);
-                    return (IMyProjector)blocks[0];
+                    return blocks[0];
                 }
             }
         }

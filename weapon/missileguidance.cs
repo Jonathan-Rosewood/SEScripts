@@ -52,7 +52,7 @@ public class MissileGuidance
         {
             throw new Exception("Expecting at least 1 text panel");
         }
-        var panel = panels[0] as IMyTextPanel; // Just use the first one
+        var panel = panels[0]; // Just use the first one
         var targetString = panel.GetPublicText();
 
         // Parse target info

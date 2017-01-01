@@ -34,9 +34,8 @@ public class DockingManager
     {
         // Enable all connectors
         ZACommons.ForEachBlockOfType<IMyShipConnector>(commons.Blocks,
-                                                       block =>
+                                                       connector =>
                 {
-                    var connector = (IMyShipConnector)block;
                     if (connector.IsFunctional &&
                         connector.DefinitionDisplayNameText == "Connector")
                     {
@@ -58,9 +57,8 @@ public class DockingManager
     {
         bool connected = false;
         ZACommons.ForEachBlockOfType<IMyShipConnector>(commons.Blocks,
-                                                       block =>
+                                                       connector =>
                 {
-                    var connector = (IMyShipConnector)block;
                     if (connector.IsFunctional &&
                         connector.DefinitionDisplayNameText == "Connector" &&
                         connector.IsLocked && !connector.IsConnected)
@@ -80,9 +78,8 @@ public class DockingManager
     public void Docked(ZACommons commons, EventDriver eventDriver)
     {
         ZACommons.ForEachBlockOfType<IMyLandingGear>(commons.Blocks,
-                                                     block =>
+                                                     gear =>
                 {
-                    var gear = (IMyLandingGear)block;
                     if (gear.IsFunctional && gear.IsWorking &&
                         gear.Enabled && !gear.IsLocked) gear.ApplyAction("Lock");
                 });
@@ -102,17 +99,15 @@ public class DockingManager
     {
         // Unlock connectors
         var connectors = ZACommons.GetBlocksOfType<IMyShipConnector>(commons.Blocks, connector => connector.DefinitionDisplayNameText == "Connector");
-        connectors.ForEach(block =>
+        connectors.ForEach(connector =>
                 {
-                    var connector = (IMyShipConnector)block;
                     if (connector.IsLocked && connector.IsConnected) connector.ApplyAction("Unlock");
                 });
 
         // Unlock all landing gear
         var gears = ZACommons.GetBlocksOfType<IMyLandingGear>(commons.Blocks);
-        gears.ForEach(block =>
+        gears.ForEach(gear =>
                 {
-                    var gear = (IMyLandingGear)block;
                     if (gear.IsLocked) gear.ApplyAction("Unlock");
                 });
 

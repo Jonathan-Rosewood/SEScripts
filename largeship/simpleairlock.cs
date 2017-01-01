@@ -3,12 +3,11 @@ public class SimpleAirlock
 {
     private const double RunDelay = 1.0;
 
-    private bool IsAnyDoorOpen(List<IMyTerminalBlock> doors)
+    private bool IsAnyDoorOpen(List<IMyDoor> doors)
     {
-        foreach (var block in doors)
+        foreach (var door in doors)
         {
-            var door = block as IMyDoor;
-            if (door != null && door.OpenRatio > 0.0f) return true;
+            if (door.OpenRatio > 0.0f) return true;
         }
         return false;
     }
@@ -28,9 +27,8 @@ public class SimpleAirlock
                                                            door.IsFunctional);
 
             var opened = IsAnyDoorOpen(doors);
-            foreach (var block in doors)
+            foreach (var door in doors)
             {
-                var door = (IMyDoor)block;
                 if (door.OpenRatio == 0.0f && opened)
                 {
                     // This door is not open and some other door in the group is, lock it down

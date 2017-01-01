@@ -71,7 +71,7 @@ public class ManageRover : DockingHandler
             var controllers = ZACommons.GetBlocksOfType<IMyShipController>(commons.Blocks);
             controllers.ForEach(controller =>
                     {
-                        if (!((IMyShipController)controller).HandBrake)
+                        if (!controller.HandBrake)
                         {
                             controller.SetValue<bool>("HandBrake", true);
                         }

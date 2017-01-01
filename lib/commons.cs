@@ -151,13 +151,13 @@ public class ZACommons
 
     // Blocks
 
-    public static List<IMyTerminalBlock> GetBlocksOfType<T>(IEnumerable<IMyTerminalBlock> blocks,
-                                                            Func<IMyTerminalBlock, bool> collect = null)
+    public static List<T> GetBlocksOfType<T>(IEnumerable<IMyTerminalBlock> blocks,
+                                             Func<T, bool> collect = null)
     {
-        var list = new List<IMyTerminalBlock>();
+        var list = new List<T>();
         foreach (var block in blocks)
         {
-            if (block is T && (collect == null || collect(block))) list.Add(block);
+            if (block is T && (collect == null || collect((T)block))) list.Add((T)block);
         }
         return list;
     }
@@ -186,13 +186,13 @@ public class ZACommons
         return result;
     }
 
-    public static void ForEachBlockOfType<T>(IEnumerable<IMyTerminalBlock> blocks, Action<IMyTerminalBlock> action)
+    public static void ForEachBlockOfType<T>(IEnumerable<IMyTerminalBlock> blocks, Action<T> action)
     {
         foreach (var block in blocks)
         {
             if (block is T)
             {
-                action(block);
+                action((T)block);
             }
         }
     }

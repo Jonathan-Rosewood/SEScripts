@@ -15,9 +15,9 @@ public void UpdateTargetTextPanels(ZACommons commons, Vector3D target)
                                          target.GetDim(1),
                                          target.GetDim(2));
 
-        foreach (var block in ZACommons.GetBlocksOfType<IMyTextPanel>(targetGroup.Blocks))
+        foreach (var panel in ZACommons.GetBlocksOfType<IMyTextPanel>(targetGroup.Blocks))
         {
-            ((IMyTextPanel)block).WritePublicText(targetString);
+            panel.WritePublicText(targetString);
         }
     }
 

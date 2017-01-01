@@ -87,14 +87,14 @@ public class ReactorManager
         }
     }
 
-    private static List<IMyTerminalBlock> GetAllReactors(ZACommons commons)
+    private static List<IMyReactor> GetAllReactors(ZACommons commons)
     {
         return ZACommons.GetBlocksOfType<IMyReactor>(commons.AllBlocks,
                                                      reactor => reactor.IsFunctional &&
                                                      reactor.CustomName.IndexOf("[Excluded]", ZACommons.IGNORE_CASE) < 0);
     }
 
-    private static List<IMyTerminalBlock> GetBatteries(ZACommons commons)
+    private static List<IMyBatteryBlock> GetBatteries(ZACommons commons)
     {
         return ZACommons.GetBlocksOfType<IMyBatteryBlock>(commons.Blocks,
                                                           battery => battery.IsFunctional &&

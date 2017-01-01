@@ -100,9 +100,8 @@ public class SmartUndock
             IMyShipConnector connected = null;
             var connectors = ZACommons.GetBlocksOfType<IMyShipConnector>(commons.Blocks,
                                                                          connector => connector.DefinitionDisplayNameText == "Connector"); // Avoid Ejectors
-            foreach (var block in connectors)
+            foreach (var connector in connectors)
             {
-                var connector = (IMyShipConnector)block;
                 if (connector.IsLocked && connector.IsConnected)
                 {
                     // Assume the first one as well
@@ -145,9 +144,8 @@ public class SmartUndock
             ZACommons.EnableBlocks(connectors, false);
             // Unlock landing gears as well
             var gears = ZACommons.GetBlocksOfType<IMyLandingGear>(commons.Blocks);
-            gears.ForEach(block =>
+            gears.ForEach(gear =>
                     {
-                        var gear = (IMyLandingGear)block;
                         if (gear.IsLocked) gear.ApplyAction("Unlock");
                     });
 

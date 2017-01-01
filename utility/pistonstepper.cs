@@ -168,6 +168,6 @@ public class PistonStepper
             throw new Exception("Expecting exactly 1 piston in " + PistonGroupName);
         }
 
-        return (IMyPistonBase)pistons[0];
+        return pistons[0];
     }
 }

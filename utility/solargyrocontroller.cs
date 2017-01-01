@@ -14,10 +14,8 @@ public class SolarGyroController
             MaxPowerOutput = 0.0f;
             DefinedPowerOutput = 0.0f;
 
-            foreach (var block in ZACommons.GetBlocksOfType<IMySolarPanel>(blocks))
+            foreach (var panel in ZACommons.GetBlocksOfType<IMySolarPanel>(blocks))
             {
-                var panel = (IMySolarPanel)block;
-
                 if (panel.IsFunctional && panel.IsWorking)
                 {
                     MaxPowerOutput += panel.MaxOutput;

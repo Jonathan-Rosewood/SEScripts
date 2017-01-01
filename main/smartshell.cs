@@ -81,7 +81,7 @@ public class SmartShell
 
         var panels = ZACommons.GetBlocksOfType<IMyTextPanel>(panelGroup.Blocks);
         if (panels.Count == 0) return null;
-        var panel = panels[0] as IMyTextPanel; // Just use the first one
+        var panel = panels[0]; // Just use the first one
         var targetString = panel.GetPublicText();
 
         // Parse target info

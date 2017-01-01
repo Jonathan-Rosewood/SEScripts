@@ -49,7 +49,7 @@ public class ShipOrientation
 
     // Use orientation of a block of the given type
     public void SetShipReference<T>(IEnumerable<IMyTerminalBlock> blocks,
-                                    Func<IMyTerminalBlock, bool> condition = null)
+                                    Func<T, bool> condition = null)
         where T : IMyCubeBlock
     {
         var references = ZACommons.GetBlocksOfType<T>(blocks, condition);

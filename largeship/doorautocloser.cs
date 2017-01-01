@@ -47,14 +47,12 @@ public class DoorAutoCloser
         eventDriver.Schedule(RunDelay, Run);
     }
 
-    private void CloseDoors(ZACommons commons, EventDriver eventDriver, List<IMyTerminalBlock> doors,
+    private void CloseDoors(ZACommons commons, EventDriver eventDriver, List<IMyDoor> doors,
                             double openDurationSeconds)
     {
         var openDuration = TimeSpan.FromSeconds(openDurationSeconds);
 
-        doors.ForEach(block => {
-                var door = (IMyDoor)block;
-
+        doors.ForEach(door => {
                 if (door.Open)
                 {
                     TimeSpan closeTime;

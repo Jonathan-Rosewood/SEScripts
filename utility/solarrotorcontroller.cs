@@ -146,7 +146,7 @@ public class SolarRotorController
     private IMyMotorStator GetRotor(ZACommons.BlockGroup group)
     {
         var rotors = ZACommons.GetBlocksOfType<IMyMotorStator>(group.Blocks);
-        return rotors.Count == 1 ? (IMyMotorStator)rotors[0] : null;
+        return rotors.Count == 1 ? rotors[0] : null;
     }
 
     private void SaveActive(ZACommons commons)
