@@ -32,6 +32,8 @@ This directory contains modules that are used in pretty much all/most scripts (e
 
   * seeker &mdash; Module that manipulates gyros (yaw & pitch) to keep the ship pointed at a specific relative vector.
 
+  * cruiser &mdash; Manipulates thrusters along a given axis to achieve a set speed along that direction.
+
 ## Conventions ##
 
 Modules are integrated into the main loop in one of two ways. They can implement both ways, but only one is used for any given script.

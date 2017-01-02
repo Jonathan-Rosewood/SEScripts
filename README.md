@@ -29,16 +29,16 @@ The scripts are actually divided into "modules."
 The actual scripts that you load into the game are made by concatenating
 one or more modules.
 
-Which scripts to concatenate are defined by "spec" files.
+Modules can declare dependencies with a special comment at the top (starting with "//@"). "Main" modules are declared with "//!" followed by the script name and form the root of each script.
 
 Modules can have optional "header" and "footer" (a misnomer) files, which
 are concatenated at different places.
 
 The concatenation order is defined as:
 
-  * Any and all -header.cs files, in order
-  * Any and all -footer.cs files, in reverse order
-  * All specified .cs files, in order
+  * Any and all -header.cs files, in dependency order
+  * Any and all -footer.cs files, in reverse dependency order
+  * All specified .cs files, in dependency order
 
 Modules are organized into directories as follows:
 
@@ -50,19 +50,13 @@ Modules are organized into directories as follows:
   * `utility` &mdash; Bulk of reusable modules, which usually deal with a single system
   * `weapon` &mdash; Weapon-related stuff, mostly for guided missiles
 
-Note that power related modules (especially battery and solar modules) are
-currently broken.
-
 ## Building ##
 
 The build script is a Python 3 script named `build.py`.
 
-Simply give it the path to one or more *.spec files (such as those found
-in the `specs` directory).
-
 I typically run it like so
 
-    ./build.py -w specs/*.spec
+    ./build.py -w
 
 and then copy the contents of the `out` directory to my
 `%APPDATA%/SpaceEngineers/IngameScripts/local/` directory.

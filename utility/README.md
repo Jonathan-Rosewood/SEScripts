@@ -28,11 +28,11 @@ The bulk of my reusable modules, usually dealing with a specific system or featu
  
    Also, the recent autopilot API changes to the remote control block kind of makes the custom autopilot moot. Though I did experiment with the RC-based autopilot, I opted to stick with the custom autopilot since most of my ships are drones (you cannot engage autopilot while controlling the drone).
 
- * solargyrocontroller &mdash; Now-defunct module for keeping your solar panels always pointed at the sun by rotating the whole ship. There's no reliable way of reading a solar panel's maximum potential power output anymore. (Sorry, I don't believe in parsing DetailInfo.)
+ * solargyrocontroller &mdash; Module for keeping your solar panels always pointed at the sun by rotating the whole ship.
  
- * solarrotorcontroller &mdash; Now-defunct module for keeping solar panels mounted on a rotor pointed at the sun.
+ * solarrotorcontroller &mdash; Module for keeping solar panels mounted on a single rotor pointed at the sun.
  
  * turretdetector &mdash; Proof-of-concept for detecting the presence of things that turrets can aim & fire at, e.g. meteors.
  
- * yawpitchauto &mdash; Another autopilot that gets you from point A to point B. Points you toward point B and thrusts you forward at a defined speed.
+ * yawpitchauto &mdash; An autopilot that gets you from point A to point B. Points you toward point B and thrusts you forward at a defined speed.
 

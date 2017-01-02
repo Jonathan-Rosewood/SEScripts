@@ -4,8 +4,12 @@ Modules dealing with blocks or systems typically only found on large grids.
 
 ## Descriptions ##
 
+ * airventmanager &mdash; Turns air vents on and off depending on current room pressure. Prevents air vents from running constantly (due to your avatar's breathing) and saves power.
+
  * complexairlock &mdash; Code to control "full" airlocks (ones with air vents). See [Ship Manager][shipmanager] for usage documentation. It's quite a mess because it was probably my first complex C# program.
- 
+
+ * dockingaction &mdash; Enables or disables blocks in a group depending the state of an associated connector. Was necessary after docked grids were no longer detectable by sensor, however that may have changed recently again.
+
  * doorautocloser &mdash; Automatically closes open doors after some amount of time.
  
  * oxygenmanager &mdash; Selectively enables/disables oxygen generators and oxygen farms depending on the average level of tanks. Note that the addition of hydrogen breaks this somewhat, since only oxygen generators create hydrogen and AFAIK, there's no l10n-independent method of distinguishing oxygen tanks and hydrogen tanks.
