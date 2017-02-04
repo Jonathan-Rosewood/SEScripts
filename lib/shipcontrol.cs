@@ -26,8 +26,6 @@ public class ShipControlCommons : ZACommons
         : base(program, shipGroup: shipGroup, storage: storage)
     {
         this.shipOrientation = shipOrientation;
-        // Use own programmable block as reference point
-        ReferencePoint = Me.GetPosition();
     }
 
     // GyroControl
@@ -80,7 +78,19 @@ public class ShipControlCommons : ZACommons
 
     // Reference vectors (i.e. orientation in world coordinates)
 
-    public Vector3D ReferencePoint { get; private set; }
+    public Vector3D ReferencePoint
+    {
+        get
+        {
+            if (m_referencePoint == null)
+            {
+                // Use center of mass, otherwise fall back to programmable block position
+                m_referencePoint = ShipController != null ? Me.CubeGrid.GridIntegerToWorld(ShipController.CenterOfMass) : Me.GetPosition();
+            }
+            return (Vector3D)m_referencePoint;
+        }
+    }
+    private Vector3D? m_referencePoint = null;
 
     public Vector3D ReferenceUp
     {
