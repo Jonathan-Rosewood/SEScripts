@@ -26,7 +26,7 @@ public class Seeker
         ShipUp = shipUp;
         ShipLeft = Base6Directions.GetLeft(ShipUp, ShipForward);
 
-        var small = shipControl.Reference.CubeGrid.GridSize == 0.5f;
+        var small = shipControl.Me.CubeGrid.GridSize == 0.5f;
 
         yawPID.Kp = small ? SmallGyroKp : LargeGyroKp;
         yawPID.Ti = small ? SmallGyroTi : LargeGyroTi;
@@ -147,7 +147,7 @@ public class Seeker
     private Vector3D GetReferenceVector(ShipControlCommons shipControl,
                                         Base6Directions.Direction direction)
     {
-        var offset = shipControl.Reference.Position + Base6Directions.GetIntVector(direction);
-        return Vector3D.Normalize(shipControl.Reference.CubeGrid.GridIntegerToWorld(offset) - shipControl.ReferencePoint);
+        var offset = shipControl.Me.Position + Base6Directions.GetIntVector(direction);
+        return Vector3D.Normalize(shipControl.Me.CubeGrid.GridIntegerToWorld(offset) - shipControl.Me.GetPosition());
     }
 }

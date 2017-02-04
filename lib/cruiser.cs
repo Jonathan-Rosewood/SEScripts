@@ -52,8 +52,8 @@ public class Cruiser
                        bool enableBackward = true)
     {
         // Determine forward unit vector
-        var forward3I = shipControl.Reference.Position + Base6Directions.GetIntVector(shipControl.ShipBlockOrientation.TransformDirection(LocalForward));
-        var referenceForward = Vector3D.Normalize(shipControl.Reference.CubeGrid.GridIntegerToWorld(forward3I) - shipControl.ReferencePoint);
+        var forward3I = shipControl.Me.Position + Base6Directions.GetIntVector(shipControl.ShipBlockOrientation.TransformDirection(LocalForward));
+        var referenceForward = Vector3D.Normalize(shipControl.Me.CubeGrid.GridIntegerToWorld(forward3I) - shipControl.Me.GetPosition());
 
         // Take dot product with forward unit vector
         var speed = Vector3D.Dot(velocity, referenceForward);

@@ -635,7 +635,7 @@ public class VTVLHelper
 
     private Vector3D GetReferenceVector(ShipControlCommons shipControl, Base6Directions.Direction direction)
     {
-        var offset = shipControl.Reference.Position + Base6Directions.GetIntVector(shipControl.ShipBlockOrientation.TransformDirection(direction));
-        return Vector3D.Normalize(shipControl.Reference.CubeGrid.GridIntegerToWorld(offset) - shipControl.ReferencePoint);
+        var offset = shipControl.Me.Position + Base6Directions.GetIntVector(shipControl.ShipBlockOrientation.TransformDirection(direction));
+        return Vector3D.Normalize(shipControl.Me.CubeGrid.GridIntegerToWorld(offset) - shipControl.Me.GetPosition());
     }
 }

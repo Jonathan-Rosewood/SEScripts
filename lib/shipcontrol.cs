@@ -27,8 +27,7 @@ public class ShipControlCommons : ZACommons
     {
         this.shipOrientation = shipOrientation;
         // Use own programmable block as reference point
-        Reference = program.Me;
-        ReferencePoint = Reference.GetPosition();
+        ReferencePoint = Me.GetPosition();
     }
 
     // GyroControl
@@ -81,8 +80,6 @@ public class ShipControlCommons : ZACommons
 
     // Reference vectors (i.e. orientation in world coordinates)
 
-    public IMyCubeBlock Reference { get; private set; }
-
     public Vector3D ReferencePoint { get; private set; }
 
     public Vector3D ReferenceUp
@@ -126,8 +123,8 @@ public class ShipControlCommons : ZACommons
 
     private Vector3D GetReferenceVector(Base6Directions.Direction direction)
     {
-        var offset = Reference.Position + Base6Directions.GetIntVector(direction);
-        return Vector3D.Normalize(Reference.CubeGrid.GridIntegerToWorld(offset) - ReferencePoint);
+        var offset = Me.Position + Base6Directions.GetIntVector(direction);
+        return Vector3D.Normalize(Me.CubeGrid.GridIntegerToWorld(offset) - Me.GetPosition());
     }
 
     // IMyShipController
