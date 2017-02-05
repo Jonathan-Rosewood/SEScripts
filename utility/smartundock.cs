@@ -112,28 +112,16 @@ public class SmartUndock
 
             UndockTarget = null;
             UndockBackward = null;
+            Vector3D forwardVector = Vector3D.Zero;
             if (connected != null)
             {
                 // Undock in the forward direction of the *other* connector
                 var other = connected.OtherConnector;
                 var forward = other.Orientation.TransformDirection(Base6Directions.Direction.Forward);
                 var forwardPoint = other.CubeGrid.GridIntegerToWorld(other.Position + Base6Directions.GetIntVector(forward));
-                var forwardVector = Vector3D.Normalize(forwardPoint - other.GetPosition());
-                // Determine target undock point
-                var shipControl = (ShipControlCommons)commons;
-                UndockTarget = shipControl.ReferencePoint + SMART_UNDOCK_DISTANCE * forwardVector;
-
-                // And original orientation
-                UndockForward = shipControl.ReferenceForward;
-                UndockUp = shipControl.ReferenceUp;
-
-                // Schedule the autopilot
+                forwardVector = Vector3D.Normalize(forwardPoint - other.GetPosition());
                 UndockBackward = connected.Orientation.TransformDirection(Base6Directions.Direction.Backward);
-                BeginUndock(commons, eventDriver);
-                Mode = UNDOCKING;
-                SaveMode(commons);
             }
-            SaveUndockTarget(commons);
 
             // Next, physically undock
             foreach (var block in connectors)
@@ -155,6 +143,27 @@ public class SmartUndock
                         ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyShipConnector>(c.Blocks, connector => connector.DefinitionDisplayNameText == "Connector"),
                                                false); // Avoid Ejectors
                     });
+
+            if (connected != null)
+            {
+                eventDriver.Schedule(1.0, (c, ed) =>
+                        {
+                            // Determine target undock point
+                            var shipControl = (ShipControlCommons)c;
+                            UndockTarget = shipControl.ReferencePoint + SMART_UNDOCK_DISTANCE * forwardVector;
+
+                            // And original orientation
+                            UndockForward = shipControl.ReferenceForward;
+                            UndockUp = shipControl.ReferenceUp;
+
+                            // Schedule the autopilot
+                            BeginUndock(c, ed);
+                            Mode = UNDOCKING;
+                            SaveMode(c);
+                            SaveUndockTarget(c);
+                        });
+            }
+            else SaveUndockTarget(commons);
         }
         else if (argument == "rtb")
         {
