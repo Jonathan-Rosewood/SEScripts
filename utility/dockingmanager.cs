@@ -61,7 +61,7 @@ public class DockingManager
                 {
                     if (connector.IsFunctional &&
                         connector.DefinitionDisplayNameText == "Connector" &&
-                        connector.IsLocked && !connector.IsConnected)
+                        connector.Status == MyShipConnectorStatus.Connectable)
                     {
                         connector.ApplyAction("Lock");
                         connected = true;
@@ -101,7 +101,7 @@ public class DockingManager
         var connectors = ZACommons.GetBlocksOfType<IMyShipConnector>(commons.Blocks, connector => connector.DefinitionDisplayNameText == "Connector");
         connectors.ForEach(connector =>
                 {
-                    if (connector.IsLocked && connector.IsConnected) connector.ApplyAction("Unlock");
+                    if (connector.Status == MyShipConnectorStatus.Connected) connector.ApplyAction("Unlock");
                 });
 
         // Unlock all landing gear
@@ -161,13 +161,13 @@ public class DockingManager
         if (TOUCH_TOOLS && docked) ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyShipToolBase>(commons.Blocks), false);
         if (TOUCH_OXYGEN)
         {
-            ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyOxygenGenerator>(commons.Blocks), !docked);
+            ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyGasGenerator>(commons.Blocks), !docked);
             ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyOxygenFarm>(commons.Blocks), !docked);
             ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyAirVent>(commons.Blocks,
-                                                                         vent => ((IMyAirVent)vent).IsDepressurizing &&
+                                                                         vent => ((IMyAirVent)vent).Depressurize &&
                                                                          vent.CustomName.IndexOf("[Intake]", ZACommons.IGNORE_CASE) >= 0), !docked);
-            var tanks = ZACommons.GetBlocksOfType<IMyOxygenTank>(commons.Blocks,
-                                                                 tank => tank.CustomName.IndexOf("[Excluded]", ZACommons.IGNORE_CASE) < 0);
+            var tanks = ZACommons.GetBlocksOfType<IMyGasTank>(commons.Blocks,
+                                                              tank => tank.CustomName.IndexOf("[Excluded]", ZACommons.IGNORE_CASE) < 0);
             tanks.ForEach(tank => tank.SetValue<bool>("Stockpile", docked));
         }
         if (TOUCH_SENSORS) ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMySensorBlock>(commons.Blocks), !docked);

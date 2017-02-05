@@ -27,7 +27,7 @@ public class DockingAction
             if (connectors.Count > 0)
             {
                 var connector = connectors[0];
-                connected = connector.IsLocked && connector.IsConnected;
+                connected = connector.Status == MyShipConnectorStatus.Connected;
             }
 
             if ("on".Equals(action, ZACommons.IGNORE_CASE) ||

@@ -254,7 +254,7 @@ public class ZACommons
         foreach (var block in connectors)
         {
             var connector = block as IMyShipConnector;
-            if (connector != null && connector.IsLocked && connector.IsConnected)
+            if (connector != null && connector.Status == MyShipConnectorStatus.Connected)
             {
                 return true;
             }

@@ -222,10 +222,7 @@ public class SafeMode : DockingHandler
             }
 
             var lantenna = block as IMyLaserAntenna;
-            // Unfortunately, can't know if lantenna is connected
-            // w/o parsing DetailedInfo.
-            // So just check IsOutsideLimits.
-            if (lantenna != null && lantenna.IsWorking && lantenna.Enabled && !lantenna.IsOutsideLimits)
+            if (lantenna != null && lantenna.IsWorking && lantenna.Enabled && lantenna.Status == MyLaserAntennaStatus.Connected)
             {
                 antennaFound = true;
                 break;

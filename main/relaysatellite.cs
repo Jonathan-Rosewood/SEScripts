@@ -17,7 +17,7 @@ public class RelaySatelliteLowBatteryHandler : BatteryMonitor.LowBatteryHandler
                 if (antenna.IsFunctional && antenna.IsWorking)
                 {
                     OldAntennaName = antenna.CustomName;
-                    antenna.SetCustomName(Message);
+                    antenna.CustomName = Message;
                     break;
                 }
             }
@@ -29,7 +29,7 @@ public class RelaySatelliteLowBatteryHandler : BatteryMonitor.LowBatteryHandler
             {
                 if (antenna.CustomName == Message)
                 {
-                    antenna.SetCustomName(OldAntennaName);
+                    antenna.CustomName = OldAntennaName;
                     break;
                 }
             }

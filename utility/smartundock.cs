@@ -102,7 +102,7 @@ public class SmartUndock
                                                                          connector => connector.DefinitionDisplayNameText == "Connector"); // Avoid Ejectors
             foreach (var connector in connectors)
             {
-                if (connector.IsLocked && connector.IsConnected)
+                if (connector.Status == MyShipConnectorStatus.Connected)
                 {
                     // Assume the first one as well
                     connected = connector;
@@ -139,7 +139,7 @@ public class SmartUndock
             foreach (var block in connectors)
             {
                 var connector = (IMyShipConnector)block;
-                if (connector.IsLocked) connector.ApplyAction("Unlock");
+                if (connector.Status == MyShipConnectorStatus.Connected) connector.ApplyAction("Unlock");
             }
             ZACommons.EnableBlocks(connectors, false);
             // Unlock landing gears as well

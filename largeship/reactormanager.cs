@@ -21,8 +21,7 @@ public class ReactorManager
     {
         var myConnectors = ZACommons.GetBlocksOfType<IMyShipConnector>(commons.Blocks,
                                                                        block => block.DefinitionDisplayNameText == "Connector" &&
-                                                                       ((IMyShipConnector)block).IsLocked &&
-                                                                       ((IMyShipConnector)block).IsConnected);
+                                                                       ((IMyShipConnector)block).Status == MyShipConnectorStatus.Connected);
         var currentConnectorCount = myConnectors.Count;
         if (currentConnectorCount > ConnectorCount)
         {

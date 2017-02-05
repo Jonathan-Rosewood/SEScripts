@@ -60,7 +60,7 @@ public class Stocker
 
             // Gather destinations and wanted subtypes/counts
             group.Blocks.ForEach(block => {
-                    if (!block.IsFunctional || block.GetInventoryCount() == 0) return;
+                    if (!block.IsFunctional || block.InventoryCount == 0) return;
 
                     Dictionary<string, int> wantedStocks;
                     if (!toCheck.TryGetValue(block, out wantedStocks))
@@ -93,7 +93,7 @@ public class Stocker
 
             // Gather current item counts
             var currents = new Dictionary<string, VRage.MyFixedPoint>();
-            for (int i = 0; i < block.GetInventoryCount(); i++)
+            for (int i = 0; i < block.InventoryCount; i++)
             {
                 var inventory = block.GetInventory(i);
                 var items = inventory.GetItems();
@@ -150,7 +150,7 @@ public class Stocker
         stockGroup.Blocks.ForEach(source => {
                 if (!source.IsFunctional) return;
 
-                for (int i = 0; i < source.GetInventoryCount(); i++)
+                for (int i = 0; i < source.InventoryCount; i++)
                 {
                     var inventory = source.GetInventory(i);
                     var items = inventory.GetItems();

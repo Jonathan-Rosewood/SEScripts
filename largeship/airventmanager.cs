@@ -18,11 +18,11 @@ public class AirVentManager
         vents.ForEach(vent =>
                 {
                     var level = vent.GetOxygenLevel();
-                    if (vent.IsDepressurizing && !vent.Enabled && level > 0.0f)
+                    if (vent.Depressurize && !vent.Enabled && level > 0.0f)
                     {
                         vent.SetValue<bool>("OnOff", true);
                     }
-                    else if (!vent.IsDepressurizing)
+                    else if (!vent.Depressurize)
                     {
                         if (level < MIN_AIR_VENT_PRESSURE && !vent.Enabled)
                         {

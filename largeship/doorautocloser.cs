@@ -53,7 +53,7 @@ public class DoorAutoCloser
         var openDuration = TimeSpan.FromSeconds(openDurationSeconds);
 
         doors.ForEach(door => {
-                if (door.Open)
+                if (door.Status == DoorStatus.Open)
                 {
                     TimeSpan closeTime;
                     if (opened.TryGetValue(door, out closeTime))

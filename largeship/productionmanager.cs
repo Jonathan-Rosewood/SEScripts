@@ -112,7 +112,7 @@ public class ProductionManager
 
         foreach (var owner in blocks)
         {
-            for (int i = 0; i < owner.GetInventoryCount(); i++)
+            for (int i = 0; i < owner.InventoryCount; i++)
             {
                 var inventory = owner.GetInventory(i);
                 var items = inventory.GetItems();
@@ -178,7 +178,7 @@ public class ProductionManager
             builder.Append(DelimiterAmount);
             builder.Append(itemStock.Amount);
             builder.Append(DelimiterEnd);
-            candidate.SetCustomName(builder);
+            candidate.CustomName = builder.ToString();
         }
     }
 

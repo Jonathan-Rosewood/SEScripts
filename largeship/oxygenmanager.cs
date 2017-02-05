@@ -13,21 +13,21 @@ public class OxygenManager
 
     private int PreviousState = OXYGEN_LEVEL_UNKNOWN;
 
-    private float GetAverageOxygenTankLevel(List<IMyOxygenTank> tanks)
+    private float GetAverageOxygenTankLevel(List<IMyGasTank> tanks)
     {
         float total = 0.0f;
         int count = 0;
 
         foreach (var tank in tanks)
         {
-            total += tank.GetOxygenLevel();
+            total += tank.FilledRatio;
             count++;
         }
 
         return count != 0 ? total / count : 0.0f;
     }
 
-    private int GetOxygenState(List<IMyOxygenTank> tanks)
+    private int GetOxygenState(List<IMyGasTank> tanks)
     {
         var level = GetAverageOxygenTankLevel(tanks);
         if (level >= MAX_OXYGEN_TANK_LEVEL)
@@ -55,10 +55,10 @@ public class OxygenManager
 
     public void Run(ZACommons commons, EventDriver eventDriver)
     {
-        var tanks = ZACommons.GetBlocksOfType<IMyOxygenTank>(commons.AllBlocks,
-                                                             tank => tank.IsFunctional &&
-                                                             tank.IsWorking &&
-                                                             tank.CustomName.IndexOf("[Excluded]", ZACommons.IGNORE_CASE) < 0);
+        var tanks = ZACommons.GetBlocksOfType<IMyGasTank>(commons.AllBlocks,
+                                                          tank => tank.IsFunctional &&
+                                                          tank.IsWorking &&
+                                                          tank.CustomName.IndexOf("[Excluded]", ZACommons.IGNORE_CASE) < 0);
 
         var currentState = GetOxygenState(tanks);
 
@@ -101,8 +101,8 @@ public class OxygenManager
             {
                 // Limit to this grid -- don't mess with any other ship's systems
                 var generators =
-                    ZACommons.GetBlocksOfType<IMyOxygenGenerator>(commons.Blocks,
-                                                                  block => block.IsFunctional);
+                    ZACommons.GetBlocksOfType<IMyGasGenerator>(commons.Blocks,
+                                                               block => block.IsFunctional);
                 ZACommons.EnableBlocks(generators, (bool)generateOxygen);
             }
             if (farmOxygen != null)
@@ -118,7 +118,7 @@ public class OxygenManager
                 var vents =
                     ZACommons.GetBlocksOfType<IMyAirVent>(commons.Blocks,
                                                           vent => vent.IsFunctional &&
-                                                          vent.IsDepressurizing &&
+                                                          vent.Depressurize &&
                                                           vent.CustomName.IndexOf("[Intake]", ZACommons.IGNORE_CASE) >= 0);
 
                 ZACommons.EnableBlocks(vents, (bool)farmOxygen);

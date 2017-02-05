@@ -243,7 +243,7 @@ public class ComplexAirlock
             else
             {
                 // Close & lock all others
-                if (door.Open)
+                if (door.Status == DoorStatus.Open)
                 {
                     door.SetValue<bool>("Open", false);
                 }

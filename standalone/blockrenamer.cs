@@ -73,7 +73,7 @@ public class BlockRenamer
                 builder.Append(count);
             }
 
-            block.SetCustomName(builder);
+            block.CustomName = builder.ToString();
         }
     }
 }
