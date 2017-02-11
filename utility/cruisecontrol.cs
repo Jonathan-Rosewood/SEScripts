@@ -1,4 +1,5 @@
 //@ shipcontrol eventdriver pid
+//@ reversethrust
 public class CruiseControl
 {
     private const string LastCommandKey = "CruiseControl_LastCommand";
@@ -84,11 +85,16 @@ public class CruiseControl
                 Active = false;
                 SaveLastCommand(commons, null);
             }
-            else if (speed == "stop")
+            else if (speed == "stop" || speed == "reverse")
             {
                 RestoreThrusterStates(commons);
                 Active = false;
                 SaveLastCommand(commons, null);
+
+                if (speed == "reverse")
+                {
+                    new ReverseThrust().Init(commons, eventDriver, REVERSE_THRUST_MAX_GYRO_ERROR);
+                }
             }
             else
             {

@@ -64,7 +64,6 @@ void Main(string argument)
             sequencer.HandleCommand(commons, eventDriver, argument);
             combatRanger.HandleCommand(commons, argument);
             projectorAction.HandleCommand(commons, eventDriver, argument);
-            HandleCommand(commons, eventDriver, argument);
         },
         postAction: () => {
             damageControl.Display(commons);
@@ -74,18 +73,6 @@ void Main(string argument)
         });
 
     if (commons.IsDirty) Storage = myStorage.Encode();
-}
-
-
-void HandleCommand(ZACommons commons, EventDriver eventDriver, string argument)
-{
-    var command = argument.Trim().ToLower();
-    if (command == "stop")
-    {
-        // TODO global modes
-        cruiseControl.HandleCommand(commons, eventDriver, "cruise reset");
-        new ReverseThrust().Init(commons, eventDriver, REVERSE_THRUST_MAX_GYRO_ERROR);
-    }
 }
 
 bool LivenessCheck(ZACommons commons, EventDriver eventDriver)
