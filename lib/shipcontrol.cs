@@ -85,7 +85,7 @@ public class ShipControlCommons : ZACommons
             if (m_referencePoint == null)
             {
                 // Use center of mass, otherwise fall back to programmable block position
-                m_referencePoint = ShipController != null ? Me.CubeGrid.GridIntegerToWorld(ShipController.CenterOfMass) : Me.GetPosition();
+                m_referencePoint = ShipController != null ? ShipController.CenterOfMass : Me.GetPosition();
             }
             return (Vector3D)m_referencePoint;
         }
