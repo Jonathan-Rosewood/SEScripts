@@ -40,9 +40,12 @@ def create_chunk(fn, strip=False, strip_comments=False, strip_empty=False):
                         line = line.strip()
                         if line or not strip_empty:
                             if not strip_comments or not line.startswith('//'):
-                                out.write(line + NL)
+                                if not line.startswith('//!') and not line.startswith('//@') and not line.startswith('//#'):
+                                    out.write(line + NL)
                     else:
-                        out.write(line.rstrip() + NL)
+                        stripped = line.strip()
+                        if not stripped.startswith('//!') and not stripped.startswith('//@') and not stripped.startswith('//#'):
+                            out.write(line.rstrip() + NL)
                 return out.getvalue()
 
 
@@ -71,7 +74,7 @@ def build_script(version, available_modules, dependencies, root, output,
     chunks = [generate_version_header(version, modules)]
 
     if strip:
-        chunks.append('// NB Leading whitespace stripped to save bytes!' + NL)
+        chunks.append('// !!! Leading whitespace stripped to save bytes !!!' + NL)
 
     # Headers
     for module in modules:
@@ -92,6 +95,8 @@ def build_script(version, available_modules, dependencies, root, output,
         chunk = create_chunk(footer_fn, strip=strip)
         if chunk:
             chunks.append(chunk)
+
+    chunks.append('// !!! CODE BEGINS HERE, EDIT AT YOUR OWN RISK !!!' + NL)
 
     # Finally, the main body
     for module in modules:
