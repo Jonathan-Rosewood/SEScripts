@@ -96,22 +96,15 @@ public class Seeker
                              shipForward: ShipForward);
         }
 
-        // Determine projection of targetVector onto our reference unit vectors
-        var dotZ = targetVector.Dot(referenceForward);
-        var dotX = targetVector.Dot(referenceLeft);
-        var dotY = targetVector.Dot(referenceUp);
+        // Invert our world matrix
+        var toLocal = MatrixD.Invert(MatrixD.CreateWorld(Vector3D.Zero, referenceForward, referenceUp));
 
-        var projZ = dotZ * referenceForward;
-        var projX = dotX * referenceLeft;
-        var projY = dotY * referenceUp;
+        // And bring targetVector into local space
+        var localTarget = Vector3D.Transform(-targetVector, toLocal);
 
-        // Determine yaw/pitch error by calculating angle between our forward
-        // vector and targetVector
-        var z = projZ.Length() * Math.Sign(dotZ);
-        var x = projX.Length() * Math.Sign(dotX);
-        var y = projY.Length() * Math.Sign(-dotY); // NB inverted
-        yawError = Math.Atan2(x, z);
-        pitchError = Math.Atan2(y, z);
+        // Finally use simple trig to get the error angles
+        yawError = Math.Atan2(localTarget.X, localTarget.Z);
+        pitchError = Math.Atan2(localTarget.Y, localTarget.Z);
 
         var gyroYaw = yawPID.Compute(yawError);
         var gyroPitch = pitchPID.Compute(pitchError);
@@ -121,16 +114,10 @@ public class Seeker
 
         if (targetUp != null)
         {
-            // Also adjust roll
-            dotX = ((Vector3D)targetUp).Dot(referenceLeft);
-            dotY = ((Vector3D)targetUp).Dot(referenceUp);
+            // Also adjust roll by rotating targetUp vector
+            localTarget = Vector3D.Transform((Vector3D)targetUp, toLocal);
 
-            projX = dotX * referenceLeft;
-            projY = dotY * referenceUp;
-
-            x = projX.Length() * Math.Sign(-dotX);
-            y = projY.Length() * Math.Sign(dotY);
-            rollError = Math.Atan2(x, y);
+            rollError = Math.Atan2(localTarget.X, localTarget.Y);
 
             var gyroRoll = rollPID.Compute(rollError);
 
