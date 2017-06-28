@@ -629,7 +629,9 @@ public class VTVLHelper
             var targetSpeed = Math.Min(Math.Abs(referenceDistance) * VTVLHELPER_APPROACH_GAIN, VTVLHELPER_MAXIMUM_SPEED);
             targetSpeed *= Math.Sign(referenceDistance);
 
-            cruiser.Cruise(shipControl, targetSpeed, (Vector3D)velocity);
+            Func<IMyThrust, bool> AlignThrusterCondition = VTVLHELPER_USE_BRAKING_THRUSTER_SPEC_FOR_ALIGN ? ThrusterCondition : null;
+            cruiser.Cruise(shipControl, targetSpeed, (Vector3D)velocity,
+                           condition: AlignThrusterCondition);
         }
     }
 

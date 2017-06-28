@@ -9,6 +9,7 @@ const Base6Directions.Direction VTVLHELPER_LAUNCH_DIRECTION = Base6Directions.Di
 const double VTVLHELPER_LAUNCH_SPEED = 98.0; // In meters per second
 const string VTVLHELPER_LAUNCH_DONE = "Launch Done";
 // Autodrop
+const bool VTVLHELPER_USE_BRAKING_THRUSTER_SPEC_FOR_ALIGN = false; // Set to true to also use braking thruster-spec for alignment thrusters
 const double VTVLHELPER_APPROACH_GAIN = 0.1; // Multiplied by distance to get approach speed
 const double VTVLHELPER_MINIMUM_SPEED = 5.0; // In meters per second
 const double VTVLHELPER_MAXIMUM_SPEED = 25.0; // In meters per second
