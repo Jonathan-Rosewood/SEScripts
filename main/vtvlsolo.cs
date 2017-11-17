@@ -8,9 +8,9 @@ private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
 private bool FirstRun = true;
 
-void Main(string argument)
+void Main(string argument, UpdateType updateType)
 {
-    var commons = new ShipControlCommons(this, shipOrientation,
+    var commons = new ShipControlCommons(this, updateType, shipOrientation,
                                          shipGroup: SHIP_GROUP,
                                          storage: myStorage);
 

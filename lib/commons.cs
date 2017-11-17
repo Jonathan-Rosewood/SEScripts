@@ -5,6 +5,7 @@ public class ZACommons
     public const StringComparison IGNORE_CASE = StringComparison.CurrentCultureIgnoreCase;
 
     public readonly MyGridProgram Program;
+    public readonly UpdateType UpdateType;
     private readonly string ShipGroupName;
 
     private readonly ZAStorage Storage;
@@ -118,10 +119,11 @@ public class ZACommons
     }
     private Dictionary<string, BlockGroup> m_groupsByName = null;
 
-    public ZACommons(MyGridProgram program, string shipGroup = null,
-                     ZAStorage storage = null)
+    public ZACommons(MyGridProgram program, UpdateType updateType,
+                     string shipGroup = null, ZAStorage storage = null)
     {
         Program = program;
+        UpdateType = updateType;
         ShipGroupName = shipGroup;
         Storage = storage;
         IsDirty = false;

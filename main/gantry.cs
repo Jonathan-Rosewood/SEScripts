@@ -7,9 +7,9 @@ private readonly PistonStepper fbPistonStepper = new PistonStepper("Gantry Forwa
 
 private bool FirstRun = true;
 
-void Main(string argument)
+void Main(string argument, UpdateType updateType)
 {
-    var commons = new ZACommons(this);
+    var commons = new ZACommons(this, updateType);
 
     if (FirstRun)
     {

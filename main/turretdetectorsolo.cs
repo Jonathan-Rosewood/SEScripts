@@ -5,9 +5,9 @@ public readonly TurretBasedDetector turretDetector = new TurretBasedDetector();
 
 private bool FirstRun = true;
 
-void Main(string argument)
+void Main(string argument, UpdateType updateType)
 {
-    ZACommons commons = new ZACommons(this);
+    ZACommons commons = new ZACommons(this, updateType);
 
     if (FirstRun)
     {

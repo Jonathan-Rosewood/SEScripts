@@ -19,11 +19,11 @@ public class ShipControlCommons : ZACommons
         get { return shipOrientation.BlockOrientation; }
     }
 
-    public ShipControlCommons(MyGridProgram program,
+    public ShipControlCommons(MyGridProgram program, UpdateType updateType,
                               ShipOrientation shipOrientation,
                               string shipGroup = null,
                               ZAStorage storage = null)
-        : base(program, shipGroup: shipGroup, storage: storage)
+        : base(program, updateType, shipGroup: shipGroup, storage: storage)
     {
         this.shipOrientation = shipOrientation;
     }

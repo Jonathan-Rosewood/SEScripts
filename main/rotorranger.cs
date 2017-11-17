@@ -30,9 +30,9 @@ public void UpdateTargetTextPanels(ZACommons commons, Vector3D target)
     commons.Echo(string.Format("Distance: {0:F2} m", distance));
 }
 
-void Main(string argument)
+void Main(string argument, UpdateType updateType)
 {
-    var commons = new ZACommons(this);
+    var commons = new ZACommons(this, updateType);
 
     if (FirstRun)
     {

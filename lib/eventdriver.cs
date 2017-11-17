@@ -81,6 +81,7 @@ public class EventDriver
     }
 
     public void Tick(ZACommons commons, Action mainAction = null,
+                     Action selfAction = null,
                      Action preAction = null,
                      Action postAction = null)
     {
@@ -89,7 +90,11 @@ public class EventDriver
 
         bool runMain = false;
 
-        if (preAction != null) preAction();
+        if (selfAction != null) selfAction();
+
+        // Only run preAction if something other than a self update
+        // triggered this Tick
+        if (preAction != null && (commons.UpdateType & ~(UpdateType.Update1|UpdateType.Update10|UpdateType.Update100|UpdateType.Once)) != 0) preAction();
 
         // Process each queue independently
         while (TickQueue.First != null &&

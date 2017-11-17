@@ -6,9 +6,9 @@ private readonly ZAStorage myStorage = new ZAStorage();
 
 private bool FirstRun = true;
 
-void Main(string argument)
+void Main(string argument, UpdateType updateType)
 {
-    var commons = new ZACommons(this,
+    var commons = new ZACommons(this, updateType,
                                 storage: myStorage);
 
     if (FirstRun)
