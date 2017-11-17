@@ -5,7 +5,9 @@ const bool AUTO_CLOSE_DOORS_ENABLE = true;
 const bool SIMPLE_AIRLOCK_ENABLE = true;
 const bool COMPLEX_AIRLOCK_ENABLE = true;
 const bool OXYGEN_MANAGER_ENABLE = true;
-const bool AIR_VENT_MANAGER_ENABLE = true;
+// Air vent manager no longer compatible with complex airlocks as of 1.185.
+// Only enable one or the other or neither.
+const bool AIR_VENT_MANAGER_ENABLE = false;
 const bool REFINERY_MANAGER_ENABLE = true;
 const bool PRODUCTION_MANAGER_ENABLE = false;
 const bool REDUNDANCY_MANAGER_ENABLE = true;
