@@ -1,7 +1,7 @@
 //! Survival Ship Manager
 //@ shipcontrol eventdriver doorautocloser simpleairlock complexairlock
 //@ oxygenmanager airventmanager refinerymanager productionmanager
-//@ timerkicker redundancy dockingaction damagecontrol reactormanager
+//@ redundancy dockingaction damagecontrol reactormanager
 //@ safemode cruisecontrol solargyrocontroller emergencystop
 public class MySafeModeHandler : SafeModeHandler
 {
@@ -23,7 +23,6 @@ private readonly OxygenManager oxygenManager = new OxygenManager();
 private readonly AirVentManager airVentManager = new AirVentManager();
 private readonly RefineryManager refineryManager = new RefineryManager();
 private readonly ProductionManager productionManager = new ProductionManager();
-private readonly TimerKicker timerKicker = new TimerKicker();
 private readonly RedundancyManager redundancyManager = new RedundancyManager();
 private readonly DockingAction dockingAction = new DockingAction();
 private readonly DamageControl damageControl = new DamageControl();
@@ -67,7 +66,6 @@ void Main(string argument, UpdateType updateType)
         if (PRODUCTION_MANAGER_ENABLE) productionManager.Init(commons, eventDriver);
 
         // Misc
-        if (TIMER_KICKER_ENABLE) timerKicker.Init(commons, eventDriver);
         if (REDUNDANCY_MANAGER_ENABLE) redundancyManager.Init(commons, eventDriver);
         if (DOCKING_ACTION_ENABLE) dockingAction.Init(commons, eventDriver);
         if (DAMAGE_CONTROL_ENABLE) damageControl.Init(commons, eventDriver);

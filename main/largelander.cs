@@ -1,6 +1,6 @@
 //! Large Lander Controller
 //@ shipcontrol eventdriver safemode redundancy doorautocloser simpleairlock
-//@ cruisecontrol vtvlhelper damagecontrol reactormanager timerkicker
+//@ cruisecontrol vtvlhelper damagecontrol reactormanager
 //@ batterymonitor solargyrocontroller oxygenmanager airventmanager
 //@ emergencystop
 public class MySafeModeHandler : SafeModeHandler
@@ -24,7 +24,6 @@ private readonly CruiseControl cruiseControl = new CruiseControl();
 private readonly VTVLHelper vtvlHelper = new VTVLHelper();
 private readonly DamageControl damageControl = new DamageControl();
 private readonly ReactorManager reactorManager = new ReactorManager();
-private readonly TimerKicker timerKicker = new TimerKicker();
 private readonly BatteryMonitor batteryMonitor = new BatteryMonitor();
 private readonly SolarGyroController solarGyroController =
     new SolarGyroController(
@@ -61,7 +60,6 @@ void Main(string argument, UpdateType updateType)
         if (LANDER_CARRIER_ENABLE)
         {
             reactorManager.Init(commons, eventDriver);
-            timerKicker.Init(commons, eventDriver);
         }
         batteryMonitor.Init(commons, eventDriver);
         solarGyroController.ConditionalInit(commons, eventDriver);

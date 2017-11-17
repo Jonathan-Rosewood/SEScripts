@@ -1,6 +1,6 @@
 //! Jump Sled Controller
 //@ shipcontrol eventdriver batterymonitor oxygenmanager
-//@ timerkicker reactormanager damagecontrol
+//@ reactormanager damagecontrol
 //@ safemode cruisecontrol solargyrocontroller emergencystop
 public class MySafeModeHandler : SafeModeHandler
 {
@@ -17,7 +17,6 @@ public class MySafeModeHandler : SafeModeHandler
 private readonly EventDriver eventDriver = new EventDriver();
 private readonly BatteryMonitor batteryMonitor = new BatteryMonitor();
 private readonly OxygenManager oxygenManager = new OxygenManager();
-private readonly TimerKicker timerKicker = new TimerKicker();
 private readonly ReactorManager reactorManager = new ReactorManager();
 private readonly DamageControl damageControl = new DamageControl();
 private readonly SafeMode safeMode = new SafeMode();
@@ -48,7 +47,6 @@ void Main(string argument, UpdateType updateType)
 
         batteryMonitor.Init(commons, eventDriver);
         oxygenManager.Init(commons, eventDriver);
-        timerKicker.Init(commons, eventDriver);
         reactorManager.Init(commons, eventDriver);
 
         safeMode.Init(commons, eventDriver);
