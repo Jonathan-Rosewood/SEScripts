@@ -1,6 +1,6 @@
 //! Turret Detector
 //@ commons eventdriver turretdetector
-public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
+public readonly EventDriver eventDriver = new EventDriver();
 public readonly TurretBasedDetector turretDetector = new TurretBasedDetector();
 
 private bool FirstRun = true;

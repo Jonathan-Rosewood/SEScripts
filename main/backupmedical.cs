@@ -11,7 +11,7 @@ public class BackupMedicalLowBatteryHandler : BatteryMonitor.LowBatteryHandler
     }
 }
 
-private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
+private readonly EventDriver eventDriver = new EventDriver();
 private readonly BackupMedicalLaunch backupMedicalLaunch = new BackupMedicalLaunch();
 private readonly DoorAutoCloser doorAutoCloser = new DoorAutoCloser();
 private readonly BatteryMonitor batteryMonitor = new BatteryMonitor(new BackupMedicalLowBatteryHandler());

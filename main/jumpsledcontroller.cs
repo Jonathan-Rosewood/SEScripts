@@ -14,7 +14,7 @@ public class MySafeModeHandler : SafeModeHandler
     }
 }
 
-private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
+private readonly EventDriver eventDriver = new EventDriver();
 private readonly BatteryMonitor batteryMonitor = new BatteryMonitor();
 private readonly OxygenManager oxygenManager = new OxygenManager();
 private readonly TimerKicker timerKicker = new TimerKicker();

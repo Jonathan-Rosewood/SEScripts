@@ -37,7 +37,7 @@ public class RelaySatelliteLowBatteryHandler : BatteryMonitor.LowBatteryHandler
     }
 }
 
-private readonly EventDriver eventDriver = new EventDriver(timerGroup: RELAY_CLOCK_GROUP);
+private readonly EventDriver eventDriver = new EventDriver();
 private readonly LaunchController launchController = new LaunchController();
 private readonly BatteryMonitor batteryMonitor = new BatteryMonitor(new RelaySatelliteLowBatteryHandler());
 private readonly SolarGyroController solarGyroController =

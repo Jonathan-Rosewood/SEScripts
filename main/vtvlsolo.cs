@@ -1,6 +1,6 @@
 //! VTVL Solo
 //@ shipcontrol eventdriver vtvlhelper
-private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
+private readonly EventDriver eventDriver = new EventDriver();
 private readonly VTVLHelper vtvlHelper = new VTVLHelper();
 private readonly ZAStorage myStorage = new ZAStorage();
 

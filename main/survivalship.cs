@@ -15,7 +15,7 @@ public class MySafeModeHandler : SafeModeHandler
     }
 }
 
-private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
+private readonly EventDriver eventDriver = new EventDriver();
 private readonly DoorAutoCloser doorAutoCloser = new DoorAutoCloser();
 private readonly SimpleAirlock simpleAirlock = new SimpleAirlock();
 private readonly ComplexAirlock complexAirlock = new ComplexAirlock();

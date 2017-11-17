@@ -1,6 +1,6 @@
 //! Damage Control
 //@ commons eventdriver damagecontrol
-private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
+private readonly EventDriver eventDriver = new EventDriver();
 private readonly DamageControl damageControl = new DamageControl();
 private readonly ZAStorage myStorage = new ZAStorage();
 

@@ -1,6 +1,6 @@
 //! Smart Undock
 //@ shipcontrol eventdriver smartundock
-public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME, timerGroup: "SmartUndockClock");
+public readonly EventDriver eventDriver = new EventDriver();
 public readonly SmartUndock smartUndock = new SmartUndock();
 public readonly ZAStorage myStorage = new ZAStorage();
 

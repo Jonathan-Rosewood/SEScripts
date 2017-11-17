@@ -1,6 +1,6 @@
 //! Solar Max Power
 //@ commons eventdriver solarrotorcontroller
-private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
+private readonly EventDriver eventDriver = new EventDriver();
 private readonly SolarRotorController rotorController = new SolarRotorController();
 private readonly ZAStorage myStorage = new ZAStorage();
 

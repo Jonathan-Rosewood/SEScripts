@@ -1,7 +1,7 @@
 //! Rover Controller
 //@ commons eventdriver dockingmanager safemode damagecontrol
 //@ batterymonitor redundancy
-private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
+private readonly EventDriver eventDriver = new EventDriver();
 private readonly DockingManager dockingManager = new DockingManager();
 private readonly SafeMode safeMode = new SafeMode();
 private readonly DamageControl damageControl = new DamageControl();

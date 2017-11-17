@@ -14,7 +14,7 @@ public class MySafeModeHandler : SafeModeHandler
     }
 }
 
-private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
+private readonly EventDriver eventDriver = new EventDriver();
 private readonly DockingManager dockingManager = new DockingManager();
 private readonly SafeMode safeMode = new SafeMode(new MySafeModeHandler());
 private readonly SmartUndock smartUndock = new SmartUndock();

@@ -1,7 +1,7 @@
 //! Docking Action
 //@ commons eventdriver dockingaction
 private readonly DockingAction dockingAction = new DockingAction();
-private readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME);
+private readonly EventDriver eventDriver = new EventDriver();
 
 private bool FirstRun = true;
 

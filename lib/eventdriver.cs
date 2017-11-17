@@ -35,77 +35,48 @@ public class EventDriver
         }
     }
 
-    private const ulong TicksPerSecond = 60;
-    // Time events trigger half a frame earlier
-    // Avoid problems with accumulating time when running on Trigger Now
-    private readonly TimeSpan TIMESPAN_FUDGE = TimeSpan.FromMilliseconds(500.0 / TicksPerSecond);
+    private const float TicksPerSecond = 60.0f;
 
     // Why is there no standard priority queue implementation?
     private readonly LinkedList<FutureTickAction> TickQueue = new LinkedList<FutureTickAction>();
     private readonly LinkedList<FutureTimeAction> TimeQueue = new LinkedList<FutureTimeAction>();
-    private readonly string TimerName, TimerGroup;
-    private ulong Ticks; // Not a reliable measure of time because of variable timer delay.
+    private ulong Ticks; // Not a reliable measure of time because of variable update frequency.
 
     public TimeSpan TimeSinceStart { get; private set; }
 
-    // If neither timerName nor timerGroup are given, it's assumed the timer will kick itself
-    // Note that using only timerGroup is unreliable, especially when grids
-    // detach/merge (via connectors, merge blocks, etc.)
-    public EventDriver(string timerName = null, string timerGroup = null)
+    public EventDriver()
     {
-        TimerName = timerName;
-        TimerGroup = timerGroup;
-
         TimeSinceStart = TimeSpan.FromSeconds(0);
     }
 
     private void KickTimer(ZACommons commons)
     {
-        IMyTimerBlock timer = null;
-        // Name takes priority over group
-        if (TimerName != null)
+        // Rules are simple. If we have something in the tick queue, Update1.
+        // Otherwise, set update frequency appropriately (1, 10, 100, or none).
+        if (TickQueue.First != null)
         {
-            var blocks = ZACommons.SearchBlocksOfName(commons.Blocks, TimerName,
-                                                      block => block is IMyTimerBlock &&
-                                                      ((IMyTimerBlock)block).Enabled);
-            if (blocks.Count > 0)
+            commons.Program.Runtime.UpdateFrequency = UpdateFrequency.Update1;
+        }
+        else if (TimeQueue.First != null)
+        {
+            var next = (float)(TimeQueue.First.Value.When.TotalSeconds - TimeSinceStart.TotalSeconds);
+            if (next < (10.0f / TicksPerSecond))
             {
-                timer = blocks[0] as IMyTimerBlock;
+                commons.Program.Runtime.UpdateFrequency = UpdateFrequency.Update1;
+            }
+            else if (next < (100.0f / TicksPerSecond))
+            {
+                commons.Program.Runtime.UpdateFrequency = UpdateFrequency.Update10;
+            }
+            else
+            {
+                commons.Program.Runtime.UpdateFrequency = UpdateFrequency.Update100;
             }
         }
-        if (timer == null && TimerGroup != null)
+        else
         {
-            var group = commons.GetBlockGroupWithName(TimerGroup);
-            if (group != null)
-            {
-                var blocks = ZACommons.GetBlocksOfType<IMyTimerBlock>(group.Blocks,
-                                                                      block => block.CubeGrid == commons.Me.CubeGrid &&
-                                                                      block.Enabled);
-                timer = blocks.Count > 0 ? blocks[0] : null;
-            }
-        }
-
-        if (timer != null)
-        {
-            // Rules are simple. If we have something in the tick queue, trigger now.
-            // Otherwise, set timer delay appropriately (minimum 1 second) and kick.
-            // If you want sub-second accuracy, always use ticks.
-            if (TickQueue.First != null)
-            {
-                timer.ApplyAction("TriggerNow");
-            }
-            else if (TimeQueue.First != null)
-            {
-                var next = (float)(TimeQueue.First.Value.When.TotalSeconds - TimeSinceStart.TotalSeconds);
-                // Constrain appropriately (not sure if this will be done for us or if it
-                // will just throw). Just do it to be safe.
-                next = Math.Max(next, timer.GetMinimum<float>("TriggerDelay"));
-                next = Math.Min(next, timer.GetMaximum<float>("TriggerDelay"));
-
-                timer.SetValue<float>("TriggerDelay", next);
-                timer.ApplyAction("Start");
-            }
-            // NB If both queues are empty, we stop running
+            // If both queues are empty, we stop running
+            commons.Program.Runtime.UpdateFrequency = UpdateFrequency.None;
         }
     }
 
@@ -180,7 +151,7 @@ public class EventDriver
     {
         var delay = Math.Max(seconds, 0.0);
 
-        var future = new FutureTimeAction(TimeSinceStart + TimeSpan.FromSeconds(delay) - TIMESPAN_FUDGE, action);
+        var future = new FutureTimeAction(TimeSinceStart + TimeSpan.FromSeconds(delay), action);
         for (var current = TimeQueue.First;
              current != null;
              current = current.Next)

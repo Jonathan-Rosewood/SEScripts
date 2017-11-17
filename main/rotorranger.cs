@@ -1,6 +1,6 @@
 //! Rotor Ranger
 //@ commons eventdriver rotorrangefinder
-public readonly EventDriver eventDriver = new EventDriver(timerName: STANDARD_LOOP_TIMER_BLOCK_NAME, timerGroup: "RotorRangerClock");
+public readonly EventDriver eventDriver = new EventDriver();
 public readonly RotorRangefinder rotorRangefinder = new RotorRangefinder();
 
 private bool FirstRun = true;

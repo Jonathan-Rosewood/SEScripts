@@ -1,6 +1,6 @@
 //! Smart Shell Controller
 //@ shipcontrol eventdriver dumbshell
-private readonly EventDriver eventDriver = new EventDriver(timerName: "ShellClock");
+private readonly EventDriver eventDriver = new EventDriver();
 private readonly SmartShell smartShell = new SmartShell();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
