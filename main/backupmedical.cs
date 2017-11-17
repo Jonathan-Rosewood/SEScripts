@@ -26,6 +26,12 @@ private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
 private bool FirstRun = true;
 
+Program()
+{
+    // Kick things once, FirstRun will take care of the rest
+    Runtime.UpdateFrequency |= UpdateFrequency.Once;
+}
+
 void Main(string argument, UpdateType updateType)
 {
     var commons = new ShipControlCommons(this, updateType, shipOrientation);
@@ -36,6 +42,7 @@ void Main(string argument, UpdateType updateType)
 
         shipOrientation.SetShipReference<IMyRemoteControl>(commons.Blocks);
 
+        // TODO Need explicit launch command
         backupMedicalLaunch.Init(commons, eventDriver, (c,ed) =>
                 {
                     doorAutoCloser.Init(c, ed);

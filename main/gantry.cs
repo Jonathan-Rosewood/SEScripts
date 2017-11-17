@@ -7,6 +7,12 @@ private readonly PistonStepper fbPistonStepper = new PistonStepper("Gantry Forwa
 
 private bool FirstRun = true;
 
+Program()
+{
+    // Kick things once, FirstRun will take care of the rest
+    Runtime.UpdateFrequency |= UpdateFrequency.Once;
+}
+
 void Main(string argument, UpdateType updateType)
 {
     var commons = new ZACommons(this, updateType);

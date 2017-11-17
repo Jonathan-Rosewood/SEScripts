@@ -51,6 +51,12 @@ private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
 private bool FirstRun = true;
 
+Program()
+{
+    // Kick things once, FirstRun will take care of the rest
+    Runtime.UpdateFrequency |= UpdateFrequency.Once;
+}
+
 void Main(string argument, UpdateType updateType)
 {
     var commons = new ShipControlCommons(this, updateType, shipOrientation);
@@ -61,6 +67,7 @@ void Main(string argument, UpdateType updateType)
 
         shipOrientation.SetShipReference(commons, LaunchController.REMOTE_GROUP);
 
+        // TODO Add launch command
         launchController.Init(commons, eventDriver, (c,ed) =>
                 {
                     batteryMonitor.Init(c, ed);

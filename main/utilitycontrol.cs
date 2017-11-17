@@ -30,6 +30,12 @@ private bool FirstRun = true;
 private Rangefinder.LineSample first;
 private StringBuilder rangefinderResult = new StringBuilder();
 
+Program()
+{
+    // Kick things once, FirstRun will take care of the rest
+    Runtime.UpdateFrequency |= UpdateFrequency.Once;
+}
+
 void Main(string argument, UpdateType updateType)
 {
     var commons = new ShipControlCommons(this, updateType, shipOrientation,

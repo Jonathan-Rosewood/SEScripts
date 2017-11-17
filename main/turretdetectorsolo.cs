@@ -5,6 +5,12 @@ public readonly TurretBasedDetector turretDetector = new TurretBasedDetector();
 
 private bool FirstRun = true;
 
+Program()
+{
+    // Kick things once, FirstRun will take care of the rest
+    Runtime.UpdateFrequency |= UpdateFrequency.Once;
+}
+
 void Main(string argument, UpdateType updateType)
 {
     ZACommons commons = new ZACommons(this, updateType);
