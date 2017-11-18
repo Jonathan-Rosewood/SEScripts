@@ -11,9 +11,9 @@ Program()
     Runtime.UpdateFrequency |= UpdateFrequency.Once;
 }
 
-void Main(string argument)
+void Main(string argument, UpdateType updateType)
 {
-    var commons = new ZACommons(this);
+    var commons = new ZACommons(this, updateType);
 
     if (FirstRun)
     {
