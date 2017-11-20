@@ -29,9 +29,9 @@ public void TargetAction(ZACommons commons, Vector3D target)
 
 private Rangefinder.LineSample first, second;
 
-public void Main(string argument)
+public void Main(string argument, UpdateType updateType)
 {
-    var commons = new ZACommons(this);
+    var commons = new ZACommons(this, updateType);
 
     var referenceGroup = commons.GetBlockGroupWithName(RANGEFINDER_REFERENCE_GROUP);
     if (referenceGroup == null)
