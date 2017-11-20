@@ -1,6 +1,7 @@
 //! LOS Missile Controller
-//@ shipcontrol eventdriver losguidance guidancekill missilelaunch
+//@ shipcontrol eventdriver weapontrigger losguidance guidancekill missilelaunch
 private readonly EventDriver eventDriver = new EventDriver();
+private readonly WeaponTrigger weaponTrigger = new WeaponTrigger();
 public readonly LOSGuidance losGuidance = new LOSGuidance();
 public readonly GuidanceKill guidanceKill = new GuidanceKill();
 private readonly MissileLaunch missileLaunch = new MissileLaunch();
@@ -11,28 +12,39 @@ private bool FirstRun = true;
 
 private IMyTerminalBlock LauncherReference;
 
-void Main(string argument)
+Program()
 {
-    var commons = new ShipControlCommons(this, shipOrientation);
+    // Kick things once, FirstRun will take care of the rest
+    Runtime.UpdateFrequency |= UpdateFrequency.Once;
+}
+
+void Main(string argument, UpdateType updateType)
+{
+    var commons = new ShipControlCommons(this, updateType, shipOrientation);
 
     if (FirstRun)
     {
         FirstRun = false;
 
-        shipOrientation.SetShipReference(commons, MissileLaunch.SYSTEMS_GROUP + MISSILE_GROUP_SUFFIX,
-                                         block => block is IMyGyro);
+        weaponTrigger.Init(commons, eventDriver, (c,ed) => {
+                // TODO This could be better. Should be external to missile so we
+                // don't run into any build/PB start race conditions.
+                shipOrientation.SetShipReference(c, MissileLaunch.SYSTEMS_GROUP + MISSILE_GROUP_SUFFIX,
+                                                 block => block is IMyGyro);
 
-        missileLaunch.Init(commons, eventDriver, (c,ed) =>
-                {
-                    losGuidance.Init(c, ed);
-                    guidanceKill.Init(c, ed);
-                    if (CHEESY_BEAM_RIDING) ed.Schedule(1, CheesyBeamRiding);
-                });
-        // Acquire launcher and direction
-        LauncherReference = losGuidance.SetLauncherReference(commons, "CM Launcher Reference");
+                missileLaunch.Init(c, ed, (c2,ed2) => {
+                        losGuidance.Init(c2, ed2);
+                        guidanceKill.Init(c2, ed2);
+                        if (CHEESY_BEAM_RIDING) ed2.Schedule(1, CheesyBeamRiding);
+                    });
+                // Acquire launcher and direction
+                LauncherReference = losGuidance.SetLauncherReference(c, "CM Launcher Reference");
+            });
     }
 
-    eventDriver.Tick(commons);
+    eventDriver.Tick(commons, preAction: () => {
+            weaponTrigger.HandleCommand(commons, eventDriver, argument);
+        });
 }
 
 public void CheesyBeamRiding(ZACommons commons, EventDriver eventDriver)

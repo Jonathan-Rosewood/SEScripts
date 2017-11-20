@@ -1,15 +1,22 @@
 //! Dumb Shell Controller
-//@ shipcontrol eventdriver dumbshell
+//@ shipcontrol eventdriver weapontrigger dumbshell
 private readonly EventDriver eventDriver = new EventDriver();
+private readonly WeaponTrigger weaponTrigger = new WeaponTrigger();
 private readonly DumbShell dumbShell = new DumbShell();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
 private bool FirstRun = true;
 
-void Main(string argument)
+Program()
 {
-    var commons = new ShipControlCommons(this, shipOrientation);
+    // Kick things once, FirstRun will take care of the rest
+    Runtime.UpdateFrequency |= UpdateFrequency.Once;
+}
+
+void Main(string argument, UpdateType updateType)
+{
+    var commons = new ShipControlCommons(this, updateType, shipOrientation);
 
     if (FirstRun)
     {
@@ -17,8 +24,12 @@ void Main(string argument)
 
         shipOrientation.SetShipReference(commons, "CannonReference");
 
-        dumbShell.Init(commons, eventDriver);
+        weaponTrigger.Init(commons, eventDriver, (c, ed) => {
+                dumbShell.Init(c, ed);
+            });
     }
 
-    eventDriver.Tick(commons);
+    eventDriver.Tick(commons, preAction: () => {
+            weaponTrigger.HandleCommand(commons, eventDriver, argument);
+        });
 }
