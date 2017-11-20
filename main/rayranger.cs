@@ -4,28 +4,21 @@ public void TargetAction(ZACommons commons, Vector3D target, Vector3D velocity)
 {
     // Output to terminal
     commons.Echo(string.Format("Target: {0:F2}, {1:F2}, {2:F2}",
-                               target.GetDim(0),
-                               target.GetDim(1),
-                               target.GetDim(2)));
+                               target.X, target.Y, target.Z));
     var distance = (target - commons.Me.GetPosition()).Length();
     commons.Echo(string.Format("Distance: {0:F2} m", distance));
 
-    // Also to text panel(s)
+    // Also to prog block(s)
     var targetGroup = commons.GetBlockGroupWithName(RANGEFINDER_TARGET_GROUP);
     if (targetGroup != null)
     {
         var targetString = string.Format(RANGEFINDER_TARGET_FORMAT,
-                                         target.GetDim(0),
-                                         target.GetDim(1),
-                                         target.GetDim(2),
-                                         velocity.GetDim(0),
-                                         velocity.GetDim(1),
-                                         velocity.GetDim(2),
-                                         distance);
+                                         target.X, target.Y, target.Z,
+                                         velocity.X, velocity.Y, velocity.Z);
 
-        foreach (var panel in ZACommons.GetBlocksOfType<IMyTextPanel>(targetGroup.Blocks))
+        foreach (var pb in ZACommons.GetBlocksOfType<IMyProgrammableBlock>(targetGroup.Blocks))
         {
-            panel.WritePublicText(targetString);
+            pb.TryRun(targetString);
         }
     }
 }

@@ -35,14 +35,12 @@ void Main(string argument, UpdateType updateType)
                                 proNavGuidance.Init(c3, ed3);
                             });
                     });
-                // Acquire the target here so it fails early if missing
-                oneTurn.AcquireTarget(c);
-                proNavGuidance.AcquireTarget(c, ed);
             });
     }
 
     eventDriver.Tick(commons, preAction: () => {
             weaponTrigger.HandleCommand(commons, eventDriver, argument);
+            if (!oneTurn.Turned) oneTurn.HandleCommand(commons, eventDriver, argument);
             proNavGuidance.HandleCommand(commons, eventDriver, argument);
         });
 }

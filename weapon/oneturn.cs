@@ -1,5 +1,5 @@
-//@ shipcontrol eventdriver seeker
-public class OneTurn
+//@ shipcontrol eventdriver basemissileguidance seeker
+public class OneTurn : BaseMissileGuidance
 {
     private const uint FramesPerRun = 1;
     private const double RunsPerSecond = 60.0 / FramesPerRun;
@@ -8,38 +8,12 @@ public class OneTurn
 
     private Action<ZACommons, EventDriver> NextStage;
 
-    private Vector3D Target;
-
     private TimeSpan OneTurnEnd;
+    public bool Turned { get; private set; }
 
-    public void AcquireTarget(ZACommons commons)
+    public OneTurn()
     {
-        // Find the sole text panel
-        var panelGroup = commons.GetBlockGroupWithName("CM Target");
-        if (panelGroup == null)
-        {
-            throw new Exception("Missing group: CM Target");
-        }
-
-        var panels = ZACommons.GetBlocksOfType<IMyTextPanel>(panelGroup.Blocks);
-        if (panels.Count == 0)
-        {
-            throw new Exception("Expecting at least 1 text panel");
-        }
-        var panel = panels[0]; // Just use the first one
-        var targetString = panel.GetPublicText();
-
-        // Parse target info
-        var parts = targetString.Split(';');
-        if (parts.Length != 6)
-        {
-            throw new Exception("Expecting exactly 6 parts to target info");
-        }
-        Target = new Vector3D();
-        for (int i = 0; i < 3; i++)
-        {
-            Target.SetDim(i, double.Parse(parts[i]));
-        }
+        Turned = false;
     }
 
     public void Init(ZACommons commons, EventDriver eventDriver,
@@ -60,13 +34,18 @@ public class OneTurn
     {
         var shipControl = (ShipControlCommons)commons;
 
-        var targetVector = Target - shipControl.ReferencePoint;
+        // Interpolate position since last update
+        var delta = eventDriver.TimeSinceStart - LastTargetUpdate;
+        var TargetGuess = Target + TargetVelocity * delta.TotalSeconds;
+
+        var targetVector = TargetGuess - shipControl.ReferencePoint;
 
         double yawError, pitchError;
         seeker.Seek(shipControl, targetVector, out yawError, out pitchError);
 
         if (OneTurnEnd < eventDriver.TimeSinceStart)
         {
+            Turned = true;
             NextStage(commons, eventDriver);
         }
         else

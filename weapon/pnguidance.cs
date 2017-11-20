@@ -1,47 +1,7 @@
-//@ shipcontrol eventdriver
-public class ProNavGuidance
+//@ shipcontrol eventdriver basemissileguidance
+public class ProNavGuidance : BaseMissileGuidance
 {
     private const uint FramesPerRun = 1;
-
-    private Vector3D Target, TargetVelocity;
-    private TimeSpan LastTargetUpdate;
-
-    // Acquire target data from launcher
-    public void AcquireTarget(ZACommons commons, EventDriver eventDriver)
-    {
-        // Find the sole text panel
-        var panelGroup = commons.GetBlockGroupWithName("CM Target");
-        if (panelGroup == null)
-        {
-            throw new Exception("Missing group: CM Target");
-        }
-
-        var panels = ZACommons.GetBlocksOfType<IMyTextPanel>(panelGroup.Blocks);
-        if (panels.Count == 0)
-        {
-            throw new Exception("Expecting at least 1 text panel");
-        }
-        var panel = panels[0]; // Just use the first one
-        var targetString = panel.GetPublicText();
-
-        // Parse target info
-        var parts = targetString.Split(';');
-        if (parts.Length != 6)
-        {
-            throw new Exception("Expecting exactly 6 parts to target info");
-        }
-        Target = new Vector3D();
-        for (int i = 0; i < 3; i++)
-        {
-            Target.SetDim(i, double.Parse(parts[i]));
-        }
-        TargetVelocity = new Vector3D();
-        for (int i = 3; i < 6; i++)
-        {
-            TargetVelocity.SetDim(i-3, double.Parse(parts[i]));
-        }
-        LastTargetUpdate = eventDriver.TimeSinceStart;
-    }
 
     public void Init(ZACommons commons, EventDriver eventDriver)
     {
@@ -106,33 +66,5 @@ public class ProNavGuidance
         }
 
         eventDriver.Schedule(FramesPerRun, Run);
-    }
-
-    // A remote update via antenna
-    public void HandleCommand(ZACommons commons, EventDriver eventDriver, string argument)
-    {
-        argument = argument.Trim().ToLower();
-        var parts = argument.Split(';');
-        if (parts.Length != 7) return;
-        if (parts[0] != "tupdate") return;
-        Target = new Vector3D();
-        for (int i = 1; i < 4; i++)
-        {
-            Target.SetDim(i-1, double.Parse(parts[i]));
-        }
-        TargetVelocity = new Vector3D();
-        for (int i = 4; i < 7; i++)
-        {
-            TargetVelocity.SetDim(i-4, double.Parse(parts[i]));
-        }
-        LastTargetUpdate = eventDriver.TimeSinceStart;
-    }
-
-    // An update from e.g. an onboard seeker
-    public void UpdateTarget(EventDriver eventDriver, Vector3D target, Vector3D velocity)
-    {
-        Target = target;
-        TargetVelocity = velocity;
-        LastTargetUpdate = eventDriver.TimeSinceStart;
     }
 }
