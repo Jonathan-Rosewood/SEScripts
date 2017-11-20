@@ -3,7 +3,12 @@ public class WeaponTrigger
 {
     private Action<ZACommons, EventDriver> TriggerAction;
 
-    private bool Triggered = false;
+    public bool Triggered { get; private set; }
+
+    public WeaponTrigger()
+    {
+        Triggered = false;
+    }
 
     public void Init(ZACommons commons, EventDriver eventDriver,
                      Action<ZACommons, EventDriver> triggerAction)
@@ -18,8 +23,8 @@ public class WeaponTrigger
         argument = argument.Trim().ToLower();
         if (argument == "firefirefire")
         {
-            TriggerAction(commons, eventDriver);
             Triggered = true;
+            TriggerAction(commons, eventDriver);
         }
     }
 }

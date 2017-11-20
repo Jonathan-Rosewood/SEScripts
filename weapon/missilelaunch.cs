@@ -7,11 +7,18 @@ public class MissileLaunch
 
     private Action<ZACommons, EventDriver> PostLaunch;
 
+    public bool Launched { get; private set; }
+
+    public MissileLaunch()
+    {
+        Launched = false;
+    }
+
     public void Init(ZACommons commons, EventDriver eventDriver,
-                     Action<ZACommons, EventDriver> postLaunch = null)
+                     Action<ZACommons, EventDriver> postLaunch)
     {
         PostLaunch = postLaunch;
-        eventDriver.Schedule(0.0, Prime);
+        eventDriver.Schedule(0, Prime);
     }
 
     public void Prime(ZACommons commons, EventDriver eventDriver)
@@ -39,7 +46,7 @@ public class MissileLaunch
         // Activate flight systems
         ZACommons.EnableBlocks(systemsGroup.Blocks, true);
 
-        eventDriver.Schedule(1.0, Release);
+        eventDriver.Schedule(0.5, Release);
     }
 
     public void Release(ZACommons commons, EventDriver eventDriver)
@@ -56,27 +63,28 @@ public class MissileLaunch
         // And then turn everything off (connectors, merge blocks, etc)
         ZACommons.EnableBlocks(releaseGroup.Blocks, false);
 
-        eventDriver.Schedule(1.0, Burn);
+        eventDriver.Schedule(0.5, Burn);
     }
 
     public void Burn(ZACommons commons, EventDriver eventDriver)
     {
-        // Boost away from launcher, initialize flight control
+        // Initialize flight control
         var shipControl = (ShipControlCommons)commons;
 
         shipControl.Reset(gyroOverride: true, thrusterEnable: null);
 
         // Initiate main burn here, otherwise do it later
         var thrustControl = shipControl.ThrustControl;
-        if (!BURN_DOWNWARD)
+        if (!DETACH_BURN)
         {
             thrustControl.SetOverride(Base6Directions.Direction.Forward, BURN_FRACTION);
             eventDriver.Schedule(BURN_TIME, Arm);
         }
         else
         {
-            thrustControl.SetOverride(Base6Directions.Direction.Down);
-            eventDriver.Schedule(BURN_DOWNWARD_TIME, MainBurn);
+            // Boost away from launcher
+            thrustControl.SetOverride(DETACH_BURN_DIRECTION);
+            eventDriver.Schedule(DETACH_BURN_TIME, MainBurn);
         }
     }
 
@@ -84,7 +92,7 @@ public class MissileLaunch
     {
         var shipControl = (ShipControlCommons)commons;
         var thrustControl = shipControl.ThrustControl;
-        thrustControl.SetOverride(Base6Directions.Direction.Down, false);
+        thrustControl.SetOverride(DETACH_BURN_DIRECTION, false);
         thrustControl.SetOverride(Base6Directions.Direction.Forward, BURN_FRACTION);
 
         eventDriver.Schedule(BURN_TIME, Arm);
@@ -101,6 +109,7 @@ public class MissileLaunch
         warheads.ForEach(warhead => warhead.SetValue<bool>("Safety", false));
 
         // We're done, let other systems take over
-        if (PostLaunch != null) PostLaunch(commons, eventDriver);
+        Launched = true;
+        PostLaunch(commons, eventDriver);
     }
 }
