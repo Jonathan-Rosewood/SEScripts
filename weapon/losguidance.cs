@@ -1,26 +1,13 @@
-//@ shipcontrol eventdriver seeker cruiser velocimeter
+//@ shipcontrol eventdriver seeker
 public class LOSGuidance
 {
     private const uint FramesPerRun = 1;
     private const double RunsPerSecond = 60.0 / FramesPerRun;
 
     private readonly Seeker seeker = new Seeker(1.0 / RunsPerSecond);
-    private readonly Cruiser cruiser = new Cruiser(1.0 / RunsPerSecond, 0.005);
-    // Don't want to require a remote, so we'll measure velocity ourselves
-    private readonly Velocimeter velocimeter = new Velocimeter(30);
 
     private Vector3D LauncherReferencePoint;
     private Vector3D LauncherReferenceDirection;
-
-    private const double LOS_OFFSET = 200.0; // Meters forward
-    private const double MANEUVERING_SPEED = 20.0; // In meters per second
-    private const double FULL_BURN_DISTANCE = 10.0; // Meters
-    private const double FULL_BURN_SPEED = 100.0; // In meters per second
-    private readonly TimeSpan FULL_BURN_TRIGGER_TIME = TimeSpan.FromSeconds(3);
-
-    private uint VTicks;
-    private bool FullBurn = false;
-    private TimeSpan FullBurnTriggerLast;
 
     public void SetLauncherReference(IMyCubeBlock launcherReference,
                                      Base6Directions.Direction direction = Base6Directions.Direction.Forward)
@@ -58,106 +45,76 @@ public class LOSGuidance
         seeker.Init(shipControl,
                     shipUp: shipControl.ShipUp,
                     shipForward: shipControl.ShipForward);
-        cruiser.Init(shipControl);
-        velocimeter.Reset();
-        VTicks = 0;
-
-        FullBurnTriggerLast = eventDriver.TimeSinceStart;
 
         eventDriver.Schedule(0, Run);
+        eventDriver.Schedule(FULL_BURN_DELAY, FullBurn);
+    }
+
+    public void FullBurn(ZACommons commons, EventDriver eventDriver)
+    {
+        var shipControl = (ShipControlCommons)commons;
+
+        // Full burn
+        var thrustControl = shipControl.ThrustControl;
+        thrustControl.SetOverride(Base6Directions.Direction.Forward, true);
+        // And disable thrusters in all other directions
+        thrustControl.Enable(Base6Directions.Direction.Backward, false);
+        thrustControl.Enable(Base6Directions.Direction.Up, false);
+        thrustControl.Enable(Base6Directions.Direction.Down, false);
+        thrustControl.Enable(Base6Directions.Direction.Left, false);
+        thrustControl.Enable(Base6Directions.Direction.Right, false);
     }
 
     public void Run(ZACommons commons, EventDriver eventDriver)
     {
         var shipControl = (ShipControlCommons)commons;
 
-        // Vector from launcher to missile
-        var launcherVector = shipControl.ReferencePoint - LauncherReferencePoint;
-        // Determine projection on launcher direction vector
-        var launcherDot = launcherVector.Dot(LauncherReferenceDirection);
-        var launcherProj = launcherDot * LauncherReferenceDirection;
-        // Also shortest distance from launcher direction vector (rejection)
-        var launcherRej = launcherVector - launcherProj;
-
-        Vector3D targetVector;
-        if (launcherDot >= 0.0)
+        Vector3D? velocity = shipControl.LinearVelocity;
+        if (velocity != null)
         {
-            // Set targetVector to that projection
-            targetVector = launcherProj;
-        }
-        else
-        {
-            // Or set it to the launcher (0,0,0) if the missile is
-            // behind the launcher
-            targetVector = new Vector3D(0, 0, 0);
-        }
-
-        // Offset forward by some amount
-        targetVector += LOS_OFFSET * LauncherReferenceDirection;
-
-        // Offset by difference between launcher and missile positions
-        targetVector += LauncherReferencePoint - shipControl.ReferencePoint;
-
-        double yawError, pitchError;
-        seeker.Seek(shipControl, targetVector,
-                    out yawError, out pitchError);
-
-        velocimeter.TakeSample(shipControl.ReferencePoint, TimeSpan.FromSeconds((double)VTicks / RunsPerSecond));
-        VTicks++;
-
-        if (!FullBurn)
-        {
-            if (launcherRej.Length() <= FULL_BURN_DISTANCE)
+            // Vector from launcher to missile
+            var launcherVector = shipControl.ReferencePoint - LauncherReferencePoint;
+            // Determine projection on launcher direction vector
+            var launcherDot = launcherVector.Dot(LauncherReferenceDirection);
+            var launcherProj = launcherDot * LauncherReferenceDirection;
+            Vector3D prediction;
+            if (launcherDot >= 0.0)
             {
-                var triggerTime = eventDriver.TimeSinceStart - FULL_BURN_TRIGGER_TIME;
-                if (FullBurnTriggerLast <= triggerTime)
-                {
-                    FullBurn = true;
-
-                    cruiser.Init(shipControl);
-                    velocimeter.Reset();
-                    VTicks = 0;
-                }
-                else
-                {
-                    // Maintain maneuvering velocity
-                    Maneuver(commons, eventDriver);
-                }
+                // Set prediction to that projection
+                prediction = launcherProj;
             }
             else
             {
-                // Reset trigger timer
-                FullBurnTriggerLast = eventDriver.TimeSinceStart;
-
-                // Maintain maneuvering velocity
-                Maneuver(commons, eventDriver);
+                // Or set it to the launcher (0,0,0) if the missile is
+                // behind the launcher
+                prediction = new Vector3D(0, 0, 0);
             }
-        }
 
-        if (FullBurn) Burn(commons, eventDriver);
+            // Offset forward by some amount
+            prediction += LEAD_DISTANCE * LauncherReferenceDirection;
+
+            // Offset by launcher position
+            prediction += LauncherReferencePoint;
+
+            // Determine relative vector to aim point
+            var targetVector = prediction - shipControl.ReferencePoint;
+            // Project onto our velocity
+            var velocityNorm = Vector3D.Normalize((Vector3D)velocity);
+            var forwardProj = velocityNorm * Vector3D.Dot(targetVector, velocityNorm);
+            // Use scaled rejection for oversteer
+            var forwardRej = (targetVector - forwardProj) * OVERSTEER_FACTOR;
+            // Add to projection to get adjusted aimpoint
+            var aimPoint = forwardProj + forwardRej;
+
+            double yawError, pitchError;
+            seeker.Seek(shipControl, aimPoint, out yawError, out pitchError);
+        }
+        else
+        {
+            // Can't really do crap w/o our own velocity
+            shipControl.GyroControl.Reset();
+        }
 
         eventDriver.Schedule(FramesPerRun, Run);
-    }
-
-    private void Maneuver(ZACommons commons, EventDriver eventDriver)
-    {
-        var velocity = velocimeter.GetAverageVelocity();
-        if (velocity != null)
-        {
-            var shipControl = (ShipControlCommons)commons;
-            cruiser.Cruise(shipControl, MANEUVERING_SPEED, (Vector3D)velocity,
-                           enableBackward: false);
-        }
-    }
-
-    private void Burn(ZACommons commons, EventDriver eventDriver)
-    {
-        var velocity = velocimeter.GetAverageVelocity();
-        if (velocity != null)
-        {
-            var shipControl = (ShipControlCommons)commons;
-            cruiser.Cruise(shipControl, FULL_BURN_SPEED, (Vector3D)velocity,
-                           enableBackward: false);
-        }
     }
 }

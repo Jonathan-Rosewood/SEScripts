@@ -1,9 +1,8 @@
 //! LOS Missile Controller
-//@ shipcontrol eventdriver weapontrigger losguidance guidancekill missilelaunch
+//@ shipcontrol eventdriver weapontrigger losguidance missilelaunch
 private readonly EventDriver eventDriver = new EventDriver();
 private readonly WeaponTrigger weaponTrigger = new WeaponTrigger();
-public readonly LOSGuidance losGuidance = new LOSGuidance();
-public readonly GuidanceKill guidanceKill = new GuidanceKill();
+private readonly LOSGuidance losGuidance = new LOSGuidance();
 private readonly MissileLaunch missileLaunch = new MissileLaunch();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
@@ -34,7 +33,6 @@ void Main(string argument, UpdateType updateType)
 
                 missileLaunch.Init(c, ed, (c2,ed2) => {
                         losGuidance.Init(c2, ed2);
-                        guidanceKill.Init(c2, ed2);
                         if (CHEESY_BEAM_RIDING) ed2.Schedule(1, CheesyBeamRiding);
                     });
                 // Acquire launcher and direction
