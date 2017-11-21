@@ -1,9 +1,8 @@
 //! Missile Controller
-//@ shipcontrol eventdriver weapontrigger missileguidance guidancekill missilelaunch
+//@ shipcontrol eventdriver weapontrigger missileguidance missilelaunch
 private readonly EventDriver eventDriver = new EventDriver();
 private readonly WeaponTrigger weaponTrigger = new WeaponTrigger();
-public readonly MissileGuidance missileGuidance = new MissileGuidance();
-public readonly GuidanceKill guidanceKill = new GuidanceKill();
+private readonly MissileGuidance missileGuidance = new MissileGuidance();
 private readonly MissileLaunch missileLaunch = new MissileLaunch();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
@@ -32,14 +31,12 @@ void Main(string argument, UpdateType updateType)
 
                 missileLaunch.Init(c, ed, (c2,ed2) => {
                         missileGuidance.Init(c2, ed2);
-                        guidanceKill.Init(c2, ed2);
                     });
-                // Acquire the target here so it fails early if missing
-                missileGuidance.AcquireTarget(c);
             });
     }
 
     eventDriver.Tick(commons, preAction: () => {
             weaponTrigger.HandleCommand(commons, eventDriver, argument);
+            missileGuidance.HandleCommand(commons, eventDriver, argument);
         });
 }
