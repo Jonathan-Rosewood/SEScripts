@@ -40,7 +40,7 @@ void Main(string argument, UpdateType updateType)
         rotorRangefinder.Init(commons, eventDriver);
     }
         
-    eventDriver.Tick(commons, preAction: () => {
+    eventDriver.Tick(commons, argAction: () => {
             rotorRangefinder.HandleCommand(commons, eventDriver, argument,
                                            UpdateTargetTextPanels);
         });

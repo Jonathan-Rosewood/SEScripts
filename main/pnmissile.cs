@@ -38,7 +38,7 @@ void Main(string argument, UpdateType updateType)
             });
     }
 
-    eventDriver.Tick(commons, preAction: () => {
+    eventDriver.Tick(commons, argAction: () => {
             weaponTrigger.HandleCommand(commons, eventDriver, argument);
             if (!oneTurn.Turned) oneTurn.HandleCommand(commons, eventDriver, argument);
             proNavGuidance.HandleCommand(commons, eventDriver, argument);

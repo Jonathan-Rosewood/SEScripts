@@ -31,7 +31,7 @@ void Main(string argument, UpdateType updateType)
         cruiseControl.Init(commons, eventDriver);
     }
 
-    eventDriver.Tick(commons, preAction: () => {
+    eventDriver.Tick(commons, argAction: () => {
             cruiseControl.HandleCommand(commons, eventDriver, argument);
         },
         postAction: () => {

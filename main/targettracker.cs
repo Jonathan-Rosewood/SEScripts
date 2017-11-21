@@ -57,7 +57,7 @@ void Main(string argument, UpdateType updateType)
         targetTracker.Init(commons, eventDriver, MyTargetAction);
     }
 
-    eventDriver.Tick(commons, preAction: () => {
+    eventDriver.Tick(commons, argAction: () => {
             targetTracker.HandleCommand(commons, eventDriver, argument);
         },
         postAction: () => {

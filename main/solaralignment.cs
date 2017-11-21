@@ -35,7 +35,7 @@ void Main(string argument, UpdateType updateType)
         solarGyroController.ConditionalInit(commons, eventDriver, SOLAR_ALIGNMENT_DEFAULT_ACTIVE);
     }
 
-    eventDriver.Tick(commons, preAction: () => {
+    eventDriver.Tick(commons, argAction: () => {
             solarGyroController.HandleCommand(commons, eventDriver, argument);
         },
         postAction: () => {

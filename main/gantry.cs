@@ -25,7 +25,7 @@ void Main(string argument, UpdateType updateType)
         fbPistonStepper.Init(commons, eventDriver);
     }
         
-    eventDriver.Tick(commons, preAction: () => {
+    eventDriver.Tick(commons, argAction: () => {
             udPistonStepper.HandleCommand(commons, eventDriver, argument);
             lrPistonStepper.HandleCommand(commons, eventDriver, argument);
             fbPistonStepper.HandleCommand(commons, eventDriver, argument);

@@ -49,7 +49,7 @@ void Main(string argument, UpdateType updateType)
         smartUndock.Init(commons, eventDriver);
     }
 
-    eventDriver.Tick(commons, preAction: () => {
+    eventDriver.Tick(commons, argAction: () => {
             dockingManager.HandleCommand(commons, eventDriver, argument);
             safeMode.HandleCommand(commons, eventDriver, argument);
             smartUndock.HandleCommand(commons, eventDriver, argument, () =>

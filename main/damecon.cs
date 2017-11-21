@@ -26,7 +26,7 @@ void Main(string argument, UpdateType updateType)
         damageControl.Init(commons, eventDriver);
     }
 
-    eventDriver.Tick(commons, preAction: () => {
+    eventDriver.Tick(commons, argAction: () => {
             damageControl.HandleCommand(commons, eventDriver, argument);
         },
         postAction: () => {

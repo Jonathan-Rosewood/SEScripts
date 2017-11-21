@@ -75,7 +75,7 @@ void Main(string argument, UpdateType updateType)
                 });
     }
 
-    eventDriver.Tick(commons, preAction: () => {
+    eventDriver.Tick(commons, argAction: () => {
             solarGyroController.HandleCommand(commons, eventDriver, argument);
         },
         postAction: () => {

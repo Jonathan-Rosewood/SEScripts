@@ -27,7 +27,7 @@ void Main(string argument, UpdateType updateType)
                                         defaultActive: true);
     }
 
-    eventDriver.Tick(commons, preAction: () => {
+    eventDriver.Tick(commons, argAction: () => {
             rotorController.HandleCommand(commons, eventDriver, argument);
         },
         postAction: () => {

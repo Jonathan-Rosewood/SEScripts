@@ -53,7 +53,7 @@ void Main(string argument, UpdateType updateType)
         if (REACTOR_MANAGER_ENABLE) reactorManager.Init(commons, eventDriver);
     }
 
-    eventDriver.Tick(commons, preAction: () => {
+    eventDriver.Tick(commons, argAction: () => {
             // Handle commands
             if (COMPLEX_AIRLOCK_ENABLE) complexAirlock.HandleCommand(commons, eventDriver, argument);
             if (PRODUCTION_MANAGER_ENABLE) productionManager.HandleCommand(commons, eventDriver, argument);

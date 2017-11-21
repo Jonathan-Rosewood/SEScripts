@@ -27,7 +27,7 @@ void Main(string argument, UpdateType updateType)
         shipOrientation.SetShipReference<IMyShipController>(commons.Blocks);
     }
 
-    eventDriver.Tick(commons, preAction: () => {
+    eventDriver.Tick(commons, argAction: () => {
         },
         postAction: () => {
         });

@@ -76,7 +76,7 @@ void Main(string argument, UpdateType updateType)
         damageControl.Init(commons, eventDriver);
     }
 
-    eventDriver.Tick(commons, preAction: () => {
+    eventDriver.Tick(commons, argAction: () => {
             safeMode.HandleCommand(commons, eventDriver, argument);
             cruiseControl.HandleCommand(commons, eventDriver, argument);
             vtvlHelper.HandleCommand(commons, eventDriver, argument);

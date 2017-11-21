@@ -30,7 +30,7 @@ void Main(string argument, UpdateType updateType)
         smartUndock.Init(commons, eventDriver);
     }
 
-    eventDriver.Tick(commons, preAction: () => {
+    eventDriver.Tick(commons, argAction: () => {
             smartUndock.HandleCommand(commons, eventDriver, argument);
         },
         postAction: () => {

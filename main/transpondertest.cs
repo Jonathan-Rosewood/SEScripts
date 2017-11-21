@@ -30,7 +30,7 @@ void Main(string argument, UpdateType updateType)
         transponder.Init(commons, eventDriver);
     }
 
-    eventDriver.Tick(commons, preAction: () => {
+    eventDriver.Tick(commons, argAction: () => {
             transponder.HandleCommand(commons, eventDriver, argument);
         },
         postAction: () => {

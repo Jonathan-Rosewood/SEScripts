@@ -22,7 +22,7 @@ void Main(string argument, UpdateType updateType)
         turretDetector.Init(commons, eventDriver);
     }
 
-    eventDriver.Tick(commons, preAction: () => {
+    eventDriver.Tick(commons, argAction: () => {
             turretDetector.HandleCommand(commons, eventDriver, argument);
         });
 }

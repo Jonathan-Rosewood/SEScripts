@@ -35,7 +35,7 @@ void Main(string argument, UpdateType updateType)
             });
     }
 
-    eventDriver.Tick(commons, preAction: () => {
+    eventDriver.Tick(commons, argAction: () => {
             weaponTrigger.HandleCommand(commons, eventDriver, argument);
             missileGuidance.HandleCommand(commons, eventDriver, argument);
         });

@@ -63,7 +63,7 @@ void Main(string argument, UpdateType updateType)
         stocker.Init(commons, eventDriver);
     }
 
-    eventDriver.Tick(commons, preAction: () => {
+    eventDriver.Tick(commons, argAction: () => {
             damageControl.HandleCommand(commons, eventDriver, argument);
             safeMode.HandleCommand(commons, eventDriver, argument);
             cruiseControl.HandleCommand(commons, eventDriver, argument);

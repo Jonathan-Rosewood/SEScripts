@@ -31,7 +31,7 @@ void Main(string argument, UpdateType updateType)
         vtvlHelper.Init(commons, eventDriver);
     }
 
-    eventDriver.Tick(commons, preAction: () => {
+    eventDriver.Tick(commons, argAction: () => {
             vtvlHelper.HandleCommand(commons, eventDriver, argument);
         },
         postAction: () => {
