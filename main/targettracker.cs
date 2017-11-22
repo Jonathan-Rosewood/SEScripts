@@ -5,41 +5,6 @@ private readonly TargetTracker targetTracker = new TargetTracker();
 
 private bool FirstRun = true;
 
-public void MyTargetAction(ZACommons commons, Vector3D target, Vector3D velocity)
-{
-    // Compose message
-    var targetString = string.Format("tupdate;{0};{1};{2};{3};{4};{5}",
-                                     target.X, target.Y, target.Z,
-                                     velocity.X, velocity.Y, velocity.Z);
-
-    var updateGroup = commons.GetBlockGroupWithName(TARGET_UPDATE_GROUP);
-    if (updateGroup != null)
-    {
-        var broadcasted = false;
-        foreach (var block in updateGroup.Blocks)
-        {
-            if (block is IMyProgrammableBlock)
-            {
-                ((IMyProgrammableBlock)block).TryRun(targetString);
-            }
-            else if (block is IMyLaserAntenna)
-            {
-                ((IMyLaserAntenna)block).TransmitMessage(targetString);
-            }
-            else if (!broadcasted && block is IMyRadioAntenna)
-            {
-                // Only if functional and enabled
-                var antenna = (IMyRadioAntenna)block;
-                if (antenna.IsFunctional && antenna.Enabled)
-                {
-                    antenna.TransmitMessage(targetString, TRACKER_ANTENNA_TARGET);
-                    broadcasted = true;
-                }
-            }
-        }
-    }
-}
-
 Program()
 {
     // Kick things once, FirstRun will take care of the rest
@@ -54,7 +19,7 @@ void Main(string argument, UpdateType updateType)
     {
         FirstRun = false;
 
-        targetTracker.Init(commons, eventDriver, MyTargetAction);
+        targetTracker.Init(commons, eventDriver);
     }
 
     eventDriver.Tick(commons, argAction: () => {
@@ -67,8 +32,6 @@ void Main(string argument, UpdateType updateType)
 
 public class TargetTracker
 {
-    private Action<ZACommons, Vector3D, Vector3D> TargetAction;
-
     private const int IDLE = 0;
     private const int ARMED = 1;
     private const int INITIAL = 2;
@@ -83,11 +46,8 @@ public class TargetTracker
     private long TargetID;
     private Vector3D TargetOffset;
 
-    public void Init(ZACommons commons, EventDriver eventDriver,
-                     Action<ZACommons, Vector3D, Vector3D> targetAction)
+    public void Init(ZACommons commons, EventDriver eventDriver)
     {
-        TargetAction = targetAction;
-
         // Get things into a known state
         var camera = GetMainCamera(commons);
         camera.EnableRaycast = false;
@@ -168,14 +128,11 @@ public class TargetTracker
             return;
         }
 
-        Vector3D position;
         if (Mode == INITIAL)
         {
-            position = (Vector3D)info.HitPosition;
-
             // Initial raycast, capture TargetID and TargetOffset
             TargetID = info.EntityId;
-            var offset = position - info.Position;
+            var offset = (Vector3D)info.HitPosition - info.Position;
             var toLocal = MatrixD.Invert(info.Orientation);
             TargetOffset = Vector3D.Transform(offset, toLocal);
 
@@ -189,10 +146,6 @@ public class TargetTracker
                 eventDriver.Schedule(1, Lock);
                 return;
             }
-
-            // Use original offset with new orientation and position
-            position = info.Position + Vector3D.Transform(TargetOffset, info.Orientation);
-
             // Since info.Position is actually based on the target's bounding box,
             // we might actually be hosed if the target gets significantly damaged...
         }
@@ -200,8 +153,8 @@ public class TargetTracker
         // Update next raycast distance (with buffer)
         RaycastRange = (info.Position - camera.GetPosition()).Length() * RAYCAST_RANGE_BUFFER;
         LastUpdate = eventDriver.TimeSinceStart;
-        // And call TargetAction
-        TargetAction(commons, position, new Vector3D(info.Velocity));
+        // And send the update
+        TargetUpdated(commons, info);
 
         eventDriver.Schedule(TRACKER_UPDATE_RATE, Lock);
     }
@@ -226,6 +179,49 @@ public class TargetTracker
                 commons.Echo(string.Format("Target ID: {0:X}", TargetID));
                 if (LastUpdate != null) commons.Echo(string.Format("Last Update: {0:F1} s", (eventDriver.TimeSinceStart - (TimeSpan)LastUpdate).TotalSeconds));
                 break;
+        }
+    }
+
+    private void TargetUpdated(ZACommons commons, MyDetectedEntityInfo info)
+    {
+        var position = info.Position;
+        var velocity = new Vector3D(info.Velocity);
+        // Convert to quaternion so it's more compact
+        var orientation = QuaternionD.CreateFromRotationMatrix(info.Orientation);
+
+        // Compose message
+        var msg = string.Format("tupdate;{0};{1};{2};{3};{4};{5};{6};{7};{8};{9};{10};{11};{12};{13}",
+                                TargetID,
+                                position.X, position.Y, position.Z,
+                                velocity.X, velocity.Y, velocity.Z,
+                                orientation.X, orientation.Y, orientation.Z, orientation.W,
+                                TargetOffset.X, TargetOffset.Y, TargetOffset.Z);
+
+        var updateGroup = commons.GetBlockGroupWithName(TARGET_UPDATE_GROUP);
+        if (updateGroup != null)
+        {
+            var broadcasted = false;
+            foreach (var block in updateGroup.Blocks)
+            {
+                if (block is IMyProgrammableBlock)
+                {
+                    ((IMyProgrammableBlock)block).TryRun(msg);
+                }
+                else if (block is IMyLaserAntenna)
+                {
+                    ((IMyLaserAntenna)block).TransmitMessage(msg);
+                }
+                else if (!broadcasted && block is IMyRadioAntenna)
+                {
+                    // Only if functional and enabled
+                    var antenna = (IMyRadioAntenna)block;
+                    if (antenna.IsFunctional && antenna.Enabled)
+                    {
+                        antenna.TransmitMessage(msg, TRACKER_ANTENNA_TARGET);
+                        broadcasted = true;
+                    }
+                }
+            }
         }
     }
 

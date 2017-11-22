@@ -36,9 +36,9 @@ public class OneTurn : BaseMissileGuidance
 
         // Interpolate position since last update
         var delta = eventDriver.TimeSinceStart - LastTargetUpdate;
-        var TargetGuess = Target + TargetVelocity * delta.TotalSeconds;
+        var targetGuess = TargetAimPoint + TargetVelocity * delta.TotalSeconds;
 
-        var targetVector = TargetGuess - shipControl.ReferencePoint;
+        var targetVector = targetGuess - shipControl.ReferencePoint;
 
         double yawError, pitchError;
         seeker.Seek(shipControl, targetVector, out yawError, out pitchError);

@@ -49,10 +49,10 @@ public class ProNavGuidance : BaseMissileGuidance
         {
             // Interpolate position since last update
             var delta = eventDriver.TimeSinceStart - LastTargetUpdate;
-            var TargetGuess = Target + TargetVelocity * delta.TotalSeconds;
+            var targetGuess = TargetAimPoint + TargetVelocity * delta.TotalSeconds;
 
             // Do PN
-            var offset = TargetGuess - shipControl.ReferencePoint;
+            var offset = targetGuess - shipControl.ReferencePoint;
             var relativeVelocity = TargetVelocity - (Vector3D)velocity;
             var omega = offset.Cross(relativeVelocity) / offset.Dot(offset);
             var direction = Vector3D.Normalize((Vector3D)velocity);

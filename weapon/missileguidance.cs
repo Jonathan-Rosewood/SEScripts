@@ -94,7 +94,7 @@ public class MissileGuidance : BaseMissileGuidance
         {
             // Interpolate position since last update
             var delta = eventDriver.TimeSinceStart - LastTargetUpdate;
-            var targetGuess = Target + TargetVelocity * delta.TotalSeconds;
+            var targetGuess = TargetAimPoint + TargetVelocity * delta.TotalSeconds;
 
             // Solve for intersection of expanding sphere + moving object
             var offset = targetGuess - shipControl.ReferencePoint;
