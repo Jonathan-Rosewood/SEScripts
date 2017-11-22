@@ -1,7 +1,9 @@
-//@ commons eventdriver
+//@ commons eventdriver customdata
 public class Transponder
 {
     private const double RunDelay = 3.0; // For cleanup task
+
+    private string TransponderID;
 
     public struct TransponderInfo
     {
@@ -23,9 +25,10 @@ public class Transponder
 
     private readonly Dictionary<string, TransponderInfo> ReceivedInfos = new Dictionary<string, TransponderInfo>();
 
-    public void Init(ZACommons commons, EventDriver eventDriver)
+    public void Init(ZACommons commons, EventDriver eventDriver, ZACustomData customData)
     {
-        if (!TRANSPONDER_ID.Equals("default"))
+        TransponderID = customData.GetValue("transponderID", "default");
+        if (!TransponderID.Equals("default"))
         {
             eventDriver.Schedule(0, Run);
         }
@@ -68,7 +71,7 @@ public class Transponder
         var orientation = QuaternionD.CreateFromForwardUp(shipControl.ReferenceForward, shipControl.ReferenceUp);
 
         var msg = string.Format("xponder;{0};{1};{2};{3};{4};{5};{6};{7}",
-                                TRANSPONDER_ID,
+                                TransponderID,
                                 position.X, position.Y, position.Z,
                                 orientation.X, orientation.Y, orientation.Z,
                                 orientation.W);

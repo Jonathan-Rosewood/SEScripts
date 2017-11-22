@@ -1,10 +1,11 @@
 //! Transponder Test
-//@ shipcontrol eventdriver transponder
+//@ shipcontrol eventdriver transponder customdata
 private readonly EventDriver eventDriver = new EventDriver();
 private readonly Transponder transponder = new Transponder();
 private readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
+private readonly ZACustomData customData = new ZACustomData();
 
 private bool FirstRun = true;
 
@@ -23,11 +24,13 @@ void Main(string argument, UpdateType updateType)
     {
         FirstRun = false;
 
+        customData.Parse(Me);
+
         myStorage.Decode(Storage);
 
         shipOrientation.SetShipReference<IMyShipController>(commons.Blocks);
 
-        transponder.Init(commons, eventDriver);
+        transponder.Init(commons, eventDriver, customData);
     }
 
     eventDriver.Tick(commons, argAction: () => {

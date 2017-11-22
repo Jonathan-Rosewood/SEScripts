@@ -1,7 +1,8 @@
 // Transponder
 
 // Transmit settings
-const string TRANSPONDER_ID = "default"; // You must change this to transmit
+// If you want to transmit, add the line "transponderID <id>" to the
+// prog block's Custom Data.
 const double TRANSPONDER_UPDATE_RATE = 1.0; // In seconds
 const MyTransmitTarget TRANSPONDER_TARGET = MyTransmitTarget.Default;
 
