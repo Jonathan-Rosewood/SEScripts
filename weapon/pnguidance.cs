@@ -37,6 +37,8 @@ public class ProNavGuidance : BaseMissileGuidance
         thrustControl.Enable(Base6Directions.Direction.Left, false);
         thrustControl.Enable(Base6Directions.Direction.Right, false);
 
+        InitCamera(commons, eventDriver);
+
         eventDriver.Schedule(0, Run);
     }
 

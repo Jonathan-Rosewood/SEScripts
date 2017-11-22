@@ -1,6 +1,10 @@
-//@ commons eventdriver
+//@ commons eventdriver missilelaunch
 public abstract class BaseMissileGuidance
 {
+    private const double RaycastRangeBuffer = 1.2;
+
+    public bool HaveTarget { get; private set; }
+
     // Primary
     protected long TargetID;
     protected Vector3D TargetPosition, TargetVelocity, TargetOffset;
@@ -10,11 +14,21 @@ public abstract class BaseMissileGuidance
     // Derived
     protected Vector3D TargetAimPoint;
 
+    // On-board camera
+    protected IMyCameraBlock LocalCamera;
+
+    protected BaseMissileGuidance()
+    {
+        HaveTarget = false;
+    }
+
     protected virtual void TargetUpdated(EventDriver eventDriver)
     {
         // Re-derive any derived properties of the target
         TargetAimPoint = TargetPosition + Vector3D.Transform(TargetOffset, TargetOrientation);
         LastTargetUpdate = eventDriver.TimeSinceStart;
+
+        HaveTarget = true;
     }
 
     // An update from e.g. an onboard seeker
@@ -68,5 +82,63 @@ public abstract class BaseMissileGuidance
             TargetOffset.SetDim(i-12, double.Parse(parts[i]));
         }
         TargetUpdated(eventDriver);
+    }
+
+    // Camera stuff
+
+    protected void InitCamera(ZACommons commons, EventDriver eventDriver)
+    {
+        var systemsGroup = commons.GetBlockGroupWithName(MissileLaunch.SYSTEMS_GROUP + MissileGroupSuffix);
+        if (systemsGroup == null) return; // Kinda weird, but don't fret about it here
+        // Just grab first camera from group, if any
+        // TODO support multiple cameras for more frequent scans
+        var cameras = ZACommons.GetBlocksOfType<IMyCameraBlock>(systemsGroup.Blocks, camera => camera.IsFunctional && camera.Enabled);
+        if (cameras.Count > 0)
+        {
+            LocalCamera = cameras[0];
+            LocalCamera.EnableRaycast = true;
+            eventDriver.Schedule(1, LocalCameraScan);
+        }
+    }
+
+    public void LocalCameraScan(ZACommons commons, EventDriver eventDriver)
+    {
+        // Is camera still alive?
+        if (!LocalCamera.IsFunctional) return;
+
+        // Guesstimate current target position
+        var delta = eventDriver.TimeSinceStart - LastTargetUpdate;
+        // Note we use target's center, not aim point
+        var targetGuess = TargetPosition + TargetVelocity * delta.TotalSeconds;
+
+        // Use range + buffer as raycast range
+        var origin = LocalCamera.GetPosition();
+        var raycastOffset = (targetGuess - origin) * RaycastRangeBuffer;
+        var raycastRange = raycastOffset.Length();
+
+        // Can we raycast the desired distance?
+        var scanTime = LocalCamera.TimeUntilScan(raycastRange);
+        if (scanTime > 0)
+        {
+            // Try later at recommended time
+            eventDriver.Schedule((double)scanTime / 1000.0, LocalCameraScan);
+            return;
+        }
+
+        var info = LocalCamera.Raycast(origin + raycastOffset);
+        if (info.IsEmpty())
+        {
+            // Missed? Try again ASAP
+            eventDriver.Schedule(0.1, LocalCameraScan);
+            return;
+        }
+
+        // Only if it's the same target...
+        if (info.EntityId == TargetID)
+        {
+            UpdateTarget(eventDriver, info);
+        }
+
+        eventDriver.Schedule(0.1, LocalCameraScan);
     }
 }

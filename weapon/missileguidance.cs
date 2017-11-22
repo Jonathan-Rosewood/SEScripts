@@ -31,6 +31,8 @@ public class MissileGuidance : BaseMissileGuidance
         thrustControl.Enable(Base6Directions.Direction.Down, false);
         thrustControl.Enable(Base6Directions.Direction.Left, false);
         thrustControl.Enable(Base6Directions.Direction.Right, false);
+
+        InitCamera(commons, eventDriver);
     }
 
     private int QuadraticSolver(double a, double b, double c, out double s1,
