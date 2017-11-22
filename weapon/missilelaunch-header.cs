@@ -1,6 +1,3 @@
-// Missile group suffix (e.g. " #1", " #2", etc.)
-const string MISSILE_GROUP_SUFFIX = "";
-
 // Detachment burn (optional)
 const bool DETACH_BURN = true; // Whether to first burn away from launcher
 const Base6Directions.Direction DETACH_BURN_DIRECTION = Base6Directions.Direction.Down; // Direction to burn to detach

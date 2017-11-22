@@ -99,7 +99,7 @@ public class LOSGuidance
         var parts = argument.Split(';');
         if (parts.Length == 2)
         {
-            if (parts[0] == "disconnect" && parts[1] == MISSILE_GROUP_SUFFIX.ToLower())
+            if (parts[0] == "disconnect" && MissileGroupSuffix.Equals(parts[1], ZACommons.IGNORE_CASE))
             {
                 Disconnected = true;
             }

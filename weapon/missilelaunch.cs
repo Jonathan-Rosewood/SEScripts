@@ -24,15 +24,15 @@ public class MissileLaunch
     public void Prime(ZACommons commons, EventDriver eventDriver)
     {
         // Wake up batteries
-        var batteryGroup = commons.GetBlockGroupWithName(BATTERY_GROUP + MISSILE_GROUP_SUFFIX);
+        var batteryGroup = commons.GetBlockGroupWithName(BATTERY_GROUP + MissileGroupSuffix);
         if (batteryGroup == null)
         {
-            throw new Exception("Group missing: " + BATTERY_GROUP + MISSILE_GROUP_SUFFIX);
+            throw new Exception("Group missing: " + BATTERY_GROUP + MissileGroupSuffix);
         }
-        var systemsGroup = commons.GetBlockGroupWithName(SYSTEMS_GROUP + MISSILE_GROUP_SUFFIX);
+        var systemsGroup = commons.GetBlockGroupWithName(SYSTEMS_GROUP + MissileGroupSuffix);
         if (systemsGroup == null)
         {
-            throw new Exception("Group missing: " + SYSTEMS_GROUP + MISSILE_GROUP_SUFFIX);
+            throw new Exception("Group missing: " + SYSTEMS_GROUP + MissileGroupSuffix);
         }
 
         var batteries = ZACommons.GetBlocksOfType<IMyBatteryBlock>(batteryGroup.Blocks);
@@ -51,10 +51,10 @@ public class MissileLaunch
 
     public void Release(ZACommons commons, EventDriver eventDriver)
     {
-        var releaseGroup = commons.GetBlockGroupWithName(RELEASE_GROUP + MISSILE_GROUP_SUFFIX);
+        var releaseGroup = commons.GetBlockGroupWithName(RELEASE_GROUP + MissileGroupSuffix);
         if (releaseGroup == null)
         {
-            throw new Exception("Group missing: " + RELEASE_GROUP + MISSILE_GROUP_SUFFIX);
+            throw new Exception("Group missing: " + RELEASE_GROUP + MissileGroupSuffix);
         }
 
         // Unlock any landing gear
