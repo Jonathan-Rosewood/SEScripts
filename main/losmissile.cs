@@ -9,8 +9,6 @@ private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
 private bool FirstRun = true;
 
-private IMyTerminalBlock LauncherReference;
-
 Program()
 {
     // Kick things once, FirstRun will take care of the rest
@@ -33,20 +31,12 @@ void Main(string argument, UpdateType updateType)
 
                 missileLaunch.Init(c, ed, (c2,ed2) => {
                         losGuidance.Init(c2, ed2);
-                        if (CHEESY_BEAM_RIDING) ed2.Schedule(1, CheesyBeamRiding);
                     });
-                // Acquire launcher and direction
-                LauncherReference = losGuidance.SetLauncherReference(c, "CM Launcher Reference");
             });
     }
 
     eventDriver.Tick(commons, argAction: () => {
             weaponTrigger.HandleCommand(commons, eventDriver, argument);
+            losGuidance.HandleCommand(commons, eventDriver, argument);
         });
-}
-
-public void CheesyBeamRiding(ZACommons commons, EventDriver eventDriver)
-{
-    losGuidance.SetLauncherReference(LauncherReference);
-    eventDriver.Schedule(1, CheesyBeamRiding);
 }

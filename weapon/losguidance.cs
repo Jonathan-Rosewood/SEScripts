@@ -9,34 +9,7 @@ public class LOSGuidance
     private Vector3D LauncherReferencePoint;
     private Vector3D LauncherReferenceDirection;
 
-    public void SetLauncherReference(IMyCubeBlock launcherReference,
-                                     Base6Directions.Direction direction = Base6Directions.Direction.Forward)
-    {
-        LauncherReferencePoint = launcherReference.GetPosition();
-        var forward3I = launcherReference.Position + Base6Directions.GetIntVector(launcherReference.Orientation.TransformDirection(direction));
-        var forwardPoint = launcherReference.CubeGrid.GridIntegerToWorld(forward3I);
-        LauncherReferenceDirection = Vector3D.Normalize(forwardPoint - LauncherReferencePoint);
-    }
-
-    public IMyTerminalBlock SetLauncherReference(ZACommons commons, string groupName,
-                                                 Base6Directions.Direction direction = Base6Directions.Direction.Forward,
-                                                 Func<IMyTerminalBlock, bool> condition = null)
-    {
-        var group = commons.GetBlockGroupWithName(groupName);
-        if (group != null)
-        {
-            foreach (var block in group.Blocks)
-            {
-                if (condition == null || condition(block))
-                {
-                    // Use first block that matches condition
-                    SetLauncherReference(block, direction);
-                    return block;
-                }
-            }
-        }
-        throw new Exception("Cannot set launcher reference from group: " + groupName);
-    }
+    private bool Disconnected = false;
 
     public void Init(ZACommons commons, EventDriver eventDriver)
     {
@@ -116,5 +89,33 @@ public class LOSGuidance
         }
 
         eventDriver.Schedule(FramesPerRun, Run);
+    }
+
+    public void HandleCommand(ZACommons commons, EventDriver eventDriver, string argument)
+    {
+        if (Disconnected) return;
+
+        argument = argument.Trim().ToLower();
+        var parts = argument.Split(';');
+        if (parts.Length == 2)
+        {
+            if (parts[0] == "disconnect" && parts[1] == MISSILE_GROUP_SUFFIX.ToLower())
+            {
+                Disconnected = true;
+            }
+            return;
+        }
+        if (parts.Length != 7) return;
+        if (parts[0] != "bupdate") return;
+        LauncherReferencePoint = new Vector3D();
+        for (int i = 1; i < 4; i++)
+        {
+            LauncherReferencePoint.SetDim(i-1, double.Parse(parts[i]));
+        }
+        LauncherReferenceDirection = new Vector3D();
+        for (int i = 4; i < 7; i++)
+        {
+            LauncherReferenceDirection.SetDim(i-4, double.Parse(parts[i]));
+        }
     }
 }
