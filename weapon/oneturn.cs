@@ -53,4 +53,13 @@ public class OneTurn : BaseMissileGuidance
             eventDriver.Schedule(FramesPerRun, Run);
         }
     }
+
+    public override void HandleCommand(ZACommons commons, EventDriver eventDriver, string argument)
+    {
+        // Check if already Turned. Don't waste cycles parsing commands.
+        if (!Turned)
+        {
+            base.HandleCommand(commons, eventDriver, argument);
+        }
+    }
 }
