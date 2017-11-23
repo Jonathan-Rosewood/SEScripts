@@ -8,6 +8,8 @@ public class ProNavGuidance : BaseMissileGuidance
 
     private double ForwardAcceleration;
 
+    private TimeSpan OneTurnEnd;
+
     public void Init(ZACommons commons, EventDriver eventDriver)
     {
         var shipControl = (ShipControlCommons)commons;
@@ -23,9 +25,42 @@ public class ProNavGuidance : BaseMissileGuidance
         thrusterList.ForEach(thruster => maxForce += thruster.GetMaximum<float>("Override"));
         ForwardAcceleration = 1000.0 * maxForce / shipControl.ShipController.CalculateShipMass().PhysicalMass;
 
+        OneTurnEnd = eventDriver.TimeSinceStart + TimeSpan.FromSeconds(ONE_TURN_DURATION);
+
         seeker.Init(shipControl,
                     shipUp: shipControl.ShipUp,
                     shipForward: shipControl.ShipForward);
+
+        eventDriver.Schedule(0, OneTurn);
+    }
+
+    public void OneTurn(ZACommons commons, EventDriver eventDriver)
+    {
+        var shipControl = (ShipControlCommons)commons;
+
+        // Interpolate position since last update
+        var delta = eventDriver.TimeSinceStart - LastTargetUpdate;
+        var targetGuess = TargetAimPoint + TargetVelocity * delta.TotalSeconds;
+
+        var targetVector = targetGuess - shipControl.ReferencePoint;
+
+        double yawError, pitchError;
+        seeker.Seek(shipControl, targetVector, out yawError, out pitchError);
+
+        if (OneTurnEnd < eventDriver.TimeSinceStart)
+        {
+            FullBurn(commons, eventDriver);
+            eventDriver.Schedule(0, Run);
+        }
+        else
+        {
+            eventDriver.Schedule(FramesPerRun, OneTurn);
+        }
+    }
+
+    public void FullBurn(ZACommons commons, EventDriver eventDriver)
+    {
+        var shipControl = (ShipControlCommons)commons;
 
         // Full burn
         var thrustControl = shipControl.ThrustControl;
@@ -38,8 +73,6 @@ public class ProNavGuidance : BaseMissileGuidance
         thrustControl.Enable(Base6Directions.Direction.Right, false);
 
         InitCamera(commons, eventDriver);
-
-        eventDriver.Schedule(0, Run);
     }
 
     public void Run(ZACommons commons, EventDriver eventDriver)

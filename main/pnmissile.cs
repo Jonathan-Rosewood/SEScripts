@@ -1,9 +1,8 @@
 //! PN Missile Controller
-//@ shipcontrol eventdriver weapontrigger oneturn pnguidance missilelaunch
+//@ shipcontrol eventdriver weapontrigger pnguidance missilelaunch
 //@ customdata
 private readonly EventDriver eventDriver = new EventDriver();
 private readonly WeaponTrigger weaponTrigger = new WeaponTrigger();
-private readonly OneTurn oneTurn = new OneTurn();
 private readonly ProNavGuidance proNavGuidance = new ProNavGuidance();
 private readonly MissileLaunch missileLaunch = new MissileLaunch();
 
@@ -39,16 +38,13 @@ void Main(string argument, UpdateType updateType)
                                                  block => block is IMyGyro);
 
                 missileLaunch.Init(c, ed, (c2,ed2) => {
-                        oneTurn.Init(c2, ed2, (c3,ed3) => {
-                                proNavGuidance.Init(c3, ed3);
-                            });
+                        proNavGuidance.Init(c2, ed2);
                     });
             });
     }
 
     eventDriver.Tick(commons, argAction: () => {
             weaponTrigger.HandleCommand(commons, eventDriver, argument);
-            oneTurn.HandleCommand(commons, eventDriver, argument);
             proNavGuidance.HandleCommand(commons, eventDriver, argument);
         });
 }
