@@ -28,7 +28,7 @@ void Main(string argument, UpdateType updateType)
         FirstRun = false;
 
         customData.Parse(Me);
-        MissileGroupSuffix = customData.GetValue("suffix", "");
+        MissileGroupSuffix = customData.GetString("suffix");
         Echo(string.Format("Group suffix is \"{0}\"", MissileGroupSuffix));
 
         weaponTrigger.Init(commons, eventDriver, (c,ed) => {

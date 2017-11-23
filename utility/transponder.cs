@@ -27,8 +27,8 @@ public class Transponder
 
     public void Init(ZACommons commons, EventDriver eventDriver, ZACustomData customData)
     {
-        TransponderID = customData.GetValue("transponderID", "default");
-        if (!TransponderID.Equals("default"))
+        TransponderID = customData.GetString("transponderID");
+        if (TransponderID.Length > 0)
         {
             eventDriver.Schedule(0, Run);
         }
