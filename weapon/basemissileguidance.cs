@@ -54,9 +54,27 @@ public abstract class BaseMissileGuidance
     {
         argument = argument.Trim().ToLower();
         var parts = argument.Split(';');
-        if (parts.Length != 15) return;
-        if (parts[0] != "tupdate") return;
-        TargetID = long.Parse(parts[1]);
+        bool full = false;
+        switch (parts[0])
+        {
+            case "tnew":
+                {
+                    if (parts.Length != 15) return;
+                    TargetID = long.Parse(parts[1]);
+                    full = true;
+                    break;
+                }
+            case "tupdate":
+                {
+                    if (!HaveTarget || parts.Length != 12) return;
+                    var targetID = long.Parse(parts[1]);
+                    // Ignore if it's an update for another target
+                    if (targetID != TargetID) return;
+                    break;
+                }
+            default:
+                return;
+        }
         TargetPosition = new Vector3D();
         for (int i = 2; i < 5; i++)
         {
@@ -73,13 +91,13 @@ public abstract class BaseMissileGuidance
         orientation.Z = double.Parse(parts[10]);
         orientation.W = double.Parse(parts[11]);
         TargetOrientation = MatrixD.CreateFromQuaternion(orientation);
-        // Having a different message would save us transmitting the offset...
-        // But then messaging becomes stateful because we'd need the init +
-        // update messages...
-        TargetOffset = new Vector3D();
-        for (int i = 12; i < 15; i++)
+        if (full)
         {
-            TargetOffset.SetDim(i-12, double.Parse(parts[i]));
+            TargetOffset = new Vector3D();
+            for (int i = 12; i < 15; i++)
+            {
+                TargetOffset.SetDim(i-12, double.Parse(parts[i]));
+            }
         }
         TargetUpdated(eventDriver);
     }

@@ -1,7 +1,9 @@
 //! Target Tracker
-//@ commons eventdriver
+//@ shipcontrol eventdriver seeker
 private readonly EventDriver eventDriver = new EventDriver();
 private readonly TargetTracker targetTracker = new TargetTracker();
+
+private readonly ShipOrientation shipOrientation = new ShipOrientation();
 
 private bool FirstRun = true;
 
@@ -13,11 +15,13 @@ Program()
 
 void Main(string argument, UpdateType updateType)
 {
-    var commons = new ZACommons(this, updateType);
+    var commons = new ShipControlCommons(this, updateType, shipOrientation);
 
     if (FirstRun)
     {
         FirstRun = false;
+
+        shipOrientation.SetShipReference(commons, MAIN_CAMERA_GROUP);
 
         targetTracker.Init(commons, eventDriver);
     }
@@ -32,26 +36,42 @@ void Main(string argument, UpdateType updateType)
 
 public class TargetTracker
 {
+    private const uint FramesPerRun = 1;
+    private const double RunsPerSecond = 60.0 / FramesPerRun;
+
+    private readonly Seeker seeker = new Seeker(1.0 / RunsPerSecond);
+
     private const int IDLE = 0;
     private const int ARMED = 1;
-    private const int INITIAL = 2;
-    private const int LOCKED = 3;
+    private const int SNAPSHOT = 2;
+    private const int PAINTING = 3;
+    private const int RELEASED = 4;
 
-    private int Mode = IDLE;
+    // State
+    private int Mode = IDLE, PreviousMode;
+    private bool GyroLock;
+    private bool LocalOnly;
 
     private double RaycastRange;
-    private TimeSpan? LastUpdate;
 
-    // Target data
-    private long TargetID;
-    private Vector3D TargetOffset;
+    // Target data for gyro lock
+    private Vector3D TargetPosition, TargetVelocity;
+    private TimeSpan? LastTargetUpdate;
 
     public void Init(ZACommons commons, EventDriver eventDriver)
     {
+        var shipControl = (ShipControlCommons)commons;
+        seeker.Init(shipControl,
+                    shipUp: shipControl.ShipUp,
+                    shipForward: shipControl.ShipForward);
+
         // Get things into a known state
         var camera = GetMainCamera(commons);
         camera.EnableRaycast = false;
         Mode = IDLE;
+        GyroLock = false;
+
+        shipControl.GyroControl.EnableOverride(false);
     }
 
     public void HandleCommand(ZACommons commons, EventDriver eventDriver, string argument)
@@ -65,6 +85,7 @@ public class TargetTracker
                     var camera = GetMainCamera(commons);
                     camera.EnableRaycast = true;
                     Mode = ARMED;
+                    RaycastRange = INITIAL_RAYCAST_RANGE;
                 }
                 break;
             case "disarm":
@@ -74,40 +95,48 @@ public class TargetTracker
                     Mode = IDLE;
                     break;
                 }
-            case "lock":
+            case "snapshot":
+                BeginSnapshot(commons, eventDriver, localOnly: true);
+                break;
+            case "retarget":
+                BeginSnapshot(commons, eventDriver, localOnly: false);
+                break;
+            case "paint":
+                BeginPaint(commons, eventDriver, released: false);
+                break;
+            case "release":
+                BeginPaint(commons, eventDriver, released: true);
+                break;
+            case "clear":
                 {
-                    if (Mode == IDLE)
+                    if (Mode != IDLE)
                     {
-                        // Enable raycast for user
-                        var camera = GetMainCamera(commons);
-                        camera.EnableRaycast = true;
                         Mode = ARMED;
+                        RaycastRange = INITIAL_RAYCAST_RANGE;
                     }
-                    BeginLock(commons, eventDriver);
                     break;
                 }
-            case "unlock":
-                if (Mode != IDLE)
-                {
-                    Mode = ARMED;
-                }
-                break;
         }
     }
 
-    public void BeginLock(ZACommons commons, EventDriver eventDriver)
+    private void BeginSnapshot(ZACommons commons, EventDriver eventDriver, bool localOnly = true)
     {
-        if (Mode != ARMED && Mode != LOCKED) return;
+        if (Mode == IDLE)
+        {
+            var camera = GetMainCamera(commons);
+            camera.EnableRaycast = true;
+            RaycastRange = INITIAL_RAYCAST_RANGE;
+        }
 
-        RaycastRange = INITIAL_RAYCAST_RANGE;
-        LastUpdate = null;
-        if (Mode == ARMED) eventDriver.Schedule(0, Lock);
-        Mode = INITIAL;
+        LocalOnly = localOnly;
+        if (Mode != SNAPSHOT) eventDriver.Schedule(1, Snapshot);
+        PreviousMode = Mode;
+        Mode = SNAPSHOT;
     }
 
-    public void Lock(ZACommons commons, EventDriver eventDriver)
+    public void Snapshot(ZACommons commons, EventDriver eventDriver)
     {
-        if (Mode != INITIAL && Mode != LOCKED) return;
+        if (Mode != SNAPSHOT) return;
 
         var camera = GetMainCamera(commons);
 
@@ -116,47 +145,106 @@ public class TargetTracker
         if (scanTime > 0)
         {
             // Try later
-            eventDriver.Schedule((double)scanTime / 1000.0, Lock);
+            eventDriver.Schedule((double)scanTime / 1000.0, Snapshot);
             return;
         }
 
         var info = camera.Raycast(RaycastRange);
         if (info.IsEmpty())
         {
-            // Missed? Try again ASAP
-            eventDriver.Schedule(1, Lock);
+            // Missed? Increase range and try again
+            RaycastRange = Math.Min(RaycastRange * RAYCAST_RANGE_BUFFER, INITIAL_RAYCAST_RANGE);
+            eventDriver.Schedule(1, Snapshot);
             return;
         }
 
-        if (Mode == INITIAL)
-        {
-            // Initial raycast, capture TargetID and TargetOffset
-            TargetID = info.EntityId;
-            var offset = (Vector3D)info.HitPosition - info.Position;
-            var toLocal = MatrixD.Invert(info.Orientation);
-            TargetOffset = Vector3D.Transform(offset, toLocal);
+        TargetUpdated(commons, eventDriver, info, full: true, localOnly: LocalOnly);
 
-            Mode = LOCKED;
-        }
-        else
+        // Switch to paint automatically (leave gyro lock alone)
+        RaycastRange = (TargetPosition - camera.GetPosition()).Length() * RAYCAST_RANGE_BUFFER;
+        BeginPaint(commons, eventDriver, released: PreviousMode == RELEASED);
+    }
+
+    private void BeginPaint(ZACommons commons, EventDriver eventDriver, bool released = false)
+    {
+        if (Mode == IDLE)
         {
-            if (info.EntityId != TargetID)
-            {
-                // Hit a different target, try again ASAP
-                eventDriver.Schedule(1, Lock);
-                return;
-            }
-            // Since info.Position is actually based on the target's bounding box,
-            // we might actually be hosed if the target gets significantly damaged...
+            var camera = GetMainCamera(commons);
+            camera.EnableRaycast = true;
+            RaycastRange = INITIAL_RAYCAST_RANGE;
         }
 
-        // Update next raycast distance (with buffer)
-        RaycastRange = (info.Position - camera.GetPosition()).Length() * RAYCAST_RANGE_BUFFER;
-        LastUpdate = eventDriver.TimeSinceStart;
-        // And send the update
-        TargetUpdated(commons, info);
+        if (Mode != PAINTING && Mode != RELEASED) eventDriver.Schedule(1, Paint);
+        Mode = released ? RELEASED : PAINTING;
+        BeginLock(commons, eventDriver);
+    }
 
-        eventDriver.Schedule(TRACKER_UPDATE_RATE, Lock);
+    public void Paint(ZACommons commons, EventDriver eventDriver)
+    {
+        if (Mode != PAINTING && Mode != RELEASED) return;
+
+        var camera = GetMainCamera(commons);
+
+        // Can we raycast the desired distance?
+        var scanTime = camera.TimeUntilScan(RaycastRange);
+        if (scanTime > 0)
+        {
+            // Try later
+            eventDriver.Schedule((double)scanTime / 1000.0, Paint);
+            return;
+        }
+
+        var info = camera.Raycast(RaycastRange);
+        if (info.IsEmpty())
+        {
+            // Missed? Increase range, try again and release gyro
+            RaycastRange = Math.Min(RaycastRange * RAYCAST_RANGE_BUFFER, INITIAL_RAYCAST_RANGE);
+            GyroLock = false;
+            eventDriver.Schedule(1, Paint);
+            return;
+        }
+
+        TargetUpdated(commons, eventDriver, info);
+
+        RaycastRange = (TargetPosition - camera.GetPosition()).Length() * RAYCAST_RANGE_BUFFER;
+
+        BeginLock(commons, eventDriver);
+        eventDriver.Schedule(TRACKER_UPDATE_RATE, Paint);
+    }
+
+    private void BeginLock(ZACommons commons, EventDriver eventDriver)
+    {
+        if (Mode != PAINTING) return;
+
+        if (!GyroLock)
+        {
+            var shipControl = (ShipControlCommons)commons;
+            shipControl.GyroControl.EnableOverride(true);
+            GyroLock = true;
+            eventDriver.Schedule(1, Lock);
+        }
+    }
+
+    public void Lock(ZACommons commons, EventDriver eventDriver)
+    {
+        var shipControl = (ShipControlCommons)commons;
+
+        if (Mode != PAINTING || !GyroLock || LastTargetUpdate == null)
+        {
+            shipControl.GyroControl.EnableOverride(false);
+            GyroLock = false;
+            return;
+        }
+
+        // Guesstimate current target position
+        var delta = eventDriver.TimeSinceStart - (TimeSpan)LastTargetUpdate;
+        // Note we use target's center, not aim point
+        var targetGuess = TargetPosition + TargetVelocity * delta.TotalSeconds;
+
+        double yawError, pitchError;
+        seeker.Seek(shipControl, targetGuess - shipControl.ReferencePoint, out yawError, out pitchError);
+
+        eventDriver.Schedule(1, Lock);
     }
 
     public void Display(ZACommons commons, EventDriver eventDriver)
@@ -169,33 +257,50 @@ public class TargetTracker
             case ARMED:
                 commons.Echo("Tracker: Enabled");
                 break;
-            case INITIAL:
+            case SNAPSHOT:
                 commons.Echo("Tracker: Searching");
                 commons.Echo(string.Format("Max. Range: {0:F2} m", RaycastRange));
                 break;
-            case LOCKED:
-                commons.Echo("Tracker: Locked");
+            case PAINTING:
+            case RELEASED:
+                commons.Echo(string.Format("Tracker: Painting ({0})", Mode == PAINTING ? (GyroLock ? "locked" : "lost") : "released"));
                 commons.Echo(string.Format("Max. Range: {0:F2} m", RaycastRange));
-                commons.Echo(string.Format("Target ID: {0:X}", TargetID));
-                if (LastUpdate != null) commons.Echo(string.Format("Last Update: {0:F1} s", (eventDriver.TimeSinceStart - (TimeSpan)LastUpdate).TotalSeconds));
+                if (LastTargetUpdate != null) commons.Echo(string.Format("Last Update: {0:F1} s", (eventDriver.TimeSinceStart - (TimeSpan)LastTargetUpdate).TotalSeconds));
                 break;
         }
     }
 
-    private void TargetUpdated(ZACommons commons, MyDetectedEntityInfo info)
+    private void TargetUpdated(ZACommons commons, EventDriver eventDriver, MyDetectedEntityInfo info, bool full = false, bool localOnly = false)
     {
-        var position = info.Position;
-        var velocity = new Vector3D(info.Velocity);
+        TargetPosition = info.Position;
+        TargetVelocity = new Vector3D(info.Velocity);
         // Convert to quaternion so it's more compact
         var orientation = QuaternionD.CreateFromRotationMatrix(info.Orientation);
+        LastTargetUpdate = eventDriver.TimeSinceStart;
 
         // Compose message
-        var msg = string.Format("tupdate;{0};{1};{2};{3};{4};{5};{6};{7};{8};{9};{10};{11};{12};{13}",
-                                TargetID,
-                                position.X, position.Y, position.Z,
-                                velocity.X, velocity.Y, velocity.Z,
+        string msg;
+        if (full)
+        {
+            var offset = (Vector3D)info.HitPosition - TargetPosition;
+            var toLocal = MatrixD.Invert(info.Orientation);
+            var localOffset = Vector3D.Transform(offset, toLocal);
+
+            msg = string.Format("tnew;{0};{1};{2};{3};{4};{5};{6};{7};{8};{9};{10};{11};{12};{13}",
+                                info.EntityId,
+                                TargetPosition.X, TargetPosition.Y, TargetPosition.Z,
+                                TargetVelocity.X, TargetVelocity.Y, TargetVelocity.Z,
                                 orientation.X, orientation.Y, orientation.Z, orientation.W,
-                                TargetOffset.X, TargetOffset.Y, TargetOffset.Z);
+                                localOffset.X, localOffset.Y, localOffset.Z);
+        }
+        else
+        {
+            msg = string.Format("tupdate;{0};{1};{2};{3};{4};{5};{6};{7};{8};{9};{10}",
+                                info.EntityId,
+                                TargetPosition.X, TargetPosition.Y, TargetPosition.Z,
+                                TargetVelocity.X, TargetVelocity.Y, TargetVelocity.Z,
+                                orientation.X, orientation.Y, orientation.Z, orientation.W);
+        }
 
         var updateGroup = commons.GetBlockGroupWithName(TARGET_UPDATE_GROUP);
         if (updateGroup != null)
@@ -207,11 +312,11 @@ public class TargetTracker
                 {
                     ((IMyProgrammableBlock)block).TryRun(msg);
                 }
-                else if (block is IMyLaserAntenna)
+                else if (!localOnly && block is IMyLaserAntenna)
                 {
                     ((IMyLaserAntenna)block).TransmitMessage(msg);
                 }
-                else if (!broadcasted && block is IMyRadioAntenna)
+                else if (!localOnly && !broadcasted && block is IMyRadioAntenna)
                 {
                     // Only if functional and enabled
                     var antenna = (IMyRadioAntenna)block;
