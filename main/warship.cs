@@ -70,6 +70,7 @@ void Main(string argument, UpdateType updateType)
             sequencer.HandleCommand(commons, eventDriver, argument);
             combatRanger.HandleCommand(commons, argument);
             projectorAction.HandleCommand(commons, eventDriver, argument);
+            HandleCommand(commons, eventDriver, argument);
         },
         postAction: () => {
             damageControl.Display(commons);
@@ -85,4 +86,23 @@ bool LivenessCheck(ZACommons commons, EventDriver eventDriver)
 {
     if (CONTROL_CHECK_ENABLED) safeMode.TriggerIfUncontrolled(commons, eventDriver);
     return !safeMode.Abandoned;
+}
+
+public void HandleCommand(ZACommons commons, EventDriver eventDriver, string argument)
+{
+    argument = argument.Trim().ToLower();
+    if (argument == "firefirefire")
+    {
+        var group = commons.GetBlockGroupWithName(GC_FIRE_GROUP);
+        if (group != null)
+        {
+            foreach (var block in group.Blocks)
+            {
+                if (block is IMyProgrammableBlock)
+                {
+                    ((IMyProgrammableBlock)block).TryRun("firefirefire");
+                }
+            }
+        }
+    }
 }
