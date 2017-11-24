@@ -11,9 +11,9 @@ public class PIDController
     public double Ki
     {
         get { return m_Ki; }
-        set { m_Ki = value; m_Kidt = m_Ki * dt; }
+        set { m_Ki = value; }
     }
-    private double m_Ki, m_Kidt;
+    private double m_Ki;
 
     public double Ti
     {
@@ -59,12 +59,12 @@ public class PIDController
 
     public double Compute(double error)
     {
-        var newIntegral = integral + error;
+        var newIntegral = integral + error * dt;
         var derivative = error - lastError;
         lastError = error;
 
         var CV = ((Kp * error) +
-                  (m_Kidt * newIntegral) +
+                  (m_Ki * newIntegral) +
                   (m_Kddt * derivative));
 
         // Windup prevention
