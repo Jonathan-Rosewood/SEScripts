@@ -64,14 +64,14 @@ public class SeekerTest
 
         var targetVector = Vector3D.Normalize(TARGET_POINT - shipControl.ReferencePoint);
 
-        double yawError, pitchError, rollError;
+        double yawPitchError, rollError;
         if (ROLL_TOO)
         {
-            seeker.Seek(shipControl, targetVector, TARGET_UP, out yawError, out pitchError, out rollError);
+            seeker.Seek(shipControl, targetVector, TARGET_UP, out yawPitchError, out rollError);
         }
         else
         {
-            seeker.Seek(shipControl, targetVector, out yawError, out pitchError);
+            seeker.Seek(shipControl, targetVector, out yawPitchError);
         }
 
         eventDriver.Schedule(FramesPerRun, Run);

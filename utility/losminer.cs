@@ -117,10 +117,8 @@ public class LOSMiner
         var targetVector = GetTarget(shipControl, StartDirection);
         targetVector = Perturb(eventDriver.TimeSinceStart, targetVector);
 
-        double yawError, pitchError;
-        seeker.Seek(shipControl, targetVector,
-                    out yawError, out pitchError);
-
+        double yawPitchError;
+        seeker.Seek(shipControl, targetVector, out yawPitchError);
         cruiser.Cruise(shipControl, TARGET_MINING_SPEED);
 
         eventDriver.Schedule(FramesPerRun, Mine);
@@ -153,9 +151,8 @@ public class LOSMiner
         var targetVector = GetTarget(shipControl, -StartDirection);
         targetVector = Perturb(eventDriver.TimeSinceStart, targetVector);
 
-        double yawError, pitchError;
-        seeker.Seek(shipControl, targetVector,
-                    out yawError, out pitchError);
+        double yawPitchError;
+        seeker.Seek(shipControl, targetVector, out yawPitchError);
 
         cruiser.Cruise(shipControl, TARGET_MINING_SPEED);
 

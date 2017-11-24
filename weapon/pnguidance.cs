@@ -44,8 +44,8 @@ public class ProNavGuidance : BaseMissileGuidance
 
         var targetVector = targetGuess - shipControl.ReferencePoint;
 
-        double yawError, pitchError;
-        seeker.Seek(shipControl, targetVector, out yawError, out pitchError);
+        double yawPitchError;
+        seeker.Seek(shipControl, targetVector, out yawPitchError);
 
         if (OneTurnEnd < eventDriver.TimeSinceStart)
         {
@@ -101,8 +101,8 @@ public class ProNavGuidance : BaseMissileGuidance
                                                Vector3D.Dot(accel, accel), 0.0));
             var aimPoint = Vector3D.Normalize(direction * vDistance + accel);
 
-            double yawError, pitchError;
-            seeker.Seek(shipControl, aimPoint, out yawError, out pitchError);
+            double yawPitchError;
+            seeker.Seek(shipControl, aimPoint, out yawPitchError);
         }
         else
         {

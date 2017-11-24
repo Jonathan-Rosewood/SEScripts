@@ -81,33 +81,31 @@ public class Seeker
     // Yaw/pitch only
     public GyroControl Seek(ShipControlCommons shipControl,
                             Vector3D targetVector,
-                            out double yawError, out double pitchError)
+                            out double yawPitchError)
     {
         double rollError;
         return _Seek(shipControl, targetVector, null,
-                     out yawError, out pitchError, out rollError);
+                     out yawPitchError, out rollError);
     }
 
     // Yaw/pitch/roll
     public GyroControl Seek(ShipControlCommons shipControl,
                             Vector3D targetVector, Vector3D targetUp,
-                            out double yawError, out double pitchError,
-                            out double rollError)
+                            out double yawPitchError, out double rollError)
     {
         return _Seek(shipControl, targetVector, targetUp,
-                     out yawError, out pitchError, out rollError);
+                     out yawPitchError, out rollError);
     }
 
     private GyroControl _Seek(ShipControlCommons shipControl,
                               Vector3D targetVector, Vector3D? targetUp,
-                              out double yawError, out double pitchError,
-                              out double rollError)
+                              out double yawPitchError, out double rollError)
     {
         var angularVelocity = shipControl.AngularVelocity;
         if (angularVelocity == null)
         {
             // No ship controller, no action
-            yawError = pitchError = rollError = Math.PI;
+            yawPitchError = rollError = Math.PI;
             return shipControl.GyroControl;
         }
 
@@ -137,6 +135,8 @@ public class Seeker
                              shipForward: ShipForward);
         }
 
+        targetVector = Vector3D.Normalize(targetVector);
+
         // Invert our world matrix
         var toLocal = MatrixD.Invert(MatrixD.CreateWorld(Vector3D.Zero, referenceForward, referenceUp));
 
@@ -145,8 +145,8 @@ public class Seeker
         var localVel = Vector3D.Transform((Vector3D)angularVelocity, toLocal);
 
         // Use simple trig to get the error angles
-        yawError = Math.Atan2(localTarget.X, localTarget.Z);
-        pitchError = Math.Atan2(localTarget.Y, localTarget.Z);
+        var yawError = Math.Atan2(localTarget.X, localTarget.Z);
+        var pitchError = Math.Atan2(localTarget.Y, localTarget.Z);
 
         // Set desired angular velocity
         var desiredYawVel = yawPID.Compute(yawError);
@@ -171,6 +171,9 @@ public class Seeker
         gyroControl.SetAxisVelocity(GyroControl.Yaw, (float)gyroYaw);
         gyroControl.SetAxisVelocity(GyroControl.Pitch, (float)gyroPitch);
 
+        // Determine total yaw/pitch error
+        yawPitchError = Math.Acos(MathHelperD.Clamp(Vector3D.Dot(targetVector, referenceForward), -1.0, 1.0));
+
         if (targetUp != null)
         {
             // Also adjust roll by rotating targetUp vector
@@ -191,10 +194,13 @@ public class Seeker
             //shipControl.Echo(string.Format("roll = {0:F3}", gyroRoll));
 
             gyroControl.SetAxisVelocity(GyroControl.Roll, (float)gyroRoll);
+
+            // Only care about absolute error
+            rollError = Math.Abs(rollError);
         }
         else
         {
-            rollError = default(double);
+            rollError = 0.0;
         }
 
         return gyroControl;

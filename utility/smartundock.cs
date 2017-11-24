@@ -202,11 +202,11 @@ public class SmartUndock
         if (Mode != ORIENTING) return;
 
         var shipControl = (ShipControlCommons)commons;
-        double yawError, pitchError, rollError;
+        double yawPitchError, rollError;
         seeker.Seek(shipControl, UndockForward, UndockUp,
-                    out yawError, out pitchError, out rollError);
+                    out yawPitchError, out rollError);
 
-        if ((yawError * yawError + pitchError * pitchError + rollError * rollError) < 0.0001)
+        if (yawPitchError < .005 && rollError < .01)
         {
             // All done
             shipControl.Reset(gyroOverride: false, thrusterEnable: null);

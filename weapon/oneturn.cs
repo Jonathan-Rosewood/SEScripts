@@ -40,8 +40,8 @@ public class OneTurn : BaseMissileGuidance
 
         var targetVector = targetGuess - shipControl.ReferencePoint;
 
-        double yawError, pitchError;
-        seeker.Seek(shipControl, targetVector, out yawError, out pitchError);
+        double yawPitchError;
+        seeker.Seek(shipControl, targetVector, out yawPitchError);
 
         if (OneTurnEnd < eventDriver.TimeSinceStart)
         {

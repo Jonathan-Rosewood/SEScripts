@@ -72,11 +72,11 @@ public class ReverseThrust
 
         var shipControl = (ShipControlCommons)commons;
 
-        double yawError, pitchError;
+        double yawPitchError;
         var gyroControl = seeker.Seek(shipControl, TargetVector,
-                                      out yawError, out pitchError);
+                                      out yawPitchError);
 
-        if ((pitchError * pitchError + yawError * yawError) < MaxError)
+        if (yawPitchError < MaxError)
         {
             gyroControl.Reset();
             shipControl.ThrustControl.Enable(true);

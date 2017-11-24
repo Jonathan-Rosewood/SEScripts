@@ -290,8 +290,8 @@ public class VTVLHelper
         var gravity = controller.GetNaturalGravity();
         if (gravity.LengthSquared() > 0.0)
         {
-            double yawError, pitchError;
-            seeker.Seek(shipControl, gravity, out yawError, out pitchError);
+            double yawPitchError;
+            seeker.Seek(shipControl, gravity, out yawPitchError);
 
             if (Autodrop)
             {
@@ -341,8 +341,8 @@ public class VTVLHelper
         var gravity = controller.GetNaturalGravity();
         if (gravity.LengthSquared() > 0.0)
         {
-            double yawError, pitchError;
-            seeker.Seek(shipControl, gravity, out yawError, out pitchError);
+            double yawPitchError;
+            seeker.Seek(shipControl, gravity, out yawPitchError);
 
             cruiser.Cruise(shipControl, VTVLHELPER_BRAKING_SPEED,
                            condition: ThrusterCondition,
@@ -368,8 +368,8 @@ public class VTVLHelper
         var gravity = controller.GetNaturalGravity();
         if (gravity.LengthSquared() > 0.0)
         {
-            double yawError, pitchError;
-            seeker.Seek(shipControl, gravity, out yawError, out pitchError);
+            double yawPitchError;
+            seeker.Seek(shipControl, gravity, out yawPitchError);
 
             // Shouldn't fail since we do gravity check above
             if (!controller.TryGetPlanetElevation(MyPlanetElevation.Surface, out Elevation)) Elevation = 0.0;
@@ -416,8 +416,8 @@ public class VTVLHelper
         var gravity = controller.GetNaturalGravity();
         if (gravity.LengthSquared() > 0.0)
         {
-            double yawError, pitchError;
-            seeker.Seek(shipControl, -gravity, out yawError, out pitchError);
+            double yawPitchError;
+            seeker.Seek(shipControl, -gravity, out yawPitchError);
 
             cruiser.Cruise(shipControl, VTVLHELPER_LAUNCH_SPEED,
                            condition: ThrusterCondition,
@@ -455,8 +455,8 @@ public class VTVLHelper
         var gravity = controller.GetNaturalGravity();
         if (gravity.LengthSquared() > 0.0)
         {
-            double yawError, pitchError;
-            seeker.Seek(shipControl, gravity, out yawError, out pitchError);
+            double yawPitchError;
+            seeker.Seek(shipControl, gravity, out yawPitchError);
 
             OrbitTicks++;
             if (OrbitTicks >= OrbitOnDelay)

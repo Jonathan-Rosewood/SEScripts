@@ -61,9 +61,9 @@ public class YawPitchAutopilot
         var targetVector = AutopilotTarget - shipControl.ReferencePoint;
         var distance = targetVector.Normalize();
 
-        double yawError, pitchError;
+        double yawPitchError;;
         var gyroControl = seeker.Seek(shipControl, targetVector,
-                                      out yawError, out pitchError);
+                                      out yawPitchError);
 
         var targetSpeed = Math.Min(distance / AUTOPILOT_TTT_BUFFER,
                                    AutopilotSpeed);

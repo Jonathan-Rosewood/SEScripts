@@ -259,8 +259,8 @@ public class TargetTracker
         // Note we use target's center, not aim point
         var targetGuess = TargetPosition + TargetVelocity * delta.TotalSeconds;
 
-        double yawError, pitchError;
-        seeker.Seek(shipControl, targetGuess - shipControl.ReferencePoint, out yawError, out pitchError);
+        double yawPitchError;
+        seeker.Seek(shipControl, targetGuess - shipControl.ReferencePoint, out yawPitchError);
 
         eventDriver.Schedule(1, Lock);
     }

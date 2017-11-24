@@ -131,8 +131,8 @@ public class MissileGuidance : BaseMissileGuidance
             // Add to projection to get adjusted aimpoint
             var aimPoint = forwardProj + forwardRej;
 
-            double yawError, pitchError;
-            seeker.Seek(shipControl, aimPoint, out yawError, out pitchError);
+            double yawPitchError;
+            seeker.Seek(shipControl, aimPoint, out yawPitchError);
         }
         else
         {
