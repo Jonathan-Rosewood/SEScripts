@@ -34,23 +34,25 @@ public class Seeker
         ShipUp = shipUp;
         ShipLeft = Base6Directions.GetLeft(ShipUp, ShipForward);
 
+        double maxVel = Math.PI / 4.0;
+
         yawPID.Kp = AngleKp;
         yawPID.Ti = AngleTi;
         yawPID.Td = AngleTd;
-        yawPID.min = -Math.PI;
-        yawPID.max = Math.PI;
+        yawPID.min = -maxVel;
+        yawPID.max = maxVel;
 
         pitchPID.Kp = AngleKp;
         pitchPID.Ti = AngleTi;
         pitchPID.Td = AngleTd;
-        pitchPID.min = -Math.PI;
-        pitchPID.max = Math.PI;
+        pitchPID.min = -maxVel;
+        pitchPID.max = maxVel;
 
         rollPID.Kp = AngleKp / 2.0; // Don't ask
         rollPID.Ti = AngleTi;
         rollPID.Td = AngleTd;
-        rollPID.min = -Math.PI;
-        rollPID.max = Math.PI;
+        rollPID.min = -maxVel;
+        rollPID.max = maxVel;
 
         yawVPID.Kp = VelKp;
         yawVPID.Ti = VelTi;
