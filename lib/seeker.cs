@@ -1,21 +1,29 @@
 //@ shipcontrol pid
 public class Seeker
 {
-    private const double SmallGyroKp = 100.0; // Proportional constant
-    private const double SmallGyroTi = 5.0; // Integral constant
-    private const double SmallGyroTd = 0.3; // Derivative constant
-    private const double LargeGyroKp = 100.0; // Proportional constant
-    private const double LargeGyroTi = 20.0; // Integral constant
-    private const double LargeGyroTd = 1.0; // Derivative constant
+    private const double AngleKp = 5.0;
+    private const double AngleTi = 0.0;
+    private const double AngleTd = 0.08;
+    private const double VelKp = 1.0;
+    private const double VelTi = 0.0;
+    private const double VelTd = 0.08;
     private readonly PIDController yawPID, pitchPID, rollPID;
+    private readonly PIDController yawVPID, pitchVPID, rollVPID;
 
     private Base6Directions.Direction ShipForward, ShipUp, ShipLeft;
+
+    public double ControlThreshold { get; set; }
 
     public Seeker(double dt)
     {
         yawPID = new PIDController(dt);
         pitchPID = new PIDController(dt);
         rollPID = new PIDController(dt);
+        yawVPID = new PIDController(dt);
+        pitchVPID = new PIDController(dt);
+        rollVPID = new PIDController(dt);
+
+        ControlThreshold = 0.01;
     }
 
     public void Init(ShipControlCommons shipControl,
@@ -26,23 +34,48 @@ public class Seeker
         ShipUp = shipUp;
         ShipLeft = Base6Directions.GetLeft(ShipUp, ShipForward);
 
-        var small = shipControl.Me.CubeGrid.GridSize == 0.5f;
+        yawPID.Kp = AngleKp;
+        yawPID.Ti = AngleTi;
+        yawPID.Td = AngleTd;
+        yawPID.min = -Math.PI;
+        yawPID.max = Math.PI;
 
-        yawPID.Kp = small ? SmallGyroKp : LargeGyroKp;
-        yawPID.Ti = small ? SmallGyroTi : LargeGyroTi;
-        yawPID.Td = small ? SmallGyroTd : LargeGyroTd;
+        pitchPID.Kp = AngleKp;
+        pitchPID.Ti = AngleTi;
+        pitchPID.Td = AngleTd;
+        pitchPID.min = -Math.PI;
+        pitchPID.max = Math.PI;
 
-        pitchPID.Kp = small ? SmallGyroKp : LargeGyroKp;
-        pitchPID.Ti = small ? SmallGyroTi : LargeGyroTi;
-        pitchPID.Td = small ? SmallGyroTd : LargeGyroTd;
+        rollPID.Kp = AngleKp / 2.0; // Don't ask
+        rollPID.Ti = AngleTi;
+        rollPID.Td = AngleTd;
+        rollPID.min = -Math.PI;
+        rollPID.max = Math.PI;
 
-        rollPID.Kp = small ? SmallGyroKp : LargeGyroKp;
-        rollPID.Ti = small ? SmallGyroTi : LargeGyroTi;
-        rollPID.Td = small ? SmallGyroTd : LargeGyroTd;
+        yawVPID.Kp = VelKp;
+        yawVPID.Ti = VelTi;
+        yawVPID.Td = VelTd;
+        yawVPID.min = -Math.PI;
+        yawVPID.max = Math.PI;
+
+        pitchVPID.Kp = VelKp;
+        pitchVPID.Ti = VelTi;
+        pitchVPID.Td = VelTd;
+        pitchVPID.min = -Math.PI;
+        pitchVPID.max = Math.PI;
+
+        rollVPID.Kp = VelKp / 2.0; // Don't ask
+        rollVPID.Ti = VelTi;
+        rollVPID.Td = VelTd;
+        rollVPID.min = -Math.PI;
+        rollVPID.max = Math.PI;
 
         yawPID.Reset();
         pitchPID.Reset();
         rollPID.Reset();
+        yawVPID.Reset();
+        pitchVPID.Reset();
+        rollVPID.Reset();
     }
 
     // Yaw/pitch only
@@ -70,6 +103,14 @@ public class Seeker
                               out double yawError, out double pitchError,
                               out double rollError)
     {
+        var angularVelocity = shipControl.AngularVelocity;
+        if (angularVelocity == null)
+        {
+            // No ship controller, no action
+            yawError = pitchError = rollError = Math.PI;
+            return shipControl.GyroControl;
+        }
+
         Vector3D referenceForward;
         Vector3D referenceLeft;
         Vector3D referenceUp;
@@ -99,18 +140,36 @@ public class Seeker
         // Invert our world matrix
         var toLocal = MatrixD.Invert(MatrixD.CreateWorld(Vector3D.Zero, referenceForward, referenceUp));
 
-        // And bring targetVector into local space
+        // And bring targetVector & angular velocity into local space
         var localTarget = Vector3D.Transform(-targetVector, toLocal);
+        var localVel = Vector3D.Transform((Vector3D)angularVelocity, toLocal);
 
-        // Finally use simple trig to get the error angles
+        // Use simple trig to get the error angles
         yawError = Math.Atan2(localTarget.X, localTarget.Z);
         pitchError = Math.Atan2(localTarget.Y, localTarget.Z);
 
-        var gyroYaw = yawPID.Compute(yawError);
-        var gyroPitch = pitchPID.Compute(pitchError);
+        // Set desired angular velocity
+        var desiredYawVel = yawPID.Compute(yawError);
+        var desiredPitchVel = pitchPID.Compute(pitchError);
 
-        gyroControl.SetAxisVelocityFraction(GyroControl.Yaw, (float)gyroYaw);
-        gyroControl.SetAxisVelocityFraction(GyroControl.Pitch, (float)gyroPitch);
+        //shipControl.Echo(string.Format("desiredVel = {0:F3}, {1:F3}", desiredYawVel, desiredPitchVel));
+
+        // Translate to gyro outputs
+        double gyroYaw = 0.0;
+        if (Math.Abs(desiredYawVel) >= ControlThreshold)
+        {
+            gyroYaw = yawVPID.Compute(desiredYawVel - localVel.X);
+        }
+        double gyroPitch = 0.0;
+        if (Math.Abs(desiredPitchVel) >= ControlThreshold)
+        {
+            gyroPitch = pitchVPID.Compute(desiredPitchVel - localVel.Y);
+        }
+
+        //shipControl.Echo(string.Format("yaw, pitch = {0:F3}, {1:F3}", gyroYaw, gyroPitch));
+
+        gyroControl.SetAxisVelocity(GyroControl.Yaw, (float)gyroYaw);
+        gyroControl.SetAxisVelocity(GyroControl.Pitch, (float)gyroPitch);
 
         if (targetUp != null)
         {
@@ -119,9 +178,19 @@ public class Seeker
 
             rollError = Math.Atan2(localTarget.X, localTarget.Y);
 
-            var gyroRoll = rollPID.Compute(rollError);
+            var desiredRollVel = rollPID.Compute(rollError);
 
-            gyroControl.SetAxisVelocityFraction(GyroControl.Roll, (float)gyroRoll);
+            //shipControl.Echo(string.Format("desiredRollVel = {0:F3}", desiredRollVel));
+
+            double gyroRoll = 0.0;
+            if (Math.Abs(desiredRollVel) >= ControlThreshold)
+            {
+                gyroRoll = rollVPID.Compute(desiredRollVel - localVel.Z);
+            }
+
+            //shipControl.Echo(string.Format("roll = {0:F3}", gyroRoll));
+
+            gyroControl.SetAxisVelocity(GyroControl.Roll, (float)gyroRoll);
         }
         else
         {

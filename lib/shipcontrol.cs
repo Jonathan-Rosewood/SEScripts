@@ -172,4 +172,13 @@ public class ShipControlCommons : ZACommons
                 ShipController.GetShipVelocities().LinearVelocity : (Vector3D?)null;
         }
     }
+
+    public Vector3D? AngularVelocity
+    {
+        get
+        {
+            return ShipController != null ?
+                ShipController.GetShipVelocities().AngularVelocity : (Vector3D?)null;
+        }
+    }
 }
