@@ -197,7 +197,19 @@ public class TargetTracker
             return;
         }
 
-        var info = camera.Raycast(RaycastRange);
+        MyDetectedEntityInfo info;
+        if (GyroLock && LastTargetUpdate != null)
+        {
+            // If we're locked, attempt to cast at the predicted center
+            var delta = eventDriver.TimeSinceStart - (TimeSpan)LastTargetUpdate;
+            var targetGuess = TargetPosition + TargetVelocity * delta.TotalSeconds;
+            info = camera.Raycast(targetGuess);
+        }
+        else
+        {
+            // Otherwise just cast straight ahead
+            info = camera.Raycast(RaycastRange);
+        }
         if (info.IsEmpty())
         {
             // Missed? Increase range, try again and release gyro
