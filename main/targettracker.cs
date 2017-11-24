@@ -155,6 +155,7 @@ public class TargetTracker
             // Missed? Increase range and try again
             RaycastRange = Math.Min(RaycastRange * RAYCAST_RANGE_BUFFER, INITIAL_RAYCAST_RANGE);
             eventDriver.Schedule(1, Snapshot);
+            PostFeedback(commons, TRACKER_MISS_GROUP);
             return;
         }
 
@@ -163,6 +164,8 @@ public class TargetTracker
         // Switch to paint automatically (leave gyro lock alone)
         RaycastRange = (TargetPosition - camera.GetPosition()).Length() * RAYCAST_RANGE_BUFFER;
         BeginPaint(commons, eventDriver, released: PreviousMode == RELEASED);
+
+        PostFeedback(commons, TRACKER_PING_GROUP);
     }
 
     private void BeginPaint(ZACommons commons, EventDriver eventDriver, bool released = false)
@@ -201,6 +204,7 @@ public class TargetTracker
             RaycastRange = Math.Min(RaycastRange * RAYCAST_RANGE_BUFFER, INITIAL_RAYCAST_RANGE);
             GyroLock = false;
             eventDriver.Schedule(1, Paint);
+            PostFeedback(commons, TRACKER_MISS_GROUP);
             return;
         }
 
@@ -210,6 +214,8 @@ public class TargetTracker
 
         BeginLock(commons, eventDriver);
         eventDriver.Schedule(TRACKER_UPDATE_RATE, Paint);
+
+        PostFeedback(commons, TRACKER_PING_GROUP);
     }
 
     private void BeginLock(ZACommons commons, EventDriver eventDriver)
@@ -347,5 +353,24 @@ public class TargetTracker
             throw new Exception("Expecting camera in group " + MAIN_CAMERA_GROUP);
         }
         return camera;
+    }
+
+    private void PostFeedback(ZACommons commons, string groupName)
+    {
+        var group = commons.GetBlockGroupWithName(groupName);
+        if (group != null)
+        {
+            foreach (var block in group.Blocks)
+            {
+                if (block is IMyTimerBlock)
+                {
+                    ((IMyTimerBlock)block).Trigger();
+                }
+                else if (block is IMySoundBlock)
+                {
+                    ((IMySoundBlock)block).Play();
+                }
+            }
+        }
     }
 }
