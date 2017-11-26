@@ -1,7 +1,7 @@
 //! Warship Manager
 //@ shipcontrol eventdriver doorautocloser simpleairlock oxygenmanager
 //@ redundancy damagecontrol safemode cruisecontrol emergencystop
-//@ sequencer speedaction combatranger stocker projectoraction
+//@ sequencer speedaction combatranger stocker projectoraction firecontrol
 public class MySafeModeHandler : SafeModeHandler
 {
     public void SafeMode(ZACommons commons, EventDriver eventDriver)
@@ -27,6 +27,7 @@ private readonly SpeedAction speedAction = new SpeedAction();
 private readonly CombatRanger combatRanger = new CombatRanger();
 private readonly Stocker stocker = new Stocker();
 private readonly ProjectorAction projectorAction = new ProjectorAction();
+private readonly FireControl fireControl = new FireControl();
 private readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
@@ -61,6 +62,7 @@ void Main(string argument, UpdateType updateType)
         cruiseControl.Init(commons, eventDriver, LivenessCheck);
         speedAction.Init(commons, eventDriver);
         stocker.Init(commons, eventDriver);
+        fireControl.Init(commons, eventDriver);
     }
 
     eventDriver.Tick(commons, argAction: () => {
@@ -70,13 +72,14 @@ void Main(string argument, UpdateType updateType)
             sequencer.HandleCommand(commons, eventDriver, argument);
             combatRanger.HandleCommand(commons, argument);
             projectorAction.HandleCommand(commons, eventDriver, argument);
-            HandleCommand(commons, eventDriver, argument);
+            fireControl.HandleCommand(commons, eventDriver, argument);
         },
         postAction: () => {
             damageControl.Display(commons);
             cruiseControl.Display(commons);
             sequencer.Display(commons);
             combatRanger.Display(commons);
+            fireControl.Display(commons, eventDriver);
         });
 
     if (commons.IsDirty) Storage = myStorage.Encode();
@@ -86,23 +89,4 @@ bool LivenessCheck(ZACommons commons, EventDriver eventDriver)
 {
     if (CONTROL_CHECK_ENABLED) safeMode.TriggerIfUncontrolled(commons, eventDriver);
     return !safeMode.Abandoned;
-}
-
-public void HandleCommand(ZACommons commons, EventDriver eventDriver, string argument)
-{
-    argument = argument.Trim().ToLower();
-    if (argument == "firefirefire")
-    {
-        var group = commons.GetBlockGroupWithName(GC_FIRE_GROUP);
-        if (group != null)
-        {
-            foreach (var block in group.Blocks)
-            {
-                if (block is IMyProgrammableBlock)
-                {
-                    ((IMyProgrammableBlock)block).TryRun("firefirefire");
-                }
-            }
-        }
-    }
 }
