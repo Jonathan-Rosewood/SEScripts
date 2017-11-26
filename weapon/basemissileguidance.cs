@@ -1,4 +1,4 @@
-//@ commons eventdriver missilelaunch
+//@ commons eventdriver standardmissile
 public abstract class BaseMissileGuidance
 {
     private const double RaycastRangeBuffer = 1.2;
@@ -106,7 +106,7 @@ public abstract class BaseMissileGuidance
 
     protected void InitCamera(ZACommons commons, EventDriver eventDriver)
     {
-        var systemsGroup = commons.GetBlockGroupWithName(MissileLaunch.SYSTEMS_GROUP + MissileGroupSuffix);
+        var systemsGroup = commons.GetBlockGroupWithName(StandardMissile.SYSTEMS_GROUP + MissileGroupSuffix);
         if (systemsGroup == null) return; // Kinda weird, but don't fret about it here
         // Just grab first camera from group, if any
         // TODO support multiple cameras for more frequent scans

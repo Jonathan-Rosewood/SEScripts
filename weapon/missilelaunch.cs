@@ -1,10 +1,6 @@
-//@ shipcontrol eventdriver
+//@ shipcontrol eventdriver standardmissile
 public class MissileLaunch
 {
-    private const string BATTERY_GROUP = "CM Batteries";
-    public const string SYSTEMS_GROUP = "CM Systems";
-    private const string RELEASE_GROUP = "CM Release";
-
     private Action<ZACommons, EventDriver> PostLaunch;
 
     public bool Launched { get; private set; }
@@ -24,15 +20,15 @@ public class MissileLaunch
     public void Prime(ZACommons commons, EventDriver eventDriver)
     {
         // Wake up batteries
-        var batteryGroup = commons.GetBlockGroupWithName(BATTERY_GROUP + MissileGroupSuffix);
+        var batteryGroup = commons.GetBlockGroupWithName(StandardMissile.BATTERY_GROUP + MissileGroupSuffix);
         if (batteryGroup == null)
         {
-            throw new Exception("Group missing: " + BATTERY_GROUP + MissileGroupSuffix);
+            throw new Exception("Group missing: " + StandardMissile.BATTERY_GROUP + MissileGroupSuffix);
         }
-        var systemsGroup = commons.GetBlockGroupWithName(SYSTEMS_GROUP + MissileGroupSuffix);
+        var systemsGroup = commons.GetBlockGroupWithName(StandardMissile.SYSTEMS_GROUP + MissileGroupSuffix);
         if (systemsGroup == null)
         {
-            throw new Exception("Group missing: " + SYSTEMS_GROUP + MissileGroupSuffix);
+            throw new Exception("Group missing: " + StandardMissile.SYSTEMS_GROUP + MissileGroupSuffix);
         }
 
         var batteries = ZACommons.GetBlocksOfType<IMyBatteryBlock>(batteryGroup.Blocks);
@@ -51,10 +47,10 @@ public class MissileLaunch
 
     public void Release(ZACommons commons, EventDriver eventDriver)
     {
-        var releaseGroup = commons.GetBlockGroupWithName(RELEASE_GROUP + MissileGroupSuffix);
+        var releaseGroup = commons.GetBlockGroupWithName(StandardMissile.RELEASE_GROUP + MissileGroupSuffix);
         if (releaseGroup == null)
         {
-            throw new Exception("Group missing: " + RELEASE_GROUP + MissileGroupSuffix);
+            throw new Exception("Group missing: " + StandardMissile.RELEASE_GROUP + MissileGroupSuffix);
         }
 
         // Unlock any landing gear
