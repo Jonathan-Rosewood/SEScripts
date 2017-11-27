@@ -1,8 +1,6 @@
 //@ shipcontrol eventdriver standardmissile
 public class GravLaunch
 {
-    private const string MASS_GROUP = "Shell Mass";
-
     private Action<ZACommons, EventDriver> PostLaunch;
 
     public bool Launched { get; private set; }
@@ -77,7 +75,7 @@ public class GravLaunch
         if (shipController == null || shipController.GetArtificialGravity().LengthSquared() == 0.0)
         {
             // Disable mass
-            var group = commons.GetBlockGroupWithName(MASS_GROUP);
+            var group = commons.GetBlockGroupWithName(StandardMissile.MASS_GROUP + MissileGroupSuffix);
             if (group != null)  ZACommons.EnableBlocks(group.Blocks, false);
 
             // All done (or remote is gone), begin arming sequence

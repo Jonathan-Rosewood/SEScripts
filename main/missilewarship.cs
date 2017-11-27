@@ -94,8 +94,7 @@ void HandleCommand(ZACommons commons, EventDriver eventDriver, string argument)
     argument = argument.Trim().ToLower();
     if (argument == "firefirefire")
     {
-        var group = commons.GetBlockGroupWithName(GC_FIRE_GROUP);
-        if (group != null)
+        foreach (var group in commons.GetBlockGroupsWithPrefix(GM_TRIGGER_PREFIX))
         {
             foreach (var block in group.Blocks)
             {

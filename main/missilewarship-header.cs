@@ -8,4 +8,4 @@ const bool SIMPLE_AIRLOCK_ENABLE = true;
 const bool OXYGEN_MANAGER_ENABLE = true;
 
 // Gravity cannon trigger workaround
-const string GC_FIRE_GROUP = "Shell Prime";
+const string GM_TRIGGER_PREFIX = "CM Trigger";
