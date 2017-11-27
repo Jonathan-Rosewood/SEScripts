@@ -19,6 +19,11 @@ public class TargetTracker
 
     private double RaycastRange;
 
+    // Refresh data
+    private MyDetectedEntityInfo? RefreshInfo;
+    private TimeSpan RefreshUpdateTime;
+    private Vector3D TargetOffset;
+
     // Target data for gyro lock
     private Vector3D TargetPosition, TargetVelocity;
     private TimeSpan? LastTargetUpdate;
@@ -35,6 +40,7 @@ public class TargetTracker
         camera.EnableRaycast = false;
         Mode = IDLE;
         GyroLock = false;
+        RefreshInfo = null;
 
         shipControl.GyroControl.EnableOverride(false);
     }
@@ -126,6 +132,11 @@ public class TargetTracker
 
         TargetUpdated(commons, eventDriver, info, full: true, localOnly: LocalOnly);
 
+        // Start up refresh task if needed
+        if (RefreshInfo == null) eventDriver.Schedule(TRACKER_REFRESH_RATE, Refresh);
+        RefreshInfo = info;
+        RefreshUpdateTime = eventDriver.TimeSinceStart;
+
         // Switch to paint automatically (leave gyro lock alone)
         RaycastRange = (TargetPosition - camera.GetPosition()).Length() * RAYCAST_RANGE_BUFFER;
         BeginPaint(commons, eventDriver, released: PreviousMode == RELEASED);
@@ -186,6 +197,13 @@ public class TargetTracker
         }
 
         TargetUpdated(commons, eventDriver, info);
+
+        // Also update saved info for refresh if ID is the same
+        if (RefreshInfo != null && info.EntityId == ((MyDetectedEntityInfo)RefreshInfo).EntityId)
+        {
+            RefreshInfo = info;
+            RefreshUpdateTime = eventDriver.TimeSinceStart;
+        }
 
         RaycastRange = (TargetPosition - camera.GetPosition()).Length() * RAYCAST_RANGE_BUFFER;
 
@@ -253,26 +271,65 @@ public class TargetTracker
         }
     }
 
-    private void TargetUpdated(ZACommons commons, EventDriver eventDriver, MyDetectedEntityInfo info, bool full = false, bool localOnly = false)
+    public void Refresh(ZACommons commons, EventDriver eventDriver)
     {
-        TargetPosition = info.Position;
-        TargetVelocity = new Vector3D(info.Velocity);
+        if (Mode == IDLE)
+        {
+            RefreshInfo = null;
+            return;
+        }
+
+        // Refresh all local PBs, but don't update gyro lock info
+        TargetUpdated(commons, eventDriver, (MyDetectedEntityInfo)RefreshInfo, full: true, localOnly: true, updateTime: RefreshUpdateTime, newOffset: false);
+
+        eventDriver.Schedule(TRACKER_REFRESH_RATE, Refresh);
+    }
+
+    private void TargetUpdated(ZACommons commons, EventDriver eventDriver, MyDetectedEntityInfo info, bool full = false, bool localOnly = false, TimeSpan? updateTime = null, bool newOffset = true)
+    {
+        var position = info.Position;
+        var velocity = new Vector3D(info.Velocity);
         // Convert to quaternion so it's more compact
         var orientation = QuaternionD.CreateFromRotationMatrix(info.Orientation);
-        LastTargetUpdate = eventDriver.TimeSinceStart;
+
+        if (updateTime == null)
+        {
+            // Fresh update, use it for gyro lock
+            TargetPosition = position;
+            TargetVelocity = velocity;
+            LastTargetUpdate = eventDriver.TimeSinceStart;
+        }
+        else
+        {
+            // Interpolate position since given update time
+            var delta = (eventDriver.TimeSinceStart - (TimeSpan)updateTime).TotalSeconds;
+            position += velocity * delta;
+        }
 
         // Compose message
         string msg;
         if (full)
         {
-            var offset = (Vector3D)info.HitPosition - TargetPosition;
-            var toLocal = MatrixD.Invert(info.Orientation);
-            var localOffset = Vector3D.Transform(offset, toLocal);
+            Vector3D localOffset;
+            if (newOffset)
+            {
+                // Be sure to use original position when determining offset
+                var offset = (Vector3D)info.HitPosition - info.Position;
+                var toLocal = MatrixD.Invert(info.Orientation);
+                localOffset = Vector3D.Transform(offset, toLocal);
+
+                // Save for future
+                TargetOffset = localOffset;
+            }
+            else
+            {
+                localOffset = TargetOffset;
+            }
 
             msg = string.Format("tnew;{0};{1};{2};{3};{4};{5};{6};{7};{8};{9};{10};{11};{12};{13}",
                                 info.EntityId,
-                                TargetPosition.X, TargetPosition.Y, TargetPosition.Z,
-                                TargetVelocity.X, TargetVelocity.Y, TargetVelocity.Z,
+                                position.X, position.Y, position.Z,
+                                velocity.X, velocity.Y, velocity.Z,
                                 orientation.X, orientation.Y, orientation.Z, orientation.W,
                                 localOffset.X, localOffset.Y, localOffset.Z);
         }
@@ -280,8 +337,8 @@ public class TargetTracker
         {
             msg = string.Format("tupdate;{0};{1};{2};{3};{4};{5};{6};{7};{8};{9};{10}",
                                 info.EntityId,
-                                TargetPosition.X, TargetPosition.Y, TargetPosition.Z,
-                                TargetVelocity.X, TargetVelocity.Y, TargetVelocity.Z,
+                                position.X, position.Y, position.Z,
+                                velocity.X, velocity.Y, velocity.Z,
                                 orientation.X, orientation.Y, orientation.Z, orientation.W);
         }
 
