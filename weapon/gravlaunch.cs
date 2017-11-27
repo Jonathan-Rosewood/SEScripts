@@ -1,0 +1,102 @@
+//@ shipcontrol eventdriver standardmissile
+public class GravLaunch
+{
+    private const string MASS_GROUP = "Shell Mass";
+
+    private Action<ZACommons, EventDriver> PostLaunch;
+
+    public bool Launched { get; private set; }
+
+    public GravLaunch()
+    {
+        Launched = false;
+    }
+
+    public void Init(ZACommons commons, EventDriver eventDriver,
+                     Action<ZACommons, EventDriver> postLaunch)
+    {
+        PostLaunch = postLaunch;
+        eventDriver.Schedule(0, Prime);
+    }
+
+    public void Prime(ZACommons commons, EventDriver eventDriver)
+    {
+        // Wake up batteries
+        var batteryGroup = commons.GetBlockGroupWithName(StandardMissile.BATTERY_GROUP + MissileGroupSuffix);
+        if (batteryGroup == null)
+        {
+            throw new Exception("Group missing: " + StandardMissile.BATTERY_GROUP + MissileGroupSuffix);
+        }
+        var systemsGroup = commons.GetBlockGroupWithName(StandardMissile.SYSTEMS_GROUP + MissileGroupSuffix);
+        if (systemsGroup == null)
+        {
+            throw new Exception("Group missing: " + StandardMissile.SYSTEMS_GROUP + MissileGroupSuffix);
+        }
+
+        var batteries = ZACommons.GetBlocksOfType<IMyBatteryBlock>(batteryGroup.Blocks);
+        batteries.ForEach(battery =>
+                {
+                    battery.SetValue<bool>("OnOff", true);
+                    battery.SetValue<bool>("Recharge", false);
+                    battery.SetValue<bool>("Discharge", true);
+                });
+
+        // Activate flight systems
+        ZACommons.EnableBlocks(systemsGroup.Blocks, true);
+
+        eventDriver.Schedule(1.0, Release);
+    }
+
+    public void Release(ZACommons commons, EventDriver eventDriver)
+    {
+        var releaseGroup = commons.GetBlockGroupWithName(StandardMissile.RELEASE_GROUP + MissileGroupSuffix);
+        if (releaseGroup == null)
+        {
+            throw new Exception("Group missing: " + StandardMissile.RELEASE_GROUP + MissileGroupSuffix);
+        }
+
+        // Unlock any landing gear
+        ZACommons.ForEachBlockOfType<IMyLandingGear>(releaseGroup.Blocks,
+                                                     gear => gear.ApplyAction("Unlock"));
+        // And then turn everything off (connectors, merge blocks, etc)
+        ZACommons.EnableBlocks(releaseGroup.Blocks, false);
+
+        // Initialize flight control
+        var shipControl = (ShipControlCommons)commons;
+
+        shipControl.Reset(gyroOverride: true, thrusterEnable: null);
+
+        eventDriver.Schedule(0.1, Demass);
+    }
+
+    public void Demass(ZACommons commons, EventDriver eventDriver)
+    {
+        var shipControl = (ShipControlCommons)commons;
+
+        var shipController = shipControl.ShipController;
+        if (shipController == null || shipController.GetArtificialGravity().LengthSquared() == 0.0)
+        {
+            // Disable mass
+            var group = commons.GetBlockGroupWithName(MASS_GROUP);
+            if (group != null)  ZACommons.EnableBlocks(group.Blocks, false);
+
+            // All done (or remote is gone), begin arming sequence
+            eventDriver.Schedule(0, Arm);
+        }
+        else
+        {
+            eventDriver.Schedule(1, Demass);
+        }
+    }
+
+    public void Arm(ZACommons commons, EventDriver eventDriver)
+    {
+        // Find all warheads on board and turn off safeties
+        var warheads = ZACommons.GetBlocksOfType<IMyWarhead>(commons.Blocks);
+        warheads.ForEach(warhead => warhead.SetValue<bool>("Safety", false));
+
+        // We're done, let other systems take over
+        Launched = true;
+        PostLaunch(commons, eventDriver);
+    }
+}
