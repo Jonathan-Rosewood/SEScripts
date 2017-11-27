@@ -285,11 +285,10 @@ public class TargetTracker
                                 orientation.X, orientation.Y, orientation.Z, orientation.W);
         }
 
-        var updateGroup = commons.GetBlockGroupWithName(TARGET_UPDATE_GROUP);
-        if (updateGroup != null)
+        var broadcasted = false;
+        foreach (var group in commons.GetBlockGroupsWithPrefix(TARGET_UPDATE_PREFIX))
         {
-            var broadcasted = false;
-            foreach (var block in updateGroup.Blocks)
+            foreach (var block in group.Blocks)
             {
                 if (block is IMyProgrammableBlock)
                 {

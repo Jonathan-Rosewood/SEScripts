@@ -1,6 +1,6 @@
 // TargetTracker
 const string MAIN_CAMERA_GROUP = "MainCamera";
-const string TARGET_UPDATE_GROUP = "TrackerUpdates";
+const string TARGET_UPDATE_PREFIX = "TrackerUpdates";
 const MyTransmitTarget TRACKER_ANTENNA_TARGET = MyTransmitTarget.Default;
 
 const double INITIAL_RAYCAST_RANGE = 10000.0; // In meters
