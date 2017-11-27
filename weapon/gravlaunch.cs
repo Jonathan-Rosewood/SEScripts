@@ -3,6 +3,8 @@ public class GravLaunch
 {
     private Action<ZACommons, EventDriver> PostLaunch;
 
+    private double ReleaseDelay;
+
     public bool Launched { get; private set; }
 
     public GravLaunch()
@@ -10,10 +12,11 @@ public class GravLaunch
         Launched = false;
     }
 
-    public void Init(ZACommons commons, EventDriver eventDriver,
+    public void Init(ZACommons commons, EventDriver eventDriver, ZACustomData customData, 
                      Action<ZACommons, EventDriver> postLaunch)
     {
         PostLaunch = postLaunch;
+        ReleaseDelay = customData.GetDouble("releaseDelay");
         eventDriver.Schedule(0, Prime);
     }
 
@@ -42,11 +45,15 @@ public class GravLaunch
         // Activate flight systems
         ZACommons.EnableBlocks(systemsGroup.Blocks, true);
 
-        eventDriver.Schedule(1.0, Release);
+        eventDriver.Schedule(0.1+ReleaseDelay, Release);
     }
 
     public void Release(ZACommons commons, EventDriver eventDriver)
     {
+        // Enable mass
+        var group = commons.GetBlockGroupWithName(StandardMissile.MASS_GROUP + MissileGroupSuffix);
+        if (group != null)  ZACommons.EnableBlocks(group.Blocks, true);
+
         var releaseGroup = commons.GetBlockGroupWithName(StandardMissile.RELEASE_GROUP + MissileGroupSuffix);
         if (releaseGroup == null)
         {

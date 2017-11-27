@@ -35,7 +35,7 @@ void Main(string argument, UpdateType updateType)
                 shipOrientation.SetShipReference(c, StandardMissile.SYSTEMS_GROUP + MissileGroupSuffix,
                                                  block => block is IMyGyro);
 
-                gravLaunch.Init(c, ed, (c2,ed2) => {
+                gravLaunch.Init(c, ed, customData, (c2,ed2) => {
                         proNavGuidance.Init(c2, ed2);
                     });
             });
