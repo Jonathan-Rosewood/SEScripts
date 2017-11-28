@@ -199,10 +199,15 @@ public class FireControl
         var targetGuess = TargetAimPoint + TargetVelocity * delta.TotalSeconds;
 
         // Solve for intersection of expanding sphere + moving object
+        // Note sphere may have an initial radius (to account for offset from
+        // CoM) and may only start expanding after some delay (to account for
+        // firing sequence + acceleration).
         var offset = targetGuess - shipControl.ReferencePoint;
-        var a = Vector3D.Dot(TargetVelocity, TargetVelocity) - FC_SHELL_SPEED * FC_SHELL_SPEED;
-        var b = 2.0 * Vector3D.Dot(offset, TargetVelocity);
-        var c = Vector3D.Dot(offset, offset);
+        var tVelSquared = Vector3D.Dot(TargetVelocity, TargetVelocity);
+        var a = tVelSquared - FC_SHELL_SPEED * FC_SHELL_SPEED;
+        var offsetDotVel = Vector3D.Dot(offset, TargetVelocity);
+        var b = 2.0 * (tVelSquared * FC_FIRE_DELAY + offsetDotVel - FC_SHELL_OFFSET * FC_SHELL_SPEED);
+        var c = Vector3D.Dot(offset, offset) + FC_FIRE_DELAY * FC_FIRE_DELAY * tVelSquared + 2.0 * FC_FIRE_DELAY * offsetDotVel - FC_SHELL_OFFSET * FC_SHELL_OFFSET;
 
         double interceptTime = 20.0;
 
@@ -219,7 +224,7 @@ public class FireControl
             else if (s2 > 0.0) interceptTime = s2;
         }
 
-        var prediction = targetGuess + TargetVelocity * (interceptTime + FC_FIRE_DELAY);
+        var prediction = targetGuess + TargetVelocity * interceptTime;
         
         double yawPitchError;
         seeker.Seek(shipControl, prediction - shipControl.ReferencePoint, out yawPitchError);
