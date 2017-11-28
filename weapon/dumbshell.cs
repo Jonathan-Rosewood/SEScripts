@@ -48,11 +48,15 @@ public class DumbShell
         // Activate systems
         ZACommons.EnableBlocks(systemsGroup.Blocks, true);
 
-        eventDriver.Schedule(1.0, Release);
+        eventDriver.Schedule(0.1, Release);
     }
 
     public void Release(ZACommons commons, EventDriver eventDriver)
     {
+        // Enable mass
+        var group = commons.GetBlockGroupWithName(MASS_GROUP);
+        if (group != null) ZACommons.EnableBlocks(group.Blocks, true);
+
         var releaseGroup = commons.GetBlockGroupWithName(RELEASE_GROUP);
         if (releaseGroup == null)
         {
