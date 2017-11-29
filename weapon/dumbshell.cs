@@ -14,6 +14,10 @@ public class DumbShell
     public TimeSpan InitialTime { get; private set; }
     public Vector3D LauncherVelocity { get; private set; }
 
+    private TimeSpan AccelStartTime;
+    private Vector3D AccelStartPosition, AccelLastPosition;
+    private readonly StringBuilder AccelResults = new StringBuilder();
+
     public void Init(ZACommons commons, EventDriver eventDriver,
                      Action<ZACommons, EventDriver> postLaunch = null)
     {
@@ -72,7 +76,33 @@ public class DumbShell
         // Turn release group off
         ZACommons.EnableBlocks(releaseGroup.Blocks, false);
 
+        // Statistics
+        AccelStartTime = eventDriver.TimeSinceStart;
+        AccelStartPosition = commons.Me.GetPosition();
+        AccelLastPosition = AccelStartPosition;
+        AccelResults.Append(string.Format("CoM Distance: {0:F2} m\n", (AccelStartPosition - ((ShipControlCommons)commons).ReferencePoint).Length()));
+        eventDriver.Schedule(TicksPerRun, AccelCheck);
+
         eventDriver.Schedule(1.0, Demass);
+    }
+
+    public void AccelCheck(ZACommons commons, EventDriver eventDriver)
+    {
+        var position = commons.Me.GetPosition();
+        // Approximate speed
+        var speed = (position - AccelLastPosition).Length() * RunsPerSecond;
+        // Do some rounding
+        speed = Math.Ceiling(speed * 10.0 + 0.5) / 10.0;
+        if (speed < 100.0) // TODO
+        {
+            AccelLastPosition = position;
+            eventDriver.Schedule(TicksPerRun, AccelCheck);
+            return;
+        }
+
+        // All done
+        AccelResults.Append(string.Format("Accel. Time: {0:F3} s\n", (eventDriver.TimeSinceStart - AccelStartTime).TotalSeconds));
+        AccelResults.Append(string.Format("Accel. Distance: {0:F2} m\n", (position - AccelStartPosition).Length()));
     }
 
     public void Demass(ZACommons commons, EventDriver eventDriver)
@@ -104,4 +134,8 @@ public class DumbShell
         if (PostLaunch != null) PostLaunch(commons, eventDriver);
     }
 
+    public void Display(ZACommons commons)
+    {
+        commons.Echo(AccelResults.ToString());
+    }
 }
