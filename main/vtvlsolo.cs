@@ -1,12 +1,15 @@
 //! VTVL Solo
-//@ shipcontrol eventdriver vtvlhelper
+//@ shipcontrol eventdriver vtvlhelper customdata
 private readonly EventDriver eventDriver = new EventDriver();
 private readonly VTVLHelper vtvlHelper = new VTVLHelper();
 private readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
+private readonly ZACustomData customData = new ZACustomData();
 
 private bool FirstRun = true;
+
+private string VTVLHelperRemoteGroup;
 
 Program()
 {
@@ -24,11 +27,14 @@ void Main(string argument, UpdateType updateType)
     {
         FirstRun = false;
 
+        customData.Parse(Me);
+        VTVLHelperRemoteGroup = customData.GetString("referenceGroup", VTVLHELPER_REMOTE_GROUP);
+
         myStorage.Decode(Storage);
 
-        shipOrientation.SetShipReference(commons, VTVLHELPER_REMOTE_GROUP);
+        shipOrientation.SetShipReference(commons, VTVLHelperRemoteGroup);
 
-        vtvlHelper.Init(commons, eventDriver);
+        vtvlHelper.Init(commons, eventDriver, customData);
     }
 
     eventDriver.Tick(commons, argAction: () => {

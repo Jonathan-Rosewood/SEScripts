@@ -2,7 +2,7 @@
 //@ shipcontrol eventdriver doorautocloser simpleairlock complexairlock
 //@ oxygenmanager airventmanager refinerymanager productionmanager
 //@ redundancy dockingaction damagecontrol reactormanager
-//@ safemode cruisecontrol solargyrocontroller emergencystop
+//@ safemode cruisecontrol solargyrocontroller emergencystop customdata
 public class MySafeModeHandler : SafeModeHandler
 {
     public void SafeMode(ZACommons commons, EventDriver eventDriver)
@@ -38,8 +38,14 @@ private readonly SolarGyroController solarGyroController =
 private readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
+private readonly ZACustomData customData = new ZACustomData();
 
 private bool FirstRun = true;
+
+private bool AutoCloseDoorsEnable, SimpleAirlockEnable, ComplexAirlockEnable;
+private bool OxygenManagerEnable, AirVentManagerEnable, RefineryManagerEnable;
+private bool ProductionManagerEnable, RedundancyManagerEnable;
+private bool DockingActionEnable, DamageControlEnable, ReactorManagerEnable;
 
 Program()
 {
@@ -56,26 +62,39 @@ void Main(string argument, UpdateType updateType)
     {
         FirstRun = false;
 
+        customData.Parse(Me);
+        AutoCloseDoorsEnable = customData.GetBool("autoCloseDoors", AUTO_CLOSE_DOORS_ENABLE);
+        SimpleAirlockEnable = customData.GetBool("simpleAirlock", SIMPLE_AIRLOCK_ENABLE);
+        ComplexAirlockEnable = customData.GetBool("complexAirlock", COMPLEX_AIRLOCK_ENABLE);
+        OxygenManagerEnable = customData.GetBool("oxygenManager", OXYGEN_MANAGER_ENABLE);
+        AirVentManagerEnable = customData.GetBool("airVentManager", AIR_VENT_MANAGER_ENABLE);
+        RefineryManagerEnable = customData.GetBool("refineryManager", REFINERY_MANAGER_ENABLE);
+        ProductionManagerEnable = customData.GetBool("productionManager", PRODUCTION_MANAGER_ENABLE);
+        RedundancyManagerEnable = customData.GetBool("redundancyManager", REDUNDANCY_MANAGER_ENABLE);
+        DockingActionEnable = customData.GetBool("dockingAction", DOCKING_ACTION_ENABLE);
+        DamageControlEnable = customData.GetBool("damageControl", DAMAGE_CONTROL_ENABLE);
+        ReactorManagerEnable = customData.GetBool("reactorManager", REACTOR_MANAGER_ENABLE);
+
         myStorage.Decode(Storage);
 
         shipOrientation.SetShipReference(commons, "CruiseControlReference");
 
         // Door management
-        if (AUTO_CLOSE_DOORS_ENABLE) doorAutoCloser.Init(commons, eventDriver);
-        if (SIMPLE_AIRLOCK_ENABLE) simpleAirlock.Init(commons, eventDriver);
-        if (COMPLEX_AIRLOCK_ENABLE) complexAirlock.Init(commons, eventDriver);
+        if (AutoCloseDoorsEnable) doorAutoCloser.Init(commons, eventDriver);
+        if (SimpleAirlockEnable) simpleAirlock.Init(commons, eventDriver);
+        if (ComplexAirlockEnable) complexAirlock.Init(commons, eventDriver);
 
         // Systems management
-        if (OXYGEN_MANAGER_ENABLE) oxygenManager.Init(commons, eventDriver);
-        if (AIR_VENT_MANAGER_ENABLE) airVentManager.Init(commons, eventDriver);
-        if (REFINERY_MANAGER_ENABLE) refineryManager.Init(commons, eventDriver);
-        if (PRODUCTION_MANAGER_ENABLE) productionManager.Init(commons, eventDriver);
+        if (OxygenManagerEnable) oxygenManager.Init(commons, eventDriver);
+        if (AirVentManagerEnable) airVentManager.Init(commons, eventDriver);
+        if (RefineryManagerEnable) refineryManager.Init(commons, eventDriver);
+        if (ProductionManagerEnable) productionManager.Init(commons, eventDriver);
 
         // Misc
-        if (REDUNDANCY_MANAGER_ENABLE) redundancyManager.Init(commons, eventDriver);
-        if (DOCKING_ACTION_ENABLE) dockingAction.Init(commons, eventDriver);
-        if (DAMAGE_CONTROL_ENABLE) damageControl.Init(commons, eventDriver);
-        if (REACTOR_MANAGER_ENABLE) reactorManager.Init(commons, eventDriver);
+        if (RedundancyManagerEnable) redundancyManager.Init(commons, eventDriver);
+        if (DockingActionEnable) dockingAction.Init(commons, eventDriver);
+        if (DamageControlEnable) damageControl.Init(commons, eventDriver);
+        if (ReactorManagerEnable) reactorManager.Init(commons, eventDriver);
 
         safeMode.Init(commons, eventDriver);
         cruiseControl.Init(commons, eventDriver, LivenessCheck);
@@ -84,18 +103,18 @@ void Main(string argument, UpdateType updateType)
 
     eventDriver.Tick(commons, argAction: () => {
             // Handle commands
-            if (COMPLEX_AIRLOCK_ENABLE) complexAirlock.HandleCommand(commons, eventDriver, argument);
-            if (PRODUCTION_MANAGER_ENABLE) productionManager.HandleCommand(commons, eventDriver, argument);
-            if (DAMAGE_CONTROL_ENABLE) damageControl.HandleCommand(commons, eventDriver, argument);
-            if (REACTOR_MANAGER_ENABLE) reactorManager.HandleCommand(commons, eventDriver, argument);
+            if (ComplexAirlockEnable) complexAirlock.HandleCommand(commons, eventDriver, argument);
+            if (ProductionManagerEnable) productionManager.HandleCommand(commons, eventDriver, argument);
+            if (DamageControlEnable) damageControl.HandleCommand(commons, eventDriver, argument);
+            if (ReactorManagerEnable) reactorManager.HandleCommand(commons, eventDriver, argument);
             safeMode.HandleCommand(commons, eventDriver, argument);
             cruiseControl.HandleCommand(commons, eventDriver, argument);
             solarGyroController.HandleCommand(commons, eventDriver, argument);
         },
         postAction: () => {
             solarGyroController.Display(commons);
-            if (PRODUCTION_MANAGER_ENABLE) productionManager.Display(commons);
-            if (DAMAGE_CONTROL_ENABLE) damageControl.Display(commons);
+            if (ProductionManagerEnable) productionManager.Display(commons);
+            if (DamageControlEnable) damageControl.Display(commons);
             cruiseControl.Display(commons);
         });
 

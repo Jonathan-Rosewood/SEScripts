@@ -1,7 +1,7 @@
 //! Utility Controller
 //@ shipcontrol eventdriver dockingmanager safemode smartundock
 //@ batterymonitor redundancy emergencystop
-//@ cruisecontrol vtvlhelper damagecontrol
+//@ cruisecontrol vtvlhelper damagecontrol customdata
 public class MySafeModeHandler : SafeModeHandler
 {
     public void SafeMode(ZACommons commons, EventDriver eventDriver)
@@ -24,8 +24,11 @@ private readonly DamageControl damageControl = new DamageControl();
 private readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
+private readonly ZACustomData customData = new ZACustomData();
 
 private bool FirstRun = true;
+
+private string VTVLHelperRemoteGroup;
 
 Program()
 {
@@ -43,16 +46,19 @@ void Main(string argument, UpdateType updateType)
     {
         FirstRun = false;
 
+        customData.Parse(Me);
+        VTVLHelperRemoteGroup = customData.GetString("referenceGroup", VTVLHELPER_REMOTE_GROUP);
+
         myStorage.Decode(Storage);
 
-        shipOrientation.SetShipReference(commons, VTVLHELPER_REMOTE_GROUP);
+        shipOrientation.SetShipReference(commons, VTVLHelperRemoteGroup);
 
         dockingManager.Init(commons, eventDriver, safeMode,
                             new BatteryMonitor(),
                             new RedundancyManager());
         smartUndock.Init(commons, eventDriver);
         cruiseControl.Init(commons, eventDriver, LivenessCheck);
-        vtvlHelper.Init(commons, eventDriver, LivenessCheck);
+        vtvlHelper.Init(commons, eventDriver, customData, LivenessCheck);
         damageControl.Init(commons, eventDriver);
     }
 

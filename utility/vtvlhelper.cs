@@ -1,4 +1,4 @@
-//@ shipcontrol eventdriver seeker cruiser
+//@ shipcontrol eventdriver seeker cruiser customdata
 public class VTVLHelper
 {
     private const string LastCommandKey = "VTVLHelper_LastCommand";
@@ -37,9 +37,16 @@ public class VTVLHelper
     private const uint OrbitOffDelay = 85;
     private ulong OrbitTicks = 0;
 
+    private Base6Directions.Direction BurnDirection, BrakeDirection, LaunchDirection;
+
     public void Init(ZACommons commons, EventDriver eventDriver,
+                     ZACustomData customData,
                      Func<ZACommons, EventDriver, bool> livenessCheck = null)
     {
+        BurnDirection = customData.GetDirection("burnDirection", VTVLHELPER_BURN_DIRECTION);
+        BrakeDirection = customData.GetDirection("brakeDirection", VTVLHELPER_BRAKE_DIRECTION);
+        LaunchDirection = customData.GetDirection("launchDirection", VTVLHELPER_LAUNCH_DIRECTION);
+
         LivenessCheck = livenessCheck;
 
         var lastCommand = commons.GetValue(LastCommandKey);
@@ -68,7 +75,7 @@ public class VTVLHelper
                 shipControl.Reset(gyroOverride: false, thrusterEnable: true,
                                   thrusterCondition: ThrusterCondition);
                 cruiser.Init(shipControl,
-                             localForward: VTVLHELPER_BURN_DIRECTION);
+                             localForward: BurnDirection);
 
                 if (Mode != BURNING)
                 {
@@ -84,12 +91,12 @@ public class VTVLHelper
                 ThrusterCondition = parts.Length > 2 ? ParseThrusterFlags(parts[2]) : null;
                 shipControl.Reset(gyroOverride: true, thrusterEnable: true,
                                   thrusterCondition: ThrusterCondition);
-                var down = shipControl.ShipBlockOrientation.TransformDirection(VTVLHELPER_BRAKE_DIRECTION);
+                var down = shipControl.ShipBlockOrientation.TransformDirection(BrakeDirection);
                 seeker.Init(shipControl,
                             shipUp: Base6Directions.GetPerpendicular(down),
                             shipForward: down);
                 cruiser.Init(shipControl,
-                             localForward: VTVLHELPER_BRAKE_DIRECTION);
+                             localForward: BrakeDirection);
 
                 if (Mode != BRAKING)
                 {
@@ -168,7 +175,7 @@ public class VTVLHelper
                 shipControl.Reset(gyroOverride: false, thrusterEnable: true,
                                   thrusterCondition: ThrusterCondition);
                 cruiser.Init(shipControl,
-                             localForward: VTVLHELPER_BURN_DIRECTION);
+                             localForward: BurnDirection);
 
                 if (Mode != BURNING)
                 {
@@ -189,12 +196,12 @@ public class VTVLHelper
                 ThrusterCondition = parts.Length > 2 ? ParseThrusterFlags(parts[2]) : null;
                 shipControl.Reset(gyroOverride: true, thrusterEnable: true,
                                   thrusterCondition: ThrusterCondition);
-                var forward = shipControl.ShipBlockOrientation.TransformDirection(VTVLHELPER_LAUNCH_DIRECTION);
+                var forward = shipControl.ShipBlockOrientation.TransformDirection(LaunchDirection);
                 seeker.Init(shipControl,
                             shipUp: Base6Directions.GetPerpendicular(forward),
                             shipForward: forward);
                 cruiser.Init(shipControl,
-                             localForward: VTVLHELPER_LAUNCH_DIRECTION);
+                             localForward: LaunchDirection);
 
                 if (Mode != LAUNCHING)
                 {
@@ -249,9 +256,9 @@ public class VTVLHelper
             // Override gyro, disable "bottom" thrusters
             shipControl.Reset(gyroOverride: true, thrusterEnable: true,
                               thrusterCondition: ThrusterCondition);
-            shipControl.ThrustControl.Enable(Base6Directions.GetFlippedDirection(VTVLHELPER_BRAKE_DIRECTION), false);
+            shipControl.ThrustControl.Enable(Base6Directions.GetFlippedDirection(BrakeDirection), false);
 
-            var down = shipControl.ShipBlockOrientation.TransformDirection(VTVLHELPER_BRAKE_DIRECTION);
+            var down = shipControl.ShipBlockOrientation.TransformDirection(BrakeDirection);
             seeker.Init(shipControl,
                         shipUp: Base6Directions.GetPerpendicular(down),
                         shipForward: down);
@@ -259,8 +266,8 @@ public class VTVLHelper
             if (Autodrop)
             {
                 // "forward" & "right"
-                var forward = Base6Directions.GetPerpendicular(VTVLHELPER_BRAKE_DIRECTION);
-                var right = Base6Directions.GetCross(forward, VTVLHELPER_BRAKE_DIRECTION);
+                var forward = Base6Directions.GetPerpendicular(BrakeDirection);
+                var right = Base6Directions.GetCross(forward, BrakeDirection);
                 // Actual orientations don't matter
                 // Just as long as they're planar & perpendicular to down
                 LongCruiser.Init(shipControl, localForward: forward);
@@ -308,7 +315,7 @@ public class VTVLHelper
                                       thrusterCondition: ThrusterCondition);
                     ThrusterCondition = AutoThrusterCondition;
                     cruiser.Init(shipControl,
-                                 localForward: VTVLHELPER_BRAKE_DIRECTION);
+                                 localForward: BrakeDirection);
 
                     Mode = APPROACHING;
                     eventDriver.Schedule(FramesPerRun, Approach);

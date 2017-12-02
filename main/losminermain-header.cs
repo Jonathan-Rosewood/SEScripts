@@ -1,8 +1,8 @@
 const string SHIP_GROUP = "MyMiner";
 
-// Should be a group with a single remote or some other ship controller block
+// Custom Data: referenceGroup "My Remote Group"
+// (Be sure to include the quotes if your group name has spaces.)
 const string MINER_REFERENCE_GROUP = "*Simon RC*";
-const string VTVLHELPER_REMOTE_GROUP = MINER_REFERENCE_GROUP;
 
 const bool ABANDONMENT_ENABLED = true; // Set to false to disable abandonment check
 

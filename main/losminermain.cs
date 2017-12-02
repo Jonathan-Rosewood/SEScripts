@@ -1,7 +1,7 @@
 //! LOS Miner Controller
 //@ shipcontrol eventdriver losminer dockingmanager safemode smartundock
-//@ cruisecontrol vtvlhelper damagecontrol batterymonitor redundancy
-//@ emergencystop
+//@ cruisecontrol vtvlhelper batterymonitor redundancy
+//@ emergencystop customdata
 public class MySafeModeHandler : SafeModeHandler
 {
     public void SafeMode(ZACommons commons, EventDriver eventDriver)
@@ -21,12 +21,14 @@ private readonly SafeMode safeMode = new SafeMode(new MySafeModeHandler());
 private readonly SmartUndock smartUndock = new SmartUndock();
 private readonly CruiseControl cruiseControl = new CruiseControl();
 private readonly VTVLHelper vtvlHelper = new VTVLHelper();
-private readonly DamageControl damageControl = new DamageControl();
 private readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
+private readonly ZACustomData customData = new ZACustomData();
 
 private bool FirstRun = true;
+
+private string MinerReferenceGroup;
 
 Program()
 {
@@ -44,9 +46,12 @@ void Main(string argument, UpdateType updateType)
     {
         FirstRun = false;
 
+        customData.Parse(Me);
+        MinerReferenceGroup = customData.GetString("referenceGroup", MINER_REFERENCE_GROUP);
+
         myStorage.Decode(Storage);
 
-        shipOrientation.SetShipReference(commons, MINER_REFERENCE_GROUP);
+        shipOrientation.SetShipReference(commons, MinerReferenceGroup);
 
         dockingManager.Init(commons, eventDriver, safeMode,
                             new BatteryMonitor(),
@@ -54,8 +59,7 @@ void Main(string argument, UpdateType updateType)
         smartUndock.Init(commons, eventDriver);
         minerController.Init(commons, eventDriver);
         cruiseControl.Init(commons, eventDriver, LivenessCheck);
-        vtvlHelper.Init(commons, eventDriver, LivenessCheck);
-        damageControl.Init(commons, eventDriver);
+        vtvlHelper.Init(commons, eventDriver, customData, LivenessCheck);
     }
 
     eventDriver.Tick(commons, argAction: () => {
@@ -68,10 +72,8 @@ void Main(string argument, UpdateType updateType)
             minerController.HandleCommand(commons, eventDriver, argument);
             cruiseControl.HandleCommand(commons, eventDriver, argument);
             vtvlHelper.HandleCommand(commons, eventDriver, argument);
-            damageControl.HandleCommand(commons, eventDriver, argument);
         },
         postAction: () => {
-            damageControl.Display(commons);
             cruiseControl.Display(commons);
             vtvlHelper.Display(commons);
             smartUndock.Display(commons);

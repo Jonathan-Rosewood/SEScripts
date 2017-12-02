@@ -1,5 +1,6 @@
 const string SHIP_GROUP = "MyShip";
 
+// Custom Data: referenceGroup "My Remote Group"
 const string VTVLHELPER_REMOTE_GROUP = "*MyShip Remote*";
 
 const string RANGEFINDER_REFERENCE_GROUP = "Reference";

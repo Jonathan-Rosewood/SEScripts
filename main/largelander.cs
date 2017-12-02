@@ -2,7 +2,7 @@
 //@ shipcontrol eventdriver safemode redundancy doorautocloser simpleairlock
 //@ cruisecontrol vtvlhelper damagecontrol reactormanager
 //@ batterymonitor solargyrocontroller oxygenmanager airventmanager
-//@ emergencystop
+//@ emergencystop customdata
 public class MySafeModeHandler : SafeModeHandler
 {
     public void SafeMode(ZACommons commons, EventDriver eventDriver)
@@ -36,8 +36,12 @@ private readonly AirVentManager airVentManager = new AirVentManager();
 private readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
+private readonly ZACustomData customData = new ZACustomData();
 
 private bool FirstRun = true;
+
+private string VTVLHelperRemoteGroup;
+private bool OxygenManagerEnable, AirVentManagerEnable, LanderCarrierEnable;
 
 Program()
 {
@@ -55,24 +59,27 @@ void Main(string argument, UpdateType updateType)
     {
         FirstRun = false;
 
+        customData.Parse(Me);
+        VTVLHelperRemoteGroup = customData.GetString("referenceGroup", VTVLHELPER_REMOTE_GROUP);
+        OxygenManagerEnable = customData.GetBool("oxygenManager", OXYGEN_MANAGER_ENABLE);
+        AirVentManagerEnable = customData.GetBool("airVentManager", AIR_VENT_MANAGER_ENABLE);
+        LanderCarrierEnable = customData.GetBool("landerCarrier", LANDER_CARRIER_ENABLE);
+
         myStorage.Decode(Storage);
 
-        shipOrientation.SetShipReference(commons, VTVLHELPER_REMOTE_GROUP);
+        shipOrientation.SetShipReference(commons, VTVLHelperRemoteGroup);
 
         safeMode.Init(commons, eventDriver);
         redundancyManager.Init(commons, eventDriver);
         doorAutoCloser.Init(commons, eventDriver);
         simpleAirlock.Init(commons, eventDriver);
-        if (LANDER_CARRIER_ENABLE)
-        {
-            reactorManager.Init(commons, eventDriver);
-        }
+        if (LanderCarrierEnable) reactorManager.Init(commons, eventDriver);
         batteryMonitor.Init(commons, eventDriver);
         solarGyroController.ConditionalInit(commons, eventDriver);
-        if (OXYGEN_MANAGER_ENABLE) oxygenManager.Init(commons, eventDriver);
-        if (AIR_VENT_MANAGER_ENABLE) airVentManager.Init(commons, eventDriver);
+        if (OxygenManagerEnable) oxygenManager.Init(commons, eventDriver);
+        if (AirVentManagerEnable) airVentManager.Init(commons, eventDriver);
         cruiseControl.Init(commons, eventDriver, LivenessCheck);
-        vtvlHelper.Init(commons, eventDriver, LivenessCheck);
+        vtvlHelper.Init(commons, eventDriver, customData, LivenessCheck);
         damageControl.Init(commons, eventDriver);
     }
 

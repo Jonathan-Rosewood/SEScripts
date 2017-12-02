@@ -1,7 +1,7 @@
 //! Warship Manager
 //@ shipcontrol eventdriver doorautocloser simpleairlock oxygenmanager
 //@ redundancy damagecontrol safemode cruisecontrol emergencystop
-//@ sequencer speedaction stocker projectoraction firecontrol
+//@ sequencer speedaction stocker projectoraction customdata firecontrol
 public class MySafeModeHandler : SafeModeHandler
 {
     public void SafeMode(ZACommons commons, EventDriver eventDriver)
@@ -30,8 +30,11 @@ private readonly FireControl fireControl = new FireControl();
 private readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
+private readonly ZACustomData customData = new ZACustomData();
 
 private bool FirstRun = true;
+
+private bool AutoCloseDoorsEnable, SimpleAirlockEnable, OxygenManagerEnable;
 
 Program()
 {
@@ -48,13 +51,18 @@ void Main(string argument, UpdateType updateType)
     {
         FirstRun = false;
 
+        customData.Parse(Me);
+        AutoCloseDoorsEnable = customData.GetBool("autoCloseDoors", AUTO_CLOSE_DOORS_ENABLE);
+        SimpleAirlockEnable = customData.GetBool("simpleAirlock", SIMPLE_AIRLOCK_ENABLE);
+        OxygenManagerEnable = customData.GetBool("oxygenManager", OXYGEN_MANAGER_ENABLE);
+
         myStorage.Decode(Storage);
 
         shipOrientation.SetShipReference(commons, "CruiseControlReference");
 
-        if (AUTO_CLOSE_DOORS_ENABLE) doorAutoCloser.Init(commons, eventDriver);
-        if (SIMPLE_AIRLOCK_ENABLE) simpleAirlock.Init(commons, eventDriver);
-        if (OXYGEN_MANAGER_ENABLE) oxygenManager.Init(commons, eventDriver);
+        if (AutoCloseDoorsEnable) doorAutoCloser.Init(commons, eventDriver);
+        if (SimpleAirlockEnable) simpleAirlock.Init(commons, eventDriver);
+        if (OxygenManagerEnable) oxygenManager.Init(commons, eventDriver);
         redundancyManager.Init(commons, eventDriver);
         damageControl.Init(commons, eventDriver);
         safeMode.Init(commons, eventDriver);
