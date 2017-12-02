@@ -1,9 +1,10 @@
 //! Tabula Rasa
-//@ shipcontrol eventdriver
+//@ shipcontrol eventdriver customdata
 private readonly EventDriver eventDriver = new EventDriver();
 private readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
+private readonly ZACustomData customData = new ZACustomData();
 
 private bool FirstRun = true;
 
@@ -21,6 +22,8 @@ void Main(string argument, UpdateType updateType)
     if (FirstRun)
     {
         FirstRun = false;
+
+        customData.Parse(Me);
 
         myStorage.Decode(Storage);
 
