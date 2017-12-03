@@ -1,7 +1,7 @@
-//! Warship Manager
+//! Cannon Warship Manager
 //@ shipcontrol eventdriver doorautocloser simpleairlock oxygenmanager
 //@ redundancy damagecontrol safemode cruisecontrol emergencystop
-//@ sequencer speedaction stocker projectoraction customdata
+//@ sequencer speedaction stocker projectoraction customdata firecontrol
 public class MySafeModeHandler : SafeModeHandler
 {
     public void SafeMode(ZACommons commons, EventDriver eventDriver)
@@ -26,6 +26,7 @@ private readonly Sequencer sequencer = new Sequencer();
 private readonly SpeedAction speedAction = new SpeedAction();
 private readonly Stocker stocker = new Stocker();
 private readonly ProjectorAction projectorAction = new ProjectorAction();
+private readonly FireControl fireControl = new FireControl();
 private readonly ZAStorage myStorage = new ZAStorage();
 
 private readonly ShipOrientation shipOrientation = new ShipOrientation();
@@ -68,6 +69,7 @@ void Main(string argument, UpdateType updateType)
         cruiseControl.Init(commons, eventDriver, LivenessCheck);
         speedAction.Init(commons, eventDriver);
         stocker.Init(commons, eventDriver);
+        fireControl.Init(commons, eventDriver);
     }
 
     eventDriver.Tick(commons, argAction: () => {
@@ -76,11 +78,13 @@ void Main(string argument, UpdateType updateType)
             cruiseControl.HandleCommand(commons, eventDriver, argument);
             sequencer.HandleCommand(commons, eventDriver, argument);
             projectorAction.HandleCommand(commons, eventDriver, argument);
+            fireControl.HandleCommand(commons, eventDriver, argument);
         },
         postAction: () => {
             damageControl.Display(commons);
             cruiseControl.Display(commons);
             sequencer.Display(commons);
+            fireControl.Display(commons, eventDriver);
         });
 
     if (commons.IsDirty) Storage = myStorage.Encode();
