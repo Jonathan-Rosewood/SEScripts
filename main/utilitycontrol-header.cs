@@ -3,10 +3,6 @@ const string SHIP_GROUP = "MyShip";
 // Custom Data: referenceGroup "My Remote Group"
 const string VTVLHELPER_REMOTE_GROUP = "*MyShip Remote*";
 
-const string RANGEFINDER_REFERENCE_GROUP = "Reference";
-const string RANGEFINDER_TARGET_GROUP = "CM Target";
-const string RANGEFINDER_TARGET_FORMAT = "GPS:Ranged Point:{0}:{1}:{2}:";
-
 const bool ABANDONMENT_ENABLED = true; // Set to false to disable abandonment check
 
 const bool CONTROL_CHECK_ENABLED = true; // Typically true for drones or cockpit-based ships
