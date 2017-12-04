@@ -22,8 +22,8 @@ public class ProNavGuidance : BaseMissileGuidance
         // Figure out max forward acceleration, a=F/m
         float maxForce = 0.0f;
         var thrusterList = shipControl.ThrustControl.GetThrusters(Base6Directions.Direction.Forward);
-        thrusterList.ForEach(thruster => maxForce += thruster.GetMaximum<float>("Override"));
-        ForwardAcceleration = 1000.0 * maxForce / shipControl.ShipController.CalculateShipMass().PhysicalMass;
+        thrusterList.ForEach(thruster => maxForce += thruster.MaxThrust);
+        ForwardAcceleration = maxForce / shipControl.ShipController.CalculateShipMass().PhysicalMass;
 
         OneTurnEnd = eventDriver.TimeSinceStart + TimeSpan.FromSeconds(ONE_TURN_DURATION);
 
