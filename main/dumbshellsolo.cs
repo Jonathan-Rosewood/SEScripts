@@ -22,9 +22,9 @@ void Main(string argument, UpdateType updateType)
     {
         FirstRun = false;
 
-        shipOrientation.SetShipReference(commons, "CannonReference");
-
         weaponTrigger.Init(commons, eventDriver, (c, ed) => {
+                shipOrientation.SetShipReference(c, "CannonReference");
+
                 dumbShell.Init(c, ed);
             });
     }
