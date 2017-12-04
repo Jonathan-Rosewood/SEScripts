@@ -1,4 +1,4 @@
-//@ shipcontrol eventdriver quadraticsolver
+//@ shipcontrol eventdriver quadraticsolver customdata
 public class FireControl
 {
     private const uint FramesPerRun = 1;
@@ -17,6 +17,9 @@ public class FireControl
     private Vector3D TargetOffset, TargetAimPoint, TargetVelocity;
     private TimeSpan LastTargetUpdate;
 
+    // Shell parameters
+    private double ShellSpeed, ShellFireDelay, ShellOffset;
+
     public void Init(ZACommons commons, EventDriver eventDriver)
     {
         var shipControl = (ShipControlCommons)commons;
@@ -31,6 +34,9 @@ public class FireControl
         Mode = IDLE;
 
         shipControl.GyroControl.EnableOverride(false);
+
+        // In case we were loaded in with the shell already built
+        GetShellParameters(commons);
     }
 
     public void HandleCommand(ZACommons commons, EventDriver eventDriver, string argument)
@@ -69,6 +75,11 @@ public class FireControl
                         MaybeEndLock(commons, eventDriver);
                         Mode = ARMED;
                     }
+                    break;
+                }
+            case "updateshell":
+                {
+                    GetShellParameters(commons);
                     break;
                 }
             case "firefirefire":
@@ -136,6 +147,8 @@ public class FireControl
         if (Mode != SNAPSHOT) eventDriver.Schedule(1, Snapshot);
         MaybeEndLock(commons, eventDriver);
         Mode = SNAPSHOT;
+
+        GetShellParameters(commons);
     }
 
     public void Snapshot(ZACommons commons, EventDriver eventDriver)
@@ -204,12 +217,12 @@ public class FireControl
         // firing sequence + acceleration).
         var offset = targetGuess - shipControl.ReferencePoint;
         var tVelSquared = Vector3D.Dot(TargetVelocity, TargetVelocity);
-        var a = tVelSquared - FC_SHELL_SPEED * FC_SHELL_SPEED;
+        var a = tVelSquared - ShellSpeed * ShellSpeed;
         var offsetDotVel = Vector3D.Dot(offset, TargetVelocity);
-        var b = 2.0 * (tVelSquared * FC_FIRE_DELAY + offsetDotVel - FC_SHELL_OFFSET * FC_SHELL_SPEED);
-        var c = Vector3D.Dot(offset, offset) + FC_FIRE_DELAY * FC_FIRE_DELAY * tVelSquared + 2.0 * FC_FIRE_DELAY * offsetDotVel - FC_SHELL_OFFSET * FC_SHELL_OFFSET;
+        var b = 2.0 * (tVelSquared * ShellFireDelay + offsetDotVel - ShellOffset * ShellSpeed);
+        var c = Vector3D.Dot(offset, offset) + ShellFireDelay * ShellFireDelay * tVelSquared + 2.0 * ShellFireDelay * offsetDotVel - ShellOffset * ShellOffset;
 
-        double interceptTime = 20.0;
+        double interceptTime = 0.0;
 
         double s1, s2;
         int solutions = QuadraticSolver.Solve(a, b, c, out s1, out s2);
@@ -250,6 +263,9 @@ public class FireControl
                 commons.Echo(string.Format("Last Update: {0:F1} s", (eventDriver.TimeSinceStart - LastTargetUpdate).TotalSeconds));
                 break;
         }
+        commons.Echo(string.Format("Shell Speed: {0:F1} m/s", ShellSpeed));
+        commons.Echo(string.Format("Shell Offset: {0:F2} m", ShellOffset));
+        commons.Echo(string.Format("Fire Delay: {0:F2} s", ShellFireDelay));
     }
 
     private void BeginFiring(ZACommons commons, EventDriver eventDriver)
@@ -297,5 +313,30 @@ public class FireControl
         var camera = group.Blocks[0] as IMyCameraBlock;
         if (camera == null) return null;
         return camera;
+    }
+
+    private void GetShellParameters(ZACommons commons)
+    {
+        // Some defaults
+        ShellSpeed = 100.0;
+        ShellFireDelay = ShellOffset = 0.0;
+
+        var group = commons.GetBlockGroupWithName(FC_FIRE_GROUP);
+        if (group != null)
+        {
+            foreach (var block in group.Blocks)
+            {
+                if (block is IMyProgrammableBlock)
+                {
+                    var shellCustomData = new ZACustomData();
+                    shellCustomData.Parse(block);
+                    ShellSpeed = shellCustomData.GetDouble("speed");
+                    ShellFireDelay = shellCustomData.GetDouble("delay");
+                    ShellOffset = shellCustomData.GetDouble("offset");
+                    // Only bother with the 1st one for now
+                    return;
+                }
+            }
+        }
     }
 }
