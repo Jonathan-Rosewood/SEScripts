@@ -245,7 +245,7 @@ public class ComplexAirlock
                 // Close & lock all others
                 if (door.Status == DoorStatus.Open)
                 {
-                    door.SetValue<bool>("Open", false);
+                    door.CloseDoor();
                 }
                 else if (door.OpenRatio == 0.0f && door.Enabled)
                 {
@@ -261,7 +261,7 @@ public class ComplexAirlock
                     {
                         foreach (var door in openDoors)
                         {
-                            door.SetValue<bool>("Open", true);
+                            door.OpenDoor();
                         }
                     });
         }
@@ -296,7 +296,7 @@ public class ComplexAirlock
                     // Close and lock all doors
                     foreach (var door in doors)
                     {
-                        door.SetValue<bool>("Open", false);
+                        door.CloseDoor();
                         if (door.OpenRatio == 0.0f && door.Enabled)
                         {
                             door.Enabled = false;

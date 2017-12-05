@@ -61,7 +61,7 @@ public class DoorAutoCloser
                         if (closeTime <= eventDriver.TimeSinceStart)
                         {
                             // Time to close it
-                            door.SetValue<bool>("Open", false);
+                            door.CloseDoor();
                             opened.Remove(door);
                         }
                     }
