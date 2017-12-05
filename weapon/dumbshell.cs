@@ -45,8 +45,7 @@ public class DumbShell
         batteries.ForEach(battery =>
                 {
                     battery.Enabled = true;
-                    battery.SetValue<bool>("Recharge", false);
-                    battery.SetValue<bool>("Discharge", true);
+                    battery.OnlyDischarge = true;
                 });
 
         // Activate systems

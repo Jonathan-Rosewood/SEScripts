@@ -137,8 +137,8 @@ public class DockingManager
         var batteries = ZACommons.GetBlocksOfType<IMyBatteryBlock>(commons.Blocks);
         foreach (var battery in batteries)
         {
-            battery.SetValue<bool>("Recharge", docked);
-            battery.SetValue<bool>("Discharge", !docked);
+            battery.OnlyRecharge = docked;
+            battery.OnlyDischarge = !docked;
         }
         if (!docked) ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMyReactor>(commons.Blocks), true);
 

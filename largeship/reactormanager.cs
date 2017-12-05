@@ -74,8 +74,8 @@ public class ReactorManager
                     GetBatteries(commons).ForEach(block =>
                             {
                                 block.Enabled = true;
-                                block.SetValue<bool>("Recharge", false);
-                                block.SetValue<bool>("Discharge", false);
+                                block.OnlyRecharge = false;
+                                block.OnlyDischarge = false;
                             });
                     eventDriver.Schedule(1.0, (c,ed) => {
                             // Turn off all reactors
