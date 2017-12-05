@@ -85,25 +85,29 @@ public class ComplexAirlock
 
     private int GetAirlockState(List<IMyAirVent> vents)
     {
-        if (vents.Count == 0) return AIRLOCK_STATE_UNKNOWN;
-
-        float level = 0.0f;
         foreach (var vent in vents)
         {
-            level += vent.GetOxygenLevel();
+            // Just return the answer from the first functional & enabled
+            // vent.
+            if (vent.IsFunctional && vent.Enabled)
+            {
+                // Note that as of 1.185, Status is a bit buggy
+                // (sometimes never reaches Depressurized state)
+                // Use oxygen level instead
+                var level = vent.GetOxygenLevel();
+                if (level < .01f) return AIRLOCK_STATE_VACUUM;
+                else if (level >= 0.99f) return AIRLOCK_STATE_PRESSURIZED;
+                else return AIRLOCK_STATE_UNKNOWN;
+            }
         }
-        level /= vents.Count;
-
-        if (level == 0.0f) return AIRLOCK_STATE_VACUUM;
-        else if (level > 0.5f) return AIRLOCK_STATE_PRESSURIZED;
-        else { return AIRLOCK_STATE_UNKNOWN; }
+        return AIRLOCK_STATE_UNKNOWN;
     }
 
     private void DepressurizeVents(IEnumerable<IMyAirVent> vents, bool depressurize)
     {
         foreach (var vent in vents)
         {
-            vent.SetValue<bool>("Depressurize", depressurize);
+            vent.Depressurize = depressurize;
         }
     }
 
@@ -124,7 +128,6 @@ public class ComplexAirlock
         {
             OpenCloseDoors(doors, false);
             DepressurizeVents(vents, target == AIRLOCK_STATE_VACUUM);
-
         }
 
         // Open doors regardless
@@ -235,10 +238,7 @@ public class ComplexAirlock
             if (targetDoors.Contains(door) || otherState == checkState)
             {
                 // Unlock
-                if (!door.Enabled)
-                {
-                    door.Enabled = true;
-                }
+                door.Enabled = true;
             }
             else
             {
@@ -297,7 +297,7 @@ public class ComplexAirlock
                     foreach (var door in doors)
                     {
                         door.CloseDoor();
-                        if (door.OpenRatio == 0.0f && door.Enabled)
+                        if (door.Status == DoorStatus.Closed && door.Enabled)
                         {
                             door.Enabled = false;
                         }
