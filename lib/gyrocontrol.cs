@@ -92,7 +92,7 @@ public class GyroControl
 
     public void EnableOverride(bool enable)
     {
-        gyros.ForEach(gyro => gyro.Gyro.SetValue<bool>("Override", enable));
+        gyros.ForEach(gyro => gyro.Gyro.GyroOverride = enable);
     }
 
     public void SetAxisVelocity(int axis, float velocity)

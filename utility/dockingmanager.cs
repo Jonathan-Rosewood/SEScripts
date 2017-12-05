@@ -168,7 +168,7 @@ public class DockingManager
                                                                          vent.CustomName.IndexOf("[Intake]", ZACommons.IGNORE_CASE) >= 0), !docked);
             var tanks = ZACommons.GetBlocksOfType<IMyGasTank>(commons.Blocks,
                                                               tank => tank.CustomName.IndexOf("[Excluded]", ZACommons.IGNORE_CASE) < 0);
-            tanks.ForEach(tank => tank.SetValue<bool>("Stockpile", docked));
+            tanks.ForEach(tank => tank.Stockpile = docked);
         }
         if (TOUCH_SENSORS) ZACommons.EnableBlocks(ZACommons.GetBlocksOfType<IMySensorBlock>(commons.Blocks), !docked);
 

@@ -104,7 +104,7 @@ public class LaunchController
     public void Autopilot(ZACommons commons, EventDriver eventDriver)
     {
         var remote = GetRemoteControl(commons);
-        remote.SetValue<bool>("AutoPilot", true);
+        remote.SetAutoPilotEnabled(true);
 
         eventDriver.Schedule(1.0, AutopilotEnd);
     }

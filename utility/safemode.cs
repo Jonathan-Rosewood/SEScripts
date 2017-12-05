@@ -84,7 +84,7 @@ public class SafeMode : DockingHandler
                     var controller = (IMyShipController)block;
                     if (!controller.DampenersOverride)
                     {
-                        controller.SetValue<bool>("DampenersOverride", true);
+                        controller.DampenersOverride = true;
                         dampenersChanged = true;
                     }
                 }

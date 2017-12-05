@@ -97,7 +97,7 @@ public class GravLaunch
     {
         // Find all warheads on board and turn off safeties
         var warheads = ZACommons.GetBlocksOfType<IMyWarhead>(commons.Blocks);
-        warheads.ForEach(warhead => warhead.SetValue<bool>("Safety", false));
+        warheads.ForEach(warhead => warhead.IsArmed = true);
 
         // We're done, let other systems take over
         Launched = true;

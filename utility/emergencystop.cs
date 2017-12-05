@@ -7,7 +7,7 @@ public class EmergencyStop : SafeModeHandler
 
         // Ensure dampeners are enabled (again, possibly)
         ZACommons.GetBlocksOfType<IMyShipController>(commons.Blocks).ForEach(controller => {
-                controller.SetValue<bool>("DampenersOverride", true);
+                controller.DampenersOverride = true;
             });
 
         // Make sure we have working thrusters in all directions
