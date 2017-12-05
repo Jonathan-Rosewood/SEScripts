@@ -46,9 +46,10 @@ public class DockingAction
                 // Set state according to action
                 group.Blocks.ForEach(block =>
                         {
-                            if (!(block is IMyShipConnector)) // ignore connectors
+                            if (!(block is IMyShipConnector) && // ignore connectors
+                                block is IMyFunctionalBlock)
                             {
-                                block.SetValue<bool>("OnOff", enable);
+                                ((IMyFunctionalBlock)block).Enabled = enable;
                             }
                         });
             }

@@ -69,7 +69,7 @@ public class ProductionManager
                         if ((enable && !assembler.Enabled) ||
                             (!enable && assembler.Enabled))
                         {
-                            assembler.SetValue<bool>("OnOff", enable);
+                            assembler.Enabled = enable;
                         }
                     });
         }

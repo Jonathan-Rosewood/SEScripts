@@ -23,7 +23,7 @@ public class AirVentManager
         var vents = GetAirVents(commons);
         vents.ForEach(vent =>
                 {
-                    vent.SetValue<bool>("OnOff", true);
+                    vent.Enabled = true;
                 });
 
         eventDriver.Schedule(1, Tock);
@@ -37,17 +37,17 @@ public class AirVentManager
                     var level = vent.GetOxygenLevel();
                     if (vent.Depressurize && level > 0.0f)
                     {
-                        vent.SetValue<bool>("OnOff", true);
+                        vent.Enabled = true;
                     }
                     else if (!vent.Depressurize)
                     {
                         if (level < MIN_AIR_VENT_PRESSURE)
                         {
-                            vent.SetValue<bool>("OnOff", true);
+                            vent.Enabled = true;
                         }
                         else if (level > MAX_AIR_VENT_PRESSURE)
                         {
-                            vent.SetValue<bool>("OnOff", false);
+                            vent.Enabled = false;
                         }
                     }
                 });

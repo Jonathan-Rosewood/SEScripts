@@ -237,7 +237,7 @@ public class ComplexAirlock
                 // Unlock
                 if (!door.Enabled)
                 {
-                    door.SetValue<bool>("OnOff", true);
+                    door.Enabled = true;
                 }
             }
             else
@@ -249,7 +249,7 @@ public class ComplexAirlock
                 }
                 else if (door.OpenRatio == 0.0f && door.Enabled)
                 {
-                    door.SetValue<bool>("OnOff", false);
+                    door.Enabled = false;
                 }
             }
         }
@@ -299,7 +299,7 @@ public class ComplexAirlock
                         door.SetValue<bool>("Open", false);
                         if (door.OpenRatio == 0.0f && door.Enabled)
                         {
-                            door.SetValue<bool>("OnOff", false);
+                            door.Enabled = false;
                         }
                     }
                     break;

@@ -44,7 +44,7 @@ public class ReactorManager
                 // Disable reactors on all connected grids
                 var reactors = ZACommons.GetBlocksOfType<IMyReactor>(commons.AllBlocks,
                                                                      block => block.CubeGrid != commons.Me.CubeGrid);
-                reactors.ForEach(block => block.SetValue<bool>("OnOff", false));
+                reactors.ForEach(block => block.Enabled = false);
             }
         }
 
@@ -60,10 +60,10 @@ public class ReactorManager
             case "reactors":
                 {
                     // Turn on all reactors
-                    GetAllReactors(commons).ForEach(block => block.SetValue<bool>("OnOff", true));
+                    GetAllReactors(commons).ForEach(block => block.Enabled = true);
                     eventDriver.Schedule(1.0, (c,ed) => {
                             // Turn off all local batteries
-                            GetBatteries(c).ForEach(block => block.SetValue<bool>("OnOff", false));
+                            GetBatteries(c).ForEach(block => block.Enabled = false);
                         });
                     break;
                 }
@@ -73,13 +73,13 @@ public class ReactorManager
                     // and disable recharge/discharge
                     GetBatteries(commons).ForEach(block =>
                             {
-                                block.SetValue<bool>("OnOff", true);
+                                block.Enabled = true;
                                 block.SetValue<bool>("Recharge", false);
                                 block.SetValue<bool>("Discharge", false);
                             });
                     eventDriver.Schedule(1.0, (c,ed) => {
                             // Turn off all reactors
-                            GetAllReactors(c).ForEach(block => block.SetValue<bool>("OnOff", false));
+                            GetAllReactors(c).ForEach(block => block.Enabled = false);
                         });
                     break;
                 }

@@ -90,18 +90,18 @@ public class SolarRotorController
             if (delta > minError || currentMaxPower < minError /* failsafe */)
             {
                 // Keep going
-                rotor.SetValue<bool>("OnOff", true);
+                rotor.Enabled = true;
             }
             else if (delta < -minError)
             {
                 // Back up
-                rotor.SetValue<bool>("OnOff", true);
+                rotor.Enabled = true;
                 rotor.ApplyAction("Reverse");
             }
             else
             {
                 // Hold still for a moment
-                rotor.SetValue<bool>("OnOff", false);
+                rotor.Enabled = false;
             }
 
             TotalPower += currentMaxPower;
@@ -122,7 +122,7 @@ public class SolarRotorController
             var solarGroups = commons.GetBlockGroupsWithPrefix(MAX_POWER_GROUP_PREFIX);
             solarGroups.ForEach(group => {
                     var rotor = GetRotor(group);
-                    if (rotor != null) rotor.SetValue<bool>("OnOff", false);
+                    if (rotor != null) rotor.Enabled = false;
                 });
         }
         else if (argument == "resume")

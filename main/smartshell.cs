@@ -115,21 +115,15 @@ public class SmartShell
     {
         var group = commons.GetBlockGroupWithName("SS Decoy Set" + suffix);
         // Activate decoys
-        ZACommons.ForEachBlockOfType<IMyTerminalBlock>(group.Blocks,
-                                                       block =>
-                {
-                    if (block.DefinitionDisplayNameText == "Decoy")
-                    {
-                        block.SetValue<bool>("OnOff", true);
-                    }
-                });
+        ZACommons.ForEachBlockOfType<IMyDecoy>(group.Blocks,
+                                               block => block.Enabled = true);
         eventDriver.Schedule(DecoyReleaseDelay, (c, e) => {
                 var g = c.GetBlockGroupWithName("SS Decoy Set" + suffix);
                 // Deactivate merge block
                 ZACommons.ForEachBlockOfType<IMyShipMergeBlock>(g.Blocks,
                                                                 merge =>
                         {
-                            merge.SetValue<bool>("OnOff", false);
+                            merge.Enabled = false;
                         });
             });
     }

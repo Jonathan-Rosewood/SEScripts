@@ -39,7 +39,7 @@ public class DockingManager
                     if (connector.IsFunctional &&
                         connector.DefinitionDisplayNameText == "Connector")
                     {
-                        connector.SetValue<bool>("OnOff", true);
+                        connector.Enabled = true;
                     }
                 });
 

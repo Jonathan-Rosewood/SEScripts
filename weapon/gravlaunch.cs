@@ -37,7 +37,7 @@ public class GravLaunch
         var batteries = ZACommons.GetBlocksOfType<IMyBatteryBlock>(batteryGroup.Blocks);
         batteries.ForEach(battery =>
                 {
-                    battery.SetValue<bool>("OnOff", true);
+                    battery.Enabled = true;
                     battery.SetValue<bool>("Recharge", false);
                     battery.SetValue<bool>("Discharge", true);
                 });

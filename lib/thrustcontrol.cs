@@ -55,7 +55,7 @@ public class ThrustControl
                 }
                 else if (disable)
                 {
-                    thruster.SetValue<bool>("OnOff", false);
+                    thruster.Enabled = false;
                 }
             }
             return result;
@@ -87,7 +87,7 @@ public class ThrustControl
                        Func<IMyThrust, bool> collect = null)
     {
         var thrusterList = GetThrusters(direction, collect, true);
-        thrusterList.ForEach(thruster => thruster.SetValue<bool>("OnOff", enable));
+        thrusterList.ForEach(thruster => thruster.Enabled = enable);
     }
 
     public void Enable(bool enable,
@@ -97,7 +97,7 @@ public class ThrustControl
         {
             thrusterList.ForEach(thruster =>
                     {
-                        if (collect == null || collect(thruster)) thruster.SetValue<bool>("OnOff", enable);
+                        if (collect == null || collect(thruster)) thruster.Enabled = enable;
                     });
         }
     }

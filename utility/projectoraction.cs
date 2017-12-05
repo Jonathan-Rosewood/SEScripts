@@ -29,7 +29,7 @@ public class ProjectorAction
         if ((startTimer.Length + endTimer.Length) == 0) return;
 
         // Enable projector, if it isn't already
-        projector.SetValue<bool>("OnOff", true);
+        projector.Enabled = true;
 
         // Start start timer, if we have one
         StartTimerBlock(commons, startTimer);

@@ -51,7 +51,7 @@ public class RedundancyManager : DockingHandler
             }
 
             var running = 0;
-            var spares = new LinkedList<IMyTerminalBlock>();
+            var spares = new LinkedList<IMyFunctionalBlock>();
 
             foreach (var block in group.Blocks)
             {
@@ -74,7 +74,7 @@ public class RedundancyManager : DockingHandler
             {
                 var block = spares.First.Value;
                 spares.RemoveFirst();
-                block.SetValue<bool>("OnOff", true);
+                block.Enabled = true;
                 running++;
             }
         }

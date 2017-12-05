@@ -49,7 +49,7 @@ public class GuidanceKill
             // Shut down all timer blocks
             ZACommons.ForEachBlockOfType<IMyTimerBlock>(commons.Blocks, block =>
                     {
-                        block.SetValue<bool>("OnOff", false);
+                        block.Enabled = false;
                     });
         }
         else

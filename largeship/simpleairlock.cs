@@ -32,11 +32,11 @@ public class SimpleAirlock
                 if (door.OpenRatio == 0.0f && opened)
                 {
                     // This door is not open and some other door in the group is, lock it down
-                    if (door.Enabled) door.SetValue<bool>("OnOff", false);
+                    if (door.Enabled) door.Enabled = false;
                 }
                 else
                 {
-                    if (!door.Enabled) door.SetValue<bool>("OnOff", true);
+                    if (!door.Enabled) door.Enabled = true;
                 }
             }
         }

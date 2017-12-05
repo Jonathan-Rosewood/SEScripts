@@ -269,7 +269,7 @@ public class CruiseControl
                     ThrusterState oldState;
                     if (ThrusterStates.TryGetValue(thruster.Position, out oldState))
                     {
-                        thruster.SetValue<bool>("OnOff", oldState.Enabled);
+                        thruster.Enabled = oldState.Enabled;
                         thruster.SetValue<float>("Override", oldState.Override);
                     }
                 });

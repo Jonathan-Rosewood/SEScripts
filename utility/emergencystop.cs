@@ -113,7 +113,7 @@ public class EmergencyStop : SafeModeHandler
                     if (found)
                     {
                         // Disable and let good thrusters take care of it
-                        thruster.SetValue<bool>("OnOff", false);
+                        thruster.Enabled = false;
                     }
                     else
                     {
@@ -131,7 +131,7 @@ public class EmergencyStop : SafeModeHandler
             // all thrusters on this side.
             thrusters.ForEach(thruster =>
                     {
-                        thruster.SetValue<bool>("OnOff", true);
+                        thruster.Enabled = true;
                         thruster.SetValue<float>("Override", 0.0f);
                     });
             // Still return false, but we'll check again after a few ticks
