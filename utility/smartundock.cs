@@ -117,9 +117,7 @@ public class SmartUndock
             {
                 // Undock in the forward direction of the *other* connector
                 var other = connected.OtherConnector;
-                var forward = other.Orientation.TransformDirection(Base6Directions.Direction.Forward);
-                var forwardPoint = other.CubeGrid.GridIntegerToWorld(other.Position + Base6Directions.GetIntVector(forward));
-                forwardVector = Vector3D.Normalize(forwardPoint - other.GetPosition());
+                forwardVector = other.WorldMatrix.Forward;
                 UndockBackward = connected.Orientation.TransformDirection(Base6Directions.Direction.Backward);
             }
 

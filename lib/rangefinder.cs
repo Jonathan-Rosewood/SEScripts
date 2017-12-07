@@ -5,28 +5,17 @@ public class Rangefinder
         public Vector3D Point;
         public Vector3D Direction;
 
-        public LineSample(IMyCubeBlock reference, Vector3I forward3I)
-        {
-            Point = reference.GetPosition();
-            var forwardPoint = reference.CubeGrid.GridIntegerToWorld(forward3I);
-            Direction = Vector3D.Normalize(forwardPoint - Point);
-        }
-
-        public LineSample(IMyCubeBlock reference, IMyCubeBlock forward) :
-            this(reference, forward.Position)
-        {
-        }
-
         // Use the "forward" direction of the reference block
-        public LineSample(IMyCubeBlock reference) :
-            this(reference, reference.Position + Base6Directions.GetIntVector(reference.Orientation.TransformDirection(Base6Directions.Direction.Forward)))
-        {
-        }
-
-        // Explicit direction
-        public LineSample(IMyCubeBlock reference, Vector3D direction)
+        public LineSample(IMyCubeBlock reference)
         {
             Point = reference.GetPosition();
+            Direction = reference.WorldMatrix.Forward;
+        }
+
+        // Explicit position & direction
+        public LineSample(Vector3D position, Vector3D direction)
+        {
+            Point = position;
             Direction = Vector3D.Normalize(direction);
         }
     }
