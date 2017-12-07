@@ -25,7 +25,7 @@ public abstract class BaseMissileGuidance
     protected virtual void TargetUpdated(EventDriver eventDriver)
     {
         // Re-derive any derived properties of the target
-        TargetAimPoint = TargetPosition + Vector3D.Transform(TargetOffset, TargetOrientation);
+        TargetAimPoint = TargetPosition + Vector3D.TransformNormal(TargetOffset, TargetOrientation);
         LastTargetUpdate = eventDriver.TimeSinceStart;
 
         HaveTarget = true;
@@ -42,8 +42,8 @@ public abstract class BaseMissileGuidance
         {
             TargetID = info.EntityId;
             var offset = (Vector3D)info.HitPosition - TargetPosition;
-            var toLocal = MatrixD.Invert(info.Orientation);
-            TargetOffset = Vector3D.Transform(offset, toLocal);
+            var toLocal = MatrixD.Transpose(info.Orientation);
+            TargetOffset = Vector3D.TransformNormal(offset, toLocal);
         }
 
         TargetUpdated(eventDriver);

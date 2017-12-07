@@ -315,8 +315,8 @@ public class TargetTracker
             {
                 // Be sure to use original position when determining offset
                 var offset = (Vector3D)info.HitPosition - info.Position;
-                var toLocal = MatrixD.Invert(info.Orientation);
-                localOffset = Vector3D.Transform(offset, toLocal);
+                var toLocal = MatrixD.Transpose(info.Orientation);
+                localOffset = Vector3D.TransformNormal(offset, toLocal);
 
                 // Save for future
                 TargetOffset = localOffset;

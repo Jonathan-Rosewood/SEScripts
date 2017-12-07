@@ -131,7 +131,7 @@ public class FireControl
         var targetOrientation = MatrixD.CreateFromQuaternion(orientation);
 
         // Re-derive aim point
-        TargetAimPoint = targetPosition + Vector3D.Transform(TargetOffset, targetOrientation);
+        TargetAimPoint = targetPosition + Vector3D.TransformNormal(TargetOffset, targetOrientation);
         LastTargetUpdate = eventDriver.TimeSinceStart;
     }
 
@@ -187,8 +187,8 @@ public class FireControl
 
         // Determine local offset of aim point, in case we get an update
         var offset = TargetAimPoint - info.Position;
-        var toLocal = MatrixD.Invert(info.Orientation);
-        TargetOffset = Vector3D.Transform(offset, toLocal);
+        var toLocal = MatrixD.Transpose(info.Orientation);
+        TargetOffset = Vector3D.TransformNormal(offset, toLocal);
 
         BeginLock(commons, eventDriver);
     }

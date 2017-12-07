@@ -140,11 +140,11 @@ public class Seeker
         targetVector = Vector3D.Normalize(targetVector);
 
         // Invert our world matrix
-        var toLocal = MatrixD.Invert(MatrixD.CreateWorld(Vector3D.Zero, referenceForward, referenceUp));
+        var toLocal = MatrixD.Transpose(MatrixD.CreateWorld(Vector3D.Zero, referenceForward, referenceUp));
 
         // And bring targetVector & angular velocity into local space
-        var localTarget = Vector3D.Transform(-targetVector, toLocal);
-        var localVel = Vector3D.Transform((Vector3D)angularVelocity, toLocal);
+        var localTarget = Vector3D.TransformNormal(-targetVector, toLocal);
+        var localVel = Vector3D.TransformNormal((Vector3D)angularVelocity, toLocal);
 
         // Use simple trig to get the error angles
         var yawError = Math.Atan2(localTarget.X, localTarget.Z);
@@ -179,7 +179,7 @@ public class Seeker
         if (targetUp != null)
         {
             // Also adjust roll by rotating targetUp vector
-            localTarget = Vector3D.Transform((Vector3D)targetUp, toLocal);
+            localTarget = Vector3D.TransformNormal((Vector3D)targetUp, toLocal);
 
             rollError = Math.Atan2(localTarget.X, localTarget.Y);
 
