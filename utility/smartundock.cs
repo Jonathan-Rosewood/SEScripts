@@ -28,18 +28,17 @@ public class SmartUndock
         if (previousTarget != null)
         {
             var parts = previousTarget.Split(';');
-            if (parts.Length == 9)
+            if (parts.Length == 7)
             {
-                var newTarget = new Vector3D();
-                UndockForward = new Vector3D();
-                UndockUp = new Vector3D();
-                for (int i = 0; i < 3; i++)
-                {
-                    newTarget.SetDim(i, double.Parse(parts[i]));
-                    UndockForward.SetDim(i, double.Parse(parts[3+i]));
-                    UndockUp.SetDim(i, double.Parse(parts[6+i]));
-                }
-                UndockTarget = newTarget; // Set only if all successfully parsed
+                UndockTarget = new Vector3D(double.Parse(parts[0]),
+                                            double.Parse(parts[1]),
+                                            double.Parse(parts[2]));
+                var orientation = new QuaternionD(double.Parse(parts[3]),
+                                                  double.Parse(parts[4]),
+                                                  double.Parse(parts[5]),
+                                                  double.Parse(parts[6]));
+                UndockForward = Transform(Vector3D.Forward, orientation);
+                UndockUp = Transform(Vector3D.Up, orientation);
             }
         }
 
@@ -269,16 +268,15 @@ public class SmartUndock
         string value = null;
         if (UndockTarget != null)
         {
-            value = string.Format("{0};{1};{2};{3};{4};{5};{6};{7};{8}",
-                                  ((Vector3D)UndockTarget).GetDim(0),
-                                  ((Vector3D)UndockTarget).GetDim(1),
-                                  ((Vector3D)UndockTarget).GetDim(2),
-                                  UndockForward.GetDim(0),
-                                  UndockForward.GetDim(1),
-                                  UndockForward.GetDim(2),
-                                  UndockUp.GetDim(0),
-                                  UndockUp.GetDim(1),
-                                  UndockUp.GetDim(2));
+            var orientation = QuaternionD.CreateFromForwardUp(UndockForward, UndockUp);
+            value = string.Format("{0};{1};{2};{3};{4};{5};{6}",
+                                  ((Vector3D)UndockTarget).X,
+                                  ((Vector3D)UndockTarget).Y,
+                                  ((Vector3D)UndockTarget).Z,
+                                  orientation.X,
+                                  orientation.Y,
+                                  orientation.Z,
+                                  orientation.W);
         }
         commons.SetValue(UndockTargetKey, value);
 
@@ -288,5 +286,30 @@ public class SmartUndock
             value = ((byte)UndockBackward).ToString();
         }
         commons.SetValue(BackwardKey, value);
+    }
+
+    // Why no QuaternionD version?
+    private static Vector3D Transform(Vector3D value, QuaternionD rotation)
+    {
+        double num1 = rotation.X + rotation.X;
+        double num2 = rotation.Y + rotation.Y;
+        double num3 = rotation.Z + rotation.Z;
+        double num4 = rotation.W * num1;
+        double num5 = rotation.W * num2;
+        double num6 = rotation.W * num3;
+        double num7 = rotation.X * num1;
+        double num8 = rotation.X * num2;
+        double num9 = rotation.X * num3;
+        double num10 = rotation.Y * num2;
+        double num11 = rotation.Y * num3;
+        double num12 = rotation.Z * num3;
+        double num13 = (double)((double)value.X * (1.0 - (double)num10 - (double)num12) + (double)value.Y * ((double)num8 - (double)num6) + (double)value.Z * ((double)num9 + (double)num5));
+        double num14 = (double)((double)value.X * ((double)num8 + (double)num6) + (double)value.Y * (1.0 - (double)num7 - (double)num12) + (double)value.Z * ((double)num11 - (double)num4));
+        double num15 = (double)((double)value.X * ((double)num9 - (double)num5) + (double)value.Y * ((double)num11 + (double)num4) + (double)value.Z * (1.0 - (double)num7 - (double)num10));
+        Vector3D vector3;
+        vector3.X = num13;
+        vector3.Y = num14;
+        vector3.Z = num15;
+        return vector3;
     }
 }
