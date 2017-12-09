@@ -1,25 +1,21 @@
 public static class ZASplit
 {
-    // Do enums work in SE?
-    private const int NORMAL = 0;
-    private const int ESCAPED = 1;
-    private const int QUOTED = 2;
-    private const int QUOTED_ESCAPED = 3;
+    enum States { Normal, Escaped, Quoted, QuotedEscaped };
     
     public static List<string> Split(string input, bool complete = true)
     {
         var result = new List<string>();
 
-        var state = NORMAL;
+        var state = States.Normal;
         var current = new StringBuilder();
 
         foreach (var c in input)
         {
             switch (state)
             {
-                case NORMAL:
-                    if (c == '\\') state = ESCAPED;
-                    else if (c == '"') state = QUOTED;
+                case States.Normal:
+                    if (c == '\\') state = States.Escaped;
+                    else if (c == '"') state = States.Quoted;
                     else
                     {
                         if (current.Length == 0)
@@ -36,8 +32,8 @@ public static class ZASplit
                         else current.Append(c);
                     }
                     break;
-                case ESCAPED:
-                case QUOTED_ESCAPED:
+                case States.Escaped:
+                case States.QuotedEscaped:
                     if (c == '\\') current.Append('\\');
                     else if (c == '"') current.Append('"');
                     else
@@ -46,23 +42,23 @@ public static class ZASplit
                         current.Append('\\');
                         current.Append(c);
                     }
-                    state = state == ESCAPED ? NORMAL : QUOTED;
+                    state = state == States.Escaped ? States.Normal : States.Quoted;
                     break;
-                case QUOTED:
-                    if (c == '\\') state = QUOTED_ESCAPED;
-                    else if (c == '"') state = NORMAL;
+                case States.Quoted:
+                    if (c == '\\') state = States.QuotedEscaped;
+                    else if (c == '"') state = States.Normal;
                     else current.Append(c);
                     break;
             }
         }
 
         // Throw if quote isn't terminated. Note we don't really care about unfinished escape sequences.
-        if (complete && (state == QUOTED || state == QUOTED_ESCAPED))
+        if (complete && (state == States.Quoted || state == States.QuotedEscaped))
         {
             throw new Exception("Unterminated quote");
         }
 
-        if (state == ESCAPED) current.Append('\\');
+        if (state == States.Escaped) current.Append('\\');
 
         // Check final token
         if (current.Length > 0) result.Add(current.ToString());

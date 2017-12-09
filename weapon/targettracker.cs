@@ -6,14 +6,10 @@ public class TargetTracker
 
     private readonly Seeker seeker = new Seeker(1.0 / RunsPerSecond);
 
-    private const int IDLE = 0;
-    private const int ARMED = 1;
-    private const int SNAPSHOT = 2;
-    private const int PAINTING = 3;
-    private const int RELEASED = 4;
+    enum Modes { Idle, Armed, Snapshot, Painting, Released };
 
     // State
-    private int Mode = IDLE, PreviousMode;
+    private Modes Mode = Modes.Idle, PreviousMode;
     private bool GyroLock;
     private bool LocalOnly;
 
@@ -38,7 +34,7 @@ public class TargetTracker
         // Get things into a known state
         var camera = GetMainCamera(commons);
         camera.EnableRaycast = false;
-        Mode = IDLE;
+        Mode = Modes.Idle;
         GyroLock = false;
         RefreshInfo = null;
 
@@ -51,11 +47,11 @@ public class TargetTracker
         switch (argument)
         {
             case "arm":
-                if (Mode == IDLE)
+                if (Mode == Modes.Idle)
                 {
                     var camera = GetMainCamera(commons);
                     camera.EnableRaycast = true;
-                    Mode = ARMED;
+                    Mode = Modes.Armed;
                     RaycastRange = INITIAL_RAYCAST_RANGE;
                 }
                 break;
@@ -63,7 +59,7 @@ public class TargetTracker
                 {
                     var camera = GetMainCamera(commons);
                     camera.EnableRaycast = false;
-                    Mode = IDLE;
+                    Mode = Modes.Idle;
                     break;
                 }
             case "snapshot":
@@ -80,9 +76,9 @@ public class TargetTracker
                 break;
             case "clear":
                 {
-                    if (Mode != IDLE)
+                    if (Mode != Modes.Idle)
                     {
-                        Mode = ARMED;
+                        Mode = Modes.Armed;
                         RaycastRange = INITIAL_RAYCAST_RANGE;
                     }
                     break;
@@ -92,7 +88,7 @@ public class TargetTracker
 
     private void BeginSnapshot(ZACommons commons, EventDriver eventDriver, bool localOnly = true)
     {
-        if (Mode == IDLE)
+        if (Mode == Modes.Idle)
         {
             var camera = GetMainCamera(commons);
             camera.EnableRaycast = true;
@@ -100,14 +96,14 @@ public class TargetTracker
         }
 
         LocalOnly = localOnly;
-        if (Mode != SNAPSHOT) eventDriver.Schedule(1, Snapshot);
+        if (Mode != Modes.Snapshot) eventDriver.Schedule(1, Snapshot);
         PreviousMode = Mode;
-        Mode = SNAPSHOT;
+        Mode = Modes.Snapshot;
     }
 
     public void Snapshot(ZACommons commons, EventDriver eventDriver)
     {
-        if (Mode != SNAPSHOT) return;
+        if (Mode != Modes.Snapshot) return;
 
         var camera = GetMainCamera(commons);
 
@@ -139,28 +135,28 @@ public class TargetTracker
 
         // Switch to paint automatically (leave gyro lock alone)
         RaycastRange = (TargetPosition - camera.GetPosition()).Length() * RAYCAST_RANGE_BUFFER;
-        BeginPaint(commons, eventDriver, released: PreviousMode == RELEASED);
+        BeginPaint(commons, eventDriver, released: PreviousMode == Modes.Released);
 
         PostFeedback(commons, TRACKER_PING_GROUP);
     }
 
     private void BeginPaint(ZACommons commons, EventDriver eventDriver, bool released = false)
     {
-        if (Mode == IDLE)
+        if (Mode == Modes.Idle)
         {
             var camera = GetMainCamera(commons);
             camera.EnableRaycast = true;
             RaycastRange = INITIAL_RAYCAST_RANGE;
         }
 
-        if (Mode != PAINTING && Mode != RELEASED) eventDriver.Schedule(1, Paint);
-        Mode = released ? RELEASED : PAINTING;
+        if (Mode != Modes.Painting && Mode != Modes.Released) eventDriver.Schedule(1, Paint);
+        Mode = released ? Modes.Released : Modes.Painting;
         BeginLock(commons, eventDriver);
     }
 
     public void Paint(ZACommons commons, EventDriver eventDriver)
     {
-        if (Mode != PAINTING && Mode != RELEASED) return;
+        if (Mode != Modes.Painting && Mode != Modes.Released) return;
 
         var camera = GetMainCamera(commons);
 
@@ -215,7 +211,7 @@ public class TargetTracker
 
     private void BeginLock(ZACommons commons, EventDriver eventDriver)
     {
-        if (Mode != PAINTING) return;
+        if (Mode != Modes.Painting) return;
 
         if (!GyroLock)
         {
@@ -230,7 +226,7 @@ public class TargetTracker
     {
         var shipControl = (ShipControlCommons)commons;
 
-        if (Mode != PAINTING || !GyroLock || LastTargetUpdate == null)
+        if (Mode != Modes.Painting || !GyroLock || LastTargetUpdate == null)
         {
             shipControl.GyroControl.EnableOverride(false);
             GyroLock = false;
@@ -252,19 +248,19 @@ public class TargetTracker
     {
         switch (Mode)
         {
-            case IDLE:
+            case Modes.Idle:
                 commons.Echo("Tracker: Off");
                 break;
-            case ARMED:
+            case Modes.Armed:
                 commons.Echo("Tracker: Enabled");
                 break;
-            case SNAPSHOT:
+            case Modes.Snapshot:
                 commons.Echo("Tracker: Searching");
                 commons.Echo(string.Format("Max. Range: {0:F2} m", RaycastRange));
                 break;
-            case PAINTING:
-            case RELEASED:
-                commons.Echo(string.Format("Tracker: Painting ({0})", Mode == PAINTING ? (GyroLock ? "locked" : "lost") : "released"));
+            case Modes.Painting:
+            case Modes.Released:
+                commons.Echo(string.Format("Tracker: Painting ({0})", Mode == Modes.Painting ? (GyroLock ? "locked" : "lost") : "released"));
                 commons.Echo(string.Format("Max. Range: {0:F2} m", RaycastRange));
                 if (LastTargetUpdate != null) commons.Echo(string.Format("Last Update: {0:F1} s", (eventDriver.TimeSinceStart - (TimeSpan)LastTargetUpdate).TotalSeconds));
                 break;
@@ -273,7 +269,7 @@ public class TargetTracker
 
     public void Refresh(ZACommons commons, EventDriver eventDriver)
     {
-        if (Mode == IDLE)
+        if (Mode == Modes.Idle)
         {
             RefreshInfo = null;
             return;

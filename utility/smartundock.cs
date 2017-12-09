@@ -14,12 +14,9 @@ public class SmartUndock
     private Vector3D UndockForward, UndockUp;
     private Base6Directions.Direction? UndockBackward = null;
 
-    private const int IDLE = 0;
-    private const int UNDOCKING = 1;
-    private const int RETURNING = 2;
-    private const int ORIENTING = 3;
+    enum Modes : int { Idle=0, Undocking=1, Returning=2, Orienting=3 };
 
-    private int Mode = IDLE;
+    private Modes Mode = Modes.Idle;
 
     public void Init(ZACommons commons, EventDriver eventDriver)
     {
@@ -52,31 +49,31 @@ public class SmartUndock
             UndockBackward = (Base6Directions.Direction)byte.Parse(backwardString);
         }
 
-        Mode = IDLE;
+        Mode = Modes.Idle;
         var modeString = commons.GetValue(ModeKey);
         if (modeString != null)
         {
-            Mode = int.Parse(modeString);
+            Mode = (Modes)int.Parse(modeString);
 
             switch (Mode)
             {
-                case IDLE:
+                case Modes.Idle:
                     break;
-                case UNDOCKING:
+                case Modes.Undocking:
                     if (UndockTarget != null && UndockBackward != null)
                     {
                         BeginUndock(commons, eventDriver);
                     }
                     else ResetMode(commons);
                     break;
-                case RETURNING:
+                case Modes.Returning:
                     if (UndockTarget != null)
                     {
                         BeginReturn(commons, eventDriver);
                     }
                     else ResetMode(commons);
                     break;
-                case ORIENTING:
+                case Modes.Orienting:
                     if (UndockTarget != null)
                     {
                         ReorientStart(commons, eventDriver);
@@ -155,7 +152,7 @@ public class SmartUndock
 
                             // Schedule the autopilot
                             BeginUndock(c, ed);
-                            Mode = UNDOCKING;
+                            Mode = Modes.Undocking;
                             SaveMode(c);
                             SaveUndockTarget(c);
                         });
@@ -169,7 +166,7 @@ public class SmartUndock
 
             // Schedule the autopilot
             BeginReturn(commons, eventDriver);
-            Mode = RETURNING;
+            Mode = Modes.Returning;
             SaveMode(commons);
         }
         else if (argument == "smartreset")
@@ -188,7 +185,7 @@ public class SmartUndock
 
         shipControl.Reset(gyroOverride: true, thrusterEnable: null);
 
-        Mode = ORIENTING;
+        Mode = Modes.Orienting;
         SaveMode(commons);
 
         eventDriver.Schedule(0, Reorient);
@@ -196,7 +193,7 @@ public class SmartUndock
 
     public void Reorient(ZACommons commons, EventDriver eventDriver)
     {
-        if (Mode != ORIENTING) return;
+        if (Mode != Modes.Orienting) return;
 
         var shipControl = (ShipControlCommons)commons;
         double yawPitchError, rollError;
@@ -219,15 +216,15 @@ public class SmartUndock
     {
         switch (Mode)
         {
-            case IDLE:
+            case Modes.Idle:
                 break;
-            case UNDOCKING:
+            case Modes.Undocking:
                 commons.Echo("SmartUndock: Undocking");
                 break;
-            case RETURNING:
+            case Modes.Returning:
                 commons.Echo("SmartUndock: Returning");
                 break;
-            case ORIENTING:
+            case Modes.Orienting:
                 commons.Echo("SmartUndock: Orienting");
                 break;
         }
@@ -254,13 +251,13 @@ public class SmartUndock
 
     private void ResetMode(ZACommons commons)
     {
-        Mode = IDLE;
+        Mode = Modes.Idle;
         SaveMode(commons);
     }
 
     private void SaveMode(ZACommons commons)
     {
-        commons.SetValue(ModeKey, Mode.ToString());
+        commons.SetValue(ModeKey, ((int)Mode).ToString());
     }
 
     private void SaveUndockTarget(ZACommons commons)

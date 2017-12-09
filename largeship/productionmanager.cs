@@ -100,11 +100,9 @@ public class ProductionManager
             new ItemStock("Thrust", 16000),
         };
 
-    private const int STATE_ACTIVE = 1;
-    private const int STATE_INACTIVATING = -1;
-    private const int STATE_INACTIVE = 0;
+    enum States : int { Inactivating=-1, Inactive=0, Active=1 };
 
-    private int CurrentState = STATE_ACTIVE;
+    private States CurrentState = States.Active;
 
     private Dictionary<string, VRage.MyFixedPoint> EnumerateItems(List<IMyTerminalBlock> blocks, HashSet<string> allowedSubtypes)
     {
@@ -191,20 +189,20 @@ public class ProductionManager
             if (int.TryParse(stateValue, out state))
             {
                 // Use remembered state
-                CurrentState = state;
+                CurrentState = (States)state;
                 // Should really validate, but eh...
             }
         }
         else
         {
-            CurrentState = STATE_ACTIVE;
+            CurrentState = States.Active;
         }
 
         if (PRODUCTION_MANAGER_SETUP)
         {
             Setup(LIMIT_PRODUCTION_MANAGER_SAME_GRID ? commons.Blocks : commons.AllBlocks);
         }
-        else if (CurrentState != STATE_INACTIVE)
+        else if (CurrentState != States.Inactive)
         {
             eventDriver.Schedule(0.0, Run);
         }
@@ -212,7 +210,7 @@ public class ProductionManager
 
     public void Run(ZACommons commons, EventDriver eventDriver)
     {
-        if (CurrentState == STATE_INACTIVE) return;
+        if (CurrentState == States.Inactive) return;
 
         var ship = LIMIT_PRODUCTION_MANAGER_SAME_GRID ? commons.Blocks : commons.AllBlocks;
 
@@ -245,7 +243,7 @@ public class ProductionManager
             }
         }
 
-        if (CurrentState == STATE_ACTIVE)
+        if (CurrentState == States.Active)
         {
             // Get current stocks
             var stocks = EnumerateItems(ship, allowedSubtypes);
@@ -262,14 +260,14 @@ public class ProductionManager
                 target.EnableAssemblers((float)currentStock < target.Amount);
             }
         }
-        else if (CurrentState == STATE_INACTIVATING)
+        else if (CurrentState == States.Inactivating)
         {
             // Shut down all known assemblers
             foreach (var target in assemblerTargets.Values)
             {
                 target.EnableAssemblers(false);
             }
-            SetState(commons, STATE_INACTIVE);
+            SetState(commons, States.Inactive);
         }
 
         eventDriver.Schedule(RunDelay, Run);
@@ -284,12 +282,12 @@ public class ProductionManager
             case "prodpause":
                 // We need this intermediate step because we don't know
                 // the assemblers here.
-                SetState(commons, STATE_INACTIVATING);
+                SetState(commons, States.Inactivating);
                 break;
             case "prodresume":
-                if (CurrentState != STATE_INACTIVE)
+                if (CurrentState != States.Inactive)
                 {
-                    SetState(commons, STATE_ACTIVE);
+                    SetState(commons, States.Active);
                     if (!PRODUCTION_MANAGER_SETUP) eventDriver.Schedule(RunDelay, Run);
                 }
                 break;
@@ -305,13 +303,13 @@ public class ProductionManager
         else
         {
             commons.Echo("Production Manager: " +
-                         (CurrentState == STATE_INACTIVE ? "Paused" : "Active"));
+                         (CurrentState == States.Inactive ? "Paused" : "Active"));
         }
     }
 
-    private void SetState(ZACommons commons, int newState)
+    private void SetState(ZACommons commons, States newState)
     {
         CurrentState = newState;
-        commons.SetValue(StateKey, CurrentState.ToString());
+        commons.SetValue(StateKey, ((int)CurrentState).ToString());
     }
 }

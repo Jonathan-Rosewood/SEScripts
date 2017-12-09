@@ -5,13 +5,9 @@ public class OxygenManager
 {
     private const double RunDelay = 1.0;
 
-    private const int OXYGEN_LEVEL_HIGH = 2;
-    private const int OXYGEN_LEVEL_NORMAL = 1;
-    private const int OXYGEN_LEVEL_BUFFER = 0;
-    private const int OXYGEN_LEVEL_LOW = -1;
-    private const int OXYGEN_LEVEL_UNKNOWN = -2; // Only used for first run
+    enum OxygenLevel { Unknown, Low, Buffer, Normal, High };
 
-    private int PreviousState = OXYGEN_LEVEL_UNKNOWN;
+    private OxygenLevel PreviousState = OxygenLevel.Unknown;
 
     private float GetAverageOxygenTankLevel(List<IMyGasTank> tanks)
     {
@@ -27,24 +23,24 @@ public class OxygenManager
         return count != 0 ? total / count : 0.0f;
     }
 
-    private int GetOxygenState(List<IMyGasTank> tanks)
+    private OxygenLevel GetOxygenState(List<IMyGasTank> tanks)
     {
         var level = GetAverageOxygenTankLevel(tanks);
         if (level >= MAX_OXYGEN_TANK_LEVEL)
         {
-            return OXYGEN_LEVEL_HIGH;
+            return OxygenLevel.High;
         }
         else if (level >= MIN_OXYGEN_TANK_LEVEL)
         {
-            return OXYGEN_LEVEL_NORMAL;
+            return OxygenLevel.Normal;
         }
         else if (level > LOW_OXYGEN_TANK_LEVEL) 
         {
-            return OXYGEN_LEVEL_BUFFER;
+            return OxygenLevel.Buffer;
         }
         else
         {
-            return OXYGEN_LEVEL_LOW;
+            return OxygenLevel.Low;
         }
     }
 
@@ -73,21 +69,21 @@ public class OxygenManager
 
             switch (currentState)
             {
-                case OXYGEN_LEVEL_HIGH:
+                case OxygenLevel.High:
                     // Turn off all oxygen production
                     generateOxygen = false;
                     farmOxygen = false;
                     break;
-                case OXYGEN_LEVEL_NORMAL:
+                case OxygenLevel.Normal:
                     // Do nothing (but keep farms up)
                     farmOxygen = true;
                     break;
-                case OXYGEN_LEVEL_BUFFER:
+                case OxygenLevel.Buffer:
                     // Start producing oxygen
                     generateOxygen = true;
                     farmOxygen = true;
                     break;
-                case OXYGEN_LEVEL_LOW:
+                case OxygenLevel.Low:
                     // Definitely start producing oxygen
                     generateOxygen = true;
                     farmOxygen = true;

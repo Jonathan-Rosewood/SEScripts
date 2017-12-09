@@ -14,12 +14,9 @@ public class LOSMiner
     private Vector3D StartPoint;
     private Vector3D StartDirection, StartUp, StartLeft;
 
-    // NB Saved in Storage. Do not change.
-    private const int IDLE = 0;
-    private const int MINING = 1;
-    private const int REVERSING = 2;
+    enum Modes : int { Idle=0, Mining=1, Reversing=2 }
 
-    private int Mode = IDLE;
+    private Modes Mode = Modes.Idle;
 
     public void Init(ZACommons commons, EventDriver eventDriver)
     {
@@ -30,7 +27,7 @@ public class LOSMiner
             if (parts.Length == 13)
             {
                 // Resume original mode and line-of-sight vector
-                var newMode = int.Parse(parts[0]);
+                var newMode = (Modes)int.Parse(parts[0]);
                 StartPoint = new Vector3D();
                 StartDirection = new Vector3D();
                 StartUp = new Vector3D();
@@ -43,11 +40,11 @@ public class LOSMiner
                     StartLeft.SetDim(i, double.Parse(parts[i+10]));
                 }
 
-                if (newMode == MINING)
+                if (newMode == Modes.Mining)
                 {
                     Start((ShipControlCommons)commons, eventDriver);
                 }
-                else if (newMode == REVERSING)
+                else if (newMode == Modes.Reversing)
                 {
                     StartReverse((ShipControlCommons)commons, eventDriver);
                 }
@@ -82,7 +79,7 @@ public class LOSMiner
                     var shipControl = (ShipControlCommons)commons;
                     shipControl.Reset(gyroOverride: false);
 
-                    Mode = IDLE;
+                    Mode = Modes.Idle;
                     ForgetTarget(shipControl);
                 }
                 break;
@@ -101,16 +98,16 @@ public class LOSMiner
         cruiser.Init(shipControl,
                      localForward: Base6Directions.Direction.Forward);
 
-        if (Mode != MINING)
+        if (Mode != Modes.Mining)
         {
-            Mode = MINING;
+            Mode = Modes.Mining;
             eventDriver.Schedule(0, Mine);
         }
     }
 
     public void Mine(ZACommons commons, EventDriver eventDriver)
     {
-        if (Mode != MINING) return;
+        if (Mode != Modes.Mining) return;
 
         var shipControl = (ShipControlCommons)commons;
 
@@ -135,16 +132,16 @@ public class LOSMiner
         cruiser.Init(shipControl,
                      localForward: Base6Directions.Direction.Backward);
 
-        if (Mode != REVERSING)
+        if (Mode != Modes.Reversing)
         {
-            Mode = REVERSING;
+            Mode = Modes.Reversing;
             eventDriver.Schedule(0, Reverse);
         }
     }
 
     public void Reverse(ZACommons commons, EventDriver eventDriver)
     {
-        if (Mode != REVERSING) return;
+        if (Mode != Modes.Reversing) return;
 
         var shipControl = (ShipControlCommons)commons;
 
@@ -162,7 +159,7 @@ public class LOSMiner
     private void SetTarget(ShipControlCommons shipControl)
     {
         // Only set if neither mining nor reversing
-        if (Mode == IDLE)
+        if (Mode == Modes.Idle)
         {
             StartPoint = shipControl.ReferencePoint;
             StartDirection = shipControl.ReferenceForward;
@@ -211,7 +208,7 @@ public class LOSMiner
     private void SaveTarget(ZACommons commons)
     {
         string[] output = new string[13];
-        output[0] = Mode.ToString();
+        output[0] = ((int)Mode).ToString();
         SaveVector3D(StartPoint, output, 1);
         SaveVector3D(StartDirection, output, 4);
         SaveVector3D(StartUp, output, 7);

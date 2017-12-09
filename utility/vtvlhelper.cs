@@ -11,15 +11,9 @@ public class VTVLHelper
     private readonly Cruiser LongCruiser = new Cruiser(1.0 / RunsPerSecond, 0.02);
     private readonly Cruiser LatCruiser = new Cruiser(1.0 / RunsPerSecond, 0.02);
 
-    private const int IDLE = 0;
-    private const int BURNING = 1;
-    private const int GLIDING = 2;
-    private const int BRAKING = 3;
-    private const int APPROACHING = 4;
-    private const int LAUNCHING = 5;
-    private const int ORBITING = 6;
+    enum Modes { Idle, Burning, Gliding, Braking, Approaching, Launching, Orbiting };
 
-    private int Mode = IDLE;
+    private Modes Mode = Modes.Idle;
     private Func<IMyThrust, bool> ThrusterCondition = null;
 
     private bool Autodrop = false;
@@ -77,9 +71,9 @@ public class VTVLHelper
                 cruiser.Init(shipControl,
                              localForward: BurnDirection);
 
-                if (Mode != BURNING)
+                if (Mode != Modes.Burning)
                 {
-                    Mode = BURNING;
+                    Mode = Modes.Burning;
                     Autodrop = false;
                     eventDriver.Schedule(0, Burn);
                 }
@@ -98,9 +92,9 @@ public class VTVLHelper
                 cruiser.Init(shipControl,
                              localForward: BrakeDirection);
 
-                if (Mode != BRAKING)
+                if (Mode != Modes.Braking)
                 {
-                    Mode = BRAKING;
+                    Mode = Modes.Braking;
                     eventDriver.Schedule(FramesPerRun, Brake);
                 }
 
@@ -177,9 +171,9 @@ public class VTVLHelper
                 cruiser.Init(shipControl,
                              localForward: BurnDirection);
 
-                if (Mode != BURNING)
+                if (Mode != Modes.Burning)
                 {
-                    Mode = BURNING;
+                    Mode = Modes.Burning;
                     Autodrop = true;
                     eventDriver.Schedule(0, Burn);
                 }
@@ -203,9 +197,9 @@ public class VTVLHelper
                 cruiser.Init(shipControl,
                              localForward: LaunchDirection);
 
-                if (Mode != LAUNCHING)
+                if (Mode != Modes.Launching)
                 {
-                    Mode = LAUNCHING;
+                    Mode = Modes.Launching;
                     eventDriver.Schedule(FramesPerRun, Launch);
                 }
 
@@ -225,10 +219,10 @@ public class VTVLHelper
             {
                 OrbitInit(shipControl);
 
-                if (Mode != ORBITING)
+                if (Mode != Modes.Orbiting)
                 {
                     OrbitTicks = 0;
-                    Mode = ORBITING;
+                    Mode = Modes.Orbiting;
                     eventDriver.Schedule(0, OrbitOn);
                 }
 
@@ -244,7 +238,7 @@ public class VTVLHelper
 
     public void Burn(ZACommons commons, EventDriver eventDriver)
     {
-        if (ShouldAbort(commons, eventDriver, BURNING, false)) return;
+        if (ShouldAbort(commons, eventDriver, Modes.Burning, false)) return;
 
         var shipControl = (ShipControlCommons)commons;
 
@@ -274,7 +268,7 @@ public class VTVLHelper
                 LatCruiser.Init(shipControl, localForward: right);
             }
 
-            Mode = GLIDING;
+            Mode = Modes.Gliding;
             eventDriver.Schedule(FramesPerRun, Glide);
         }
         else
@@ -288,7 +282,7 @@ public class VTVLHelper
 
     public void Glide(ZACommons commons, EventDriver eventDriver)
     {
-        if (ShouldAbort(commons, eventDriver, GLIDING, Autodrop)) return;
+        if (ShouldAbort(commons, eventDriver, Modes.Gliding, Autodrop)) return;
 
         var shipControl = (ShipControlCommons)commons;
 
@@ -317,7 +311,7 @@ public class VTVLHelper
                     cruiser.Init(shipControl,
                                  localForward: BrakeDirection);
 
-                    Mode = APPROACHING;
+                    Mode = Modes.Approaching;
                     eventDriver.Schedule(FramesPerRun, Approach);
                 }
                 else
@@ -339,7 +333,7 @@ public class VTVLHelper
 
     public void Brake(ZACommons commons, EventDriver eventDriver)
     {
-        if (ShouldAbort(commons, eventDriver, BRAKING, Autodrop)) return;
+        if (ShouldAbort(commons, eventDriver, Modes.Braking, Autodrop)) return;
 
         var shipControl = (ShipControlCommons)commons;
 
@@ -366,7 +360,7 @@ public class VTVLHelper
 
     public void Approach(ZACommons commons, EventDriver eventDriver)
     {
-        if (Mode != APPROACHING) return;
+        if (Mode != Modes.Approaching) return;
 
         var shipControl = (ShipControlCommons)commons;
 
@@ -414,7 +408,7 @@ public class VTVLHelper
 
     public void Launch(ZACommons commons, EventDriver eventDriver)
     {
-        if (Mode != LAUNCHING) return;
+        if (Mode != Modes.Launching) return;
 
         var shipControl = (ShipControlCommons)commons;
 
@@ -454,7 +448,7 @@ public class VTVLHelper
 
     public void OrbitOn(ZACommons commons, EventDriver eventDriver)
     {
-        if (Mode != ORBITING) return;
+        if (Mode != Modes.Orbiting) return;
         var shipControl = (ShipControlCommons)commons;
 
         var controller = GetShipController(shipControl);
@@ -487,7 +481,7 @@ public class VTVLHelper
 
     public void OrbitOff(ZACommons commons, EventDriver eventDriver)
     {
-        if (Mode != ORBITING) return;
+        if (Mode != Modes.Orbiting) return;
         var shipControl = (ShipControlCommons)commons;
 
         // Switch on
@@ -500,13 +494,13 @@ public class VTVLHelper
     {
         switch (Mode)
         {
-            case IDLE:
+            case Modes.Idle:
                 break;
-            case BURNING:
+            case Modes.Burning:
                 commons.Echo("VTVL: Burn phase");
                 if (Autodrop) commons.Echo("Auto-drop starting");
                 break;
-            case GLIDING:
+            case Modes.Gliding:
                 commons.Echo("VTVL: Glide phase");
                 if (Autodrop)
                 {
@@ -514,18 +508,18 @@ public class VTVLHelper
                     commons.Echo(string.Format("Brake Distance: {0:F2} m", Distance));
                 }
                 break;
-            case BRAKING:
+            case Modes.Braking:
                 commons.Echo("VTVL: Braking");
                 break;
-            case APPROACHING:
+            case Modes.Approaching:
                 commons.Echo("VTVL: Approach phase");
                 commons.Echo(string.Format("Elevation: {0:F2} m", Elevation));
                 commons.Echo(string.Format("Stop Distance: {0:F2} m", Distance));
                 break;
-            case LAUNCHING:
+            case Modes.Launching:
                 commons.Echo("VTVL: Launching");
                 break;
-            case ORBITING:
+            case Modes.Orbiting:
                 commons.Echo("VTVL: Orbiting");
                 break;
         }
@@ -535,7 +529,7 @@ public class VTVLHelper
     {
         shipControl.Reset(gyroOverride: false, thrusterEnable: true,
                           thrusterCondition: ThrusterCondition);
-        Mode = IDLE;
+        Mode = Modes.Idle;
 
         SaveLastCommand(shipControl, null);
     }
@@ -546,7 +540,7 @@ public class VTVLHelper
         gyroControl.Reset();
         gyroControl.EnableOverride(false);
 
-        Mode = IDLE;
+        Mode = Modes.Idle;
 
         SaveLastCommand(shipControl, null);
     }
@@ -556,7 +550,7 @@ public class VTVLHelper
         if (shipControl.ShipController == null)
         {
             // No more controllers? Just abort
-            if (Mode == ORBITING)
+            if (Mode == Modes.Orbiting)
             {
                 ResetOrbit(shipControl);
             }
@@ -595,7 +589,7 @@ public class VTVLHelper
     }
 
     private bool ShouldAbort(ZACommons commons, EventDriver eventDriver,
-                             int expectedMode, bool ignoreLiveness)
+                             Modes expectedMode, bool ignoreLiveness)
     {
         if (!ignoreLiveness && LivenessCheck != null &&
             !LivenessCheck(commons, eventDriver))

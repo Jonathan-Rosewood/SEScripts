@@ -4,27 +4,25 @@ public class DamageControl
     private const double RunDelay = 3.0;
     private const string ModeKey = "DamageConrol_Mode";
 
-    private const int IDLE = 0;
-    private const int ACTIVE = 1;
-    private const int AUTO = 2;
+    enum Modes : int { Idle=0, Active=1, Auto=2 };
 
-    private int Mode = IDLE;
+    private Modes Mode = Modes.Idle;
 
     public void Init(ZACommons commons, EventDriver eventDriver)
     {
-        Mode = IDLE;
+        Mode = Modes.Idle;
         var modeString = commons.GetValue(ModeKey);
         if (modeString != null)
         {
             var newMode = int.Parse(modeString);
-            switch (newMode)
+            switch ((Modes)newMode)
             {
-                case IDLE:
+                case Modes.Idle:
                     break;
-                case ACTIVE:
+                case Modes.Active:
                     Start(commons, eventDriver, false);
                     break;
-                case AUTO:
+                case Modes.Auto:
                     Start(commons, eventDriver, true);
                     break;
             }
@@ -65,16 +63,16 @@ public class DamageControl
     private void Start(ZACommons commons, EventDriver eventDriver, bool auto)
     {
         Show(commons);
-        if (Mode == IDLE) eventDriver.Schedule(RunDelay, Run);
-        Mode = auto ? AUTO : ACTIVE;
+        if (Mode == Modes.Idle) eventDriver.Schedule(RunDelay, Run);
+        Mode = auto ? Modes.Auto : Modes.Active;
         SaveMode(commons);
     }
 
     public void Run(ZACommons commons, EventDriver eventDriver)
     {
-        if (Mode == IDLE) return;
+        if (Mode == Modes.Idle) return;
         var damaged = Show(commons) > 0;
-        if (Mode == ACTIVE || damaged)
+        if (Mode == Modes.Active || damaged)
         {
             eventDriver.Schedule(RunDelay, Run);
         }
@@ -86,7 +84,7 @@ public class DamageControl
 
     public void Display(ZACommons commons)
     {
-        if (Mode != IDLE)
+        if (Mode != Modes.Idle)
         {
             commons.Echo("Damage Control: Active");
         }
@@ -110,12 +108,12 @@ public class DamageControl
 
     private void ResetMode(ZACommons commons)
     {
-        Mode = IDLE;
+        Mode = Modes.Idle;
         SaveMode(commons);
     }
 
     private void SaveMode(ZACommons commons)
     {
-        commons.SetValue(ModeKey, Mode.ToString());
+        commons.SetValue(ModeKey, ((int)Mode).ToString());
     }
 }

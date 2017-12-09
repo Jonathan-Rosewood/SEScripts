@@ -6,12 +6,9 @@ public class FireControl
 
     private readonly Seeker seeker = new Seeker(1.0 / RunsPerSecond);
 
-    private const int IDLE = 0;
-    private const int ARMED = 1;
-    private const int SNAPSHOT = 2;
-    private const int LOCKED = 3;
+    enum Modes { Idle, Armed, Snapshot, Locked };
 
-    private int Mode = IDLE;
+    private Modes Mode = Modes.Idle;
 
     private long TargetID;
     private Vector3D TargetOffset, TargetAimPoint, TargetVelocity;
@@ -31,7 +28,7 @@ public class FireControl
         // Get things into a known state
         var camera = GetSightingCamera(commons);
         if (camera != null) camera.EnableRaycast = false;
-        Mode = IDLE;
+        Mode = Modes.Idle;
 
         shipControl.GyroControl.EnableOverride(false);
 
@@ -45,13 +42,13 @@ public class FireControl
         switch (argument)
         {
             case "arm":
-                if (Mode == IDLE)
+                if (Mode == Modes.Idle)
                 {
                     var camera = GetSightingCamera(commons);
                     if (camera != null)
                     {
                         camera.EnableRaycast = true;
-                        Mode = ARMED;
+                        Mode = Modes.Armed;
                     }
                 }
                 break;
@@ -60,7 +57,7 @@ public class FireControl
                     var camera = GetSightingCamera(commons);
                     if (camera != null) camera.EnableRaycast = false;
                     MaybeEndLock(commons, eventDriver);
-                    Mode = IDLE;
+                    Mode = Modes.Idle;
                     break;
                 }
             case "lock":
@@ -70,10 +67,10 @@ public class FireControl
                 }
             case "unlock":
                 {
-                    if (Mode != IDLE)
+                    if (Mode != Modes.Idle)
                     {
                         MaybeEndLock(commons, eventDriver);
-                        Mode = ARMED;
+                        Mode = Modes.Armed;
                     }
                     break;
                 }
@@ -88,7 +85,7 @@ public class FireControl
                     break;
                 }
             default:
-                if (Mode == LOCKED)
+                if (Mode == Modes.Locked)
                 {
                     HandleRemoteCommand(commons, eventDriver, argument);
                 }
@@ -137,28 +134,28 @@ public class FireControl
 
     private void BeginSnapshot(ZACommons commons, EventDriver eventDriver)
     {
-        if (Mode == IDLE)
+        if (Mode == Modes.Idle)
         {
             var camera = GetSightingCamera(commons);
             if (camera == null) return;
             camera.EnableRaycast = true;
         }
 
-        if (Mode != SNAPSHOT) eventDriver.Schedule(1, Snapshot);
+        if (Mode != Modes.Snapshot) eventDriver.Schedule(1, Snapshot);
         MaybeEndLock(commons, eventDriver);
-        Mode = SNAPSHOT;
+        Mode = Modes.Snapshot;
 
         GetShellParameters(commons);
     }
 
     public void Snapshot(ZACommons commons, EventDriver eventDriver)
     {
-        if (Mode != SNAPSHOT) return;
+        if (Mode != Modes.Snapshot) return;
 
         var camera = GetSightingCamera(commons);
         if (camera == null)
         {
-            Mode = IDLE;
+            Mode = Modes.Idle;
             return;
         }
 
@@ -198,12 +195,12 @@ public class FireControl
         var shipControl = (ShipControlCommons)commons;
         shipControl.GyroControl.EnableOverride(true);
         eventDriver.Schedule(1, Lock);
-        Mode = LOCKED;
+        Mode = Modes.Locked;
     }
 
     public void Lock(ZACommons commons, EventDriver eventDriver)
     {
-        if (Mode != LOCKED) return;
+        if (Mode != Modes.Locked) return;
 
         var shipControl = (ShipControlCommons)commons;
 
@@ -249,16 +246,16 @@ public class FireControl
     {
         switch (Mode)
         {
-            case IDLE:
+            case Modes.Idle:
                 commons.Echo("Fire Control: Off");
                 break;
-            case ARMED:
+            case Modes.Armed:
                 commons.Echo("Fire Control: Enabled");
                 break;
-            case SNAPSHOT:
+            case Modes.Snapshot:
                 commons.Echo("Fire Control: Searching");
                 break;
-            case LOCKED:
+            case Modes.Locked:
                 commons.Echo("Fire Control: Locked");
                 commons.Echo(string.Format("Last Update: {0:F1} s", (eventDriver.TimeSinceStart - LastTargetUpdate).TotalSeconds));
                 break;
@@ -282,12 +279,12 @@ public class FireControl
             }
         }
 
-        if (Mode == LOCKED)
+        if (Mode == Modes.Locked)
         {
             // Zero out gyro and keep it overridden
             var shipControl = (ShipControlCommons)commons;
             shipControl.GyroControl.Reset();
-            Mode = ARMED;
+            Mode = Modes.Armed;
             eventDriver.Schedule(3.0, EndLock);
         }
     }
@@ -302,7 +299,7 @@ public class FireControl
     // the delayed unlock above.
     private void MaybeEndLock(ZACommons commons, EventDriver eventDriver)
     {
-        if (Mode == LOCKED) EndLock(commons, eventDriver);
+        if (Mode == Modes.Locked) EndLock(commons, eventDriver);
     }
 
     private IMyCameraBlock GetSightingCamera(ZACommons commons)
