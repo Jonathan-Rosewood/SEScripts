@@ -1,4 +1,4 @@
-//@ commons eventdriver
+//@ commons eventdriver printutils
 public class SolarRotorController
 {
     private const double RunDelay = 1.0;
@@ -135,7 +135,7 @@ public class SolarRotorController
     {
         if (Active)
         {
-            commons.Echo(string.Format("Solar Max Power: {0}", ZACommons.FormatPower(TotalPower)));
+            commons.Echo(string.Format("Solar Max Power: {0}", PrintUtils.FormatPower(TotalPower)));
         }
         else
         {

@@ -1,4 +1,4 @@
-//@ shipcontrol eventdriver
+//@ shipcontrol eventdriver printutils
 public class SolarGyroController
 {
     private const double RunDelay = 1.0;
@@ -162,7 +162,7 @@ public class SolarGyroController
         }
         else
         {
-            commons.Echo(string.Format("Solar Max Power: {0}", ZACommons.FormatPower(CurrentMaxPower)));
+            commons.Echo(string.Format("Solar Max Power: {0}", PrintUtils.FormatPower(CurrentMaxPower)));
         }
     }
 
