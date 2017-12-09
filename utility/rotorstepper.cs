@@ -7,13 +7,13 @@ public class RotorStepper
     private const double BaseRotorStep = Math.PI / 180.0;
     private int StepFactor = -1;
 
-    private const double RotorKp = 100.0;
+    private const double RotorKp = 1.0;
     private const double RotorKi = 0.0;
-    private const double RotorKd = 0.0;
+    private const double RotorKd = 0.01;
 
     private readonly PIDController pid = new PIDController(1.0 / RunsPerSecond);
 
-    private double SetPoint
+    public double SetPoint
     {
         get { return m_setPoint; }
         set
@@ -34,21 +34,21 @@ public class RotorStepper
 
     private readonly string RotorGroupName;
     private readonly string CommandPrefix;
-    private double StepAmount; // MinError = 1/2 of this
+    private double StepAmount = Math.PI / 900.0; // MinError = 1/2 of this
     private bool Active = false;
 
     public RotorStepper(string groupName, string commandPrefix = null)
     {
         RotorGroupName = groupName;
         CommandPrefix = string.IsNullOrWhiteSpace(commandPrefix) ? null : commandPrefix;
+
+        pid.Kp = RotorKp;
+        pid.Ki = RotorKi;
+        pid.Kd = RotorKd;
     }
 
     public void Init(ZACommons commons, EventDriver eventDriver)
     {
-        pid.Kp = RotorKp;
-        pid.Ki = RotorKi;
-        pid.Kd = RotorKd;
-
         UpdateStepAmount(commons);
     }
 
@@ -126,7 +126,7 @@ public class RotorStepper
         }
     }
 
-    private void Schedule(EventDriver eventDriver)
+    public void Schedule(EventDriver eventDriver)
     {
         if (!Active)
         {
@@ -142,7 +142,7 @@ public class RotorStepper
         SetPoint = rotor.Angle;
     }
 
-    private IMyMotorStator GetRotor(ZACommons commons)
+    public IMyMotorStator GetRotor(ZACommons commons)
     {
         var rotorGroup = commons.GetBlockGroupWithName(RotorGroupName);
         if (rotorGroup == null)
