@@ -1,4 +1,4 @@
-//@ shipcontrol eventdriver seeker cruiser customdata
+//@ shipcontrol eventdriver seeker cruiser customdata timerblockutils
 public class VTVLHelper
 {
     private const string LastCommandKey = "VTVLHelper_LastCommand";
@@ -381,7 +381,7 @@ public class VTVLHelper
                 // All done. Re-enable thrusters and restore control.
                 Reset(shipControl);
 
-                ZACommons.StartTimerBlockWithName(commons.Blocks, VTVLHELPER_DROP_DONE);
+                TimerBlockUtils.StartTimerBlockWithName(commons.Blocks, VTVLHELPER_DROP_DONE);
             }
             else
             {
@@ -431,7 +431,7 @@ public class VTVLHelper
             // Out of gravity
             Reset(shipControl);
 
-            ZACommons.StartTimerBlockWithName(commons.Blocks, VTVLHELPER_LAUNCH_DONE);
+            TimerBlockUtils.StartTimerBlockWithName(commons.Blocks, VTVLHELPER_LAUNCH_DONE);
         }
     }
 

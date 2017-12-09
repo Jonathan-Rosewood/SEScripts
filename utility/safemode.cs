@@ -1,4 +1,4 @@
-//@ commons eventdriver dockinghandler safemodehandler
+//@ commons eventdriver dockinghandler safemodehandler timerblockutils
 public class SafeMode : DockingHandler
 {
     private const double FastRunDelay = 1.0;
@@ -203,7 +203,7 @@ public class SafeMode : DockingHandler
             SafeModeHandlers[i].SafeMode(commons, eventDriver);
         }
 
-        ZACommons.StartTimerBlockWithName(commons.Blocks, timerBlockName);
+        TimerBlockUtils.StartTimerBlockWithName(commons.Blocks, timerBlockName);
     }
 
     private void TriggerIfNoAntenna(ZACommons commons, EventDriver eventDriver)

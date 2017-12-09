@@ -220,21 +220,6 @@ public class ZACommons
         get { return Program.Echo; }
     }
 
-    // Misc
-
-    public static bool StartTimerBlockWithName(IEnumerable<IMyTerminalBlock> blocks, string name,
-                                               Func<IMyTimerBlock, bool> condition = null)
-    {
-        var timer = GetBlockWithName<IMyTimerBlock>(blocks, name);
-        if (timer != null && timer.Enabled && !timer.IsCountingDown &&
-            (condition == null || condition(timer)))
-        {
-            timer.ApplyAction("Start");
-            return true;
-        }
-        return false;
-    }
-
     // Storage
 
     public void SetValue(string key, string value)

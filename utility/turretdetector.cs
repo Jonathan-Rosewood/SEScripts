@@ -1,4 +1,4 @@
-//@ commons eventdriver
+//@ commons eventdriver timerblockutils
 public class TurretBasedDetector
 {
     private const double RunDelay = 1.0;
@@ -41,8 +41,8 @@ public class TurretBasedDetector
                             turret.Azimuth != info.LastAzimuth)
                         {
                             // Trigger
-                            ZACommons.StartTimerBlockWithName(commons.Blocks,
-                                                              TURRET_DETECTOR_TRIGGER_TIMER_BLOCK_NAME);
+                            TimerBlockUtils.StartTimerBlockWithName(commons.Blocks,
+                                                                    TURRET_DETECTOR_TRIGGER_TIMER_BLOCK_NAME);
                             // And don't trigger again until reset
                             Triggered = true;
                             break;

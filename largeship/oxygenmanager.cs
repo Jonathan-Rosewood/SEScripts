@@ -1,4 +1,4 @@
-//@ commons eventdriver
+//@ commons eventdriver timerblockutils
 // Note that if there are no tanks, the Low Oxygen timer block is triggered
 // on compile/world load. For now, this is desired.
 public class OxygenManager
@@ -89,7 +89,7 @@ public class OxygenManager
                     farmOxygen = true;
                     // For now, it's intentional that we start timer blocks
                     // on all grids... we'll see how it goes
-                    ZACommons.StartTimerBlockWithName(commons.AllBlocks, LOW_OXYGEN_NAME);
+                    TimerBlockUtils.StartTimerBlockWithName(commons.AllBlocks, LOW_OXYGEN_NAME);
                     break;
             }
 
