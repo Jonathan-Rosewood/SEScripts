@@ -235,26 +235,6 @@ public class ZACommons
         return false;
     }
 
-    public static bool IsConnectedAnywhere(IEnumerable<IMyTerminalBlock> connectors)
-    {
-        foreach (var block in connectors)
-        {
-            var connector = block as IMyShipConnector;
-            if (connector != null && connector.Status == MyShipConnectorStatus.Connected)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /* BROKEN 01.102
-    public static bool IsConnectedAnywhere(IEnumerable<IMyTerminalBlock> blocks)
-    {
-        return IsConnectedAnywhere(GetBlocksOfType<IMyShipConnector>(blocks));
-    }
-    */
-
     // Storage
 
     public void SetValue(string key, string value)

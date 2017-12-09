@@ -11,7 +11,7 @@ public class DockingManager
                      params DockingHandler[] dockingHandlers)
     {
         DockingHandlers = dockingHandlers;
-        var docked = ZACommons.IsConnectedAnywhere(commons.Blocks);
+        var docked = IsConnectedAnywhere(commons.Blocks);
         ManageShip(commons, eventDriver, docked);
     }
 
@@ -192,7 +192,7 @@ public class DockingManager
         if (!IsDocked) return;
 
         // Just check if we're still connected
-        if (!ZACommons.IsConnectedAnywhere(commons.Blocks))
+        if (!IsConnectedAnywhere(commons.Blocks))
         {
             // Time to panic and/or wake up
             ManageShip(commons, eventDriver, false);
@@ -201,5 +201,18 @@ public class DockingManager
         {
             eventDriver.Schedule(RunDelay, Sleep);
         }
+    }
+
+    private static bool IsConnectedAnywhere(IEnumerable<IMyTerminalBlock> connectors)
+    {
+        foreach (var block in connectors)
+        {
+            var connector = block as IMyShipConnector;
+            if (connector != null && connector.Status == MyShipConnectorStatus.Connected)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }
