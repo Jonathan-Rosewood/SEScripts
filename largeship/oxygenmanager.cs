@@ -9,9 +9,9 @@ public class OxygenManager
 
     private OxygenLevel PreviousState = OxygenLevel.Unknown;
 
-    private float GetAverageOxygenTankLevel(List<IMyGasTank> tanks)
+    private double GetAverageOxygenTankLevel(List<IMyGasTank> tanks)
     {
-        float total = 0.0f;
+        double total = 0.0;
         int count = 0;
 
         foreach (var tank in tanks)
@@ -20,7 +20,7 @@ public class OxygenManager
             count++;
         }
 
-        return count != 0 ? total / count : 0.0f;
+        return count != 0 ? total / count : 0.0;
     }
 
     private OxygenLevel GetOxygenState(List<IMyGasTank> tanks)
