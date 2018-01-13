@@ -136,23 +136,37 @@ public class CruiseControl
                 if (parts.Length == 4) CruiseFlags = parts[3];
 
                 double desiredSpeed;
-                if (double.TryParse(speed, out desiredSpeed))
-                {
-                    TargetSpeed = Math.Max(desiredSpeed, 0.0);
-
-                    thrustPID.Reset();
-
-                    if (!Active)
-                    {
-                        SaveThrusterStates(commons);
-                        Active = true;
-                        eventDriver.Schedule(0, Run);
+                if (speed == "set" || speed == "current") {
+                    // Use current speed
+                    var shipControl = (ShipControlCommons)commons;
+                    var velocity = shipControl.LinearVelocity;
+                    if (velocity != null) {
+                        desiredSpeed = ((Vector3D)velocity).Length();
+                        CruiseStart(commons, eventDriver, desiredSpeed, argument);
                     }
-
-                    SaveLastCommand(commons, argument);
+                }
+                else if (double.TryParse(speed, out desiredSpeed))
+                {
+                    CruiseStart(commons, eventDriver, desiredSpeed, argument);
                 }
             }
         }
+    }
+
+    private void CruiseStart(ZACommons commons, EventDriver eventDriver, double desiredSpeed, string argument)
+    {
+        TargetSpeed = Math.Max(desiredSpeed, 0.0);
+
+        thrustPID.Reset();
+
+        if (!Active)
+        {
+            SaveThrusterStates(commons);
+            Active = true;
+            eventDriver.Schedule(0, Run);
+        }
+
+        SaveLastCommand(commons, argument);
     }
 
     private Func<IMyThrust, bool> ParseCruiseFlags()
